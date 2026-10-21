@@ -7,7 +7,9 @@
  * so it follows the scroll smoothly instead of jumping frame by frame. A reversed
  * copy plays when the visitor scrolls back. The film ends looking at the Sandy
  * Labs logo pressed into the sand, rests there briefly, then opens the homepage.
- * While the camera moves through the forest, short lines slide through on top.
+ * While the camera moves through the forest, short lines slide through on top;
+ * the camera's small turn toward each line is baked into the video
+ * (scripts/intro/camera_look.py reads the caption timings below).
  *
  * To replace the footage, re-encode with `scripts/intro/build-intro.sh` (or keep
  * the same file names) and update `duration` below.
@@ -37,7 +39,7 @@ export const introConfig = {
   },
   poster: "/media/intro/intro-poster.jpg",
   /** Length of the clip in seconds. */
-  duration: 712 / 24, // 29.67s: 712 frames at 24 fps
+  duration: 712 / 24, // 29.67s at 24 fps (updated with the next video build)
   /** Film seconds per pixel of wheel scroll (one mouse-wheel notch ≈ 100px ≈ 0.7s). */
   wheelSeconds: 0.007,
   /** Film seconds per pixel of finger drag on touch screens. */
@@ -48,7 +50,7 @@ export const introConfig = {
    * How far (seconds) the target may run ahead of the picture. This is how long
    * the film keeps gliding after scrolling stops, so it stays short.
    */
-  maxLead: 0.9,
+  maxLead: 1.2,
   /**
    * Scroll speed through the film, as [film time, multiplier] points with linear
    * blending between them: steady over the jet, quicker on the approach to the
@@ -64,14 +66,11 @@ export const introConfig = {
   ] as [number, number][],
   /** Scroll moves the film this much slower while a caption is fully on screen. */
   captionSlowdown: 0.35,
-  /** How far the camera turns toward a caption: horizontal shift in % and the zoom that hides the edges. */
-  lookShift: 1.8,
-  lookZoom: 0.045,
   /** Playback speed limits while catching up with the scroll (maxRate is scaled by `pace`). */
   minRate: 0.5,
   maxRate: 2.2,
   /** Playback speed per second the picture is behind the scroll target. */
-  catchUp: 2.6,
+  catchUp: 2.2,
   /** How long (ms) the film rests on the logo in the sand before the homepage opens. */
   endHold: 2200,
   /** Absolute speed ceiling: above ~2.6x software video decoders start to drop frames. */

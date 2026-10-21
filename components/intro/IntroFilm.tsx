@@ -11,7 +11,7 @@ type IntroFilmProps = {
 };
 
 const { duration, wheelSeconds, touchSeconds, keySeconds, maxLead, minRate, maxRate } = introConfig;
-const { pace, captionSlowdown, lookShift, lookZoom, captions, catchUp, rateCeiling, endHold } = introConfig;
+const { pace, captionSlowdown, captions, catchUp, rateCeiling, endHold } = introConfig;
 /** Closer than this to the target counts as "arrived" and playback pauses. */
 const SETTLE = 0.04;
 
@@ -55,16 +55,6 @@ function paceAt(t: number) {
   return base * (1 - captionSlowdown * reading);
 }
 
-/** Which way (and how much) the camera should look: +1 toward a right-hand caption, -1 toward a left one. */
-function lookAt(t: number) {
-  let look = 0;
-  for (const c of captions) {
-    const p = (t - c.start) / (c.end - c.start);
-    if (p > 0 && p < 1) look += (c.from === "right" ? 1 : -1) * Math.sin(Math.PI * p);
-  }
-  return clamp(look, -1, 1);
-}
-
 /**
  * Full-screen, scroll-driven intro film. Scrolling (wheel, touch, keys) moves a
  * target time; a frame loop plays the video toward it with a speed that eases
@@ -89,7 +79,6 @@ export function IntroFilm({ onExit, leaving }: IntroFilmProps) {
   const endReachedAt = useRef(0);
   const captionRefs = useRef<(HTMLParagraphElement | null)[]>([]);
   const captionShadeRef = useRef<HTMLDivElement>(null);
-  const cameraRef = useRef<HTMLDivElement>(null);
   const rate = useRef(minRate);
   const rateSetAt = useRef(0);
 
@@ -148,19 +137,7 @@ export function IntroFilm({ onExit, leaving }: IntroFilmProps) {
       setActive(which);
     };
 
-    let look = 0;
     const paintCaptions = (t: number) => {
-      // Ease the camera toward the active caption, like turning to read it.
-      look += (lookAt(t) - look) * 0.06;
-      const cam = cameraRef.current;
-      if (cam) {
-        const a = Math.abs(look);
-        const transform =
-          a < 0.001
-            ? "none"
-            : `translate3d(${(-look * lookShift).toFixed(3)}%, 0, 0) scale(${(1 + lookZoom * a).toFixed(4)})`;
-        if (cam.style.transform !== transform) cam.style.transform = transform;
-      }
       let strongest = 0;
       captions.forEach((c, i) => {
         const el = captionRefs.current[i];
@@ -178,11 +155,31 @@ export function IntroFilm({ onExit, leaving }: IntroFilmProps) {
       if (shade && shade.style.opacity !== shadeAlpha) shade.style.opacity = shadeAlpha;
     };
 
-    const tick = () => {
+    // A film clock that advances every display frame. video.currentTime only moves
+    // once per decoded video frame (24 fps) and in uneven steps, so captions driven
+    // by it directly would judder on 60/120 Hz screens. This clock
+    // runs at the playback rate and is gently corrected toward the decoder's time.
+    let smoothT = -1;
+    let lastTs = 0;
+    const filmClock = (ts: number, fwd: HTMLVideoElement, rev: HTMLVideoElement) => {
+      const actual = now();
+      const dt = lastTs ? Math.min(0.1, (ts - lastTs) / 1000) : 0;
+      lastTs = ts;
+      if (smoothT < 0 || Math.abs(actual - smoothT) > 0.4) {
+        smoothT = actual; // first frame, or a seek / direction switch
+        return smoothT;
+      }
+      const playing = activeRef.current === "fwd" ? fwd : rev;
+      if (!playing.paused) smoothT += (activeRef.current === "fwd" ? 1 : -1) * playing.playbackRate * dt;
+      smoothT += (actual - smoothT) * 0.08;
+      return smoothT;
+    };
+
+    const tick = (ts: number) => {
       raf = requestAnimationFrame(tick);
       const fwd = fwdRef.current;
       const rev = revRef.current;
-      if (fwd && rev && readyRef.current && !reduce.current) paintCaptions(now());
+      if (fwd && rev && readyRef.current && !reduce.current) paintCaptions(filmClock(ts, fwd, rev));
       if (!fwd || !rev || !readyRef.current || exited.current || switching.current || reduce.current) return;
 
       const t = now();
@@ -227,17 +224,16 @@ export function IntroFilm({ onExit, leaving }: IntroFilmProps) {
         return;
       }
 
-      // Ease the speed and only touch playbackRate when it changes meaningfully:
-      // frequent rate changes make some decoders drop frames.
-      // Catch up quickly (short glide after scrolling stops); top speed follows the section pace.
+      // Ease the speed in small, frequent steps so speed changes glide rather than
+      // jump; top speed follows the section pace.
       const want = clamp(Math.abs(diff) * catchUp, minRate, Math.min(rateCeiling, maxRate * paceAt(t)));
-      rate.current += (want - rate.current) * 0.12;
+      rate.current += (want - rate.current) * 0.08;
       const stamp = performance.now();
       if (video.paused) {
         video.playbackRate = rate.current;
         rateSetAt.current = stamp;
-      } else if (Math.abs(video.playbackRate - rate.current) / rate.current > 0.1 && stamp - rateSetAt.current > 120) {
-        video.playbackRate = Math.round(rate.current * 20) / 20;
+      } else if (Math.abs(video.playbackRate - rate.current) / rate.current > 0.03 && stamp - rateSetAt.current > 50) {
+        video.playbackRate = Math.round(rate.current * 50) / 50;
         rateSetAt.current = stamp;
       }
       if (video.paused) {
@@ -406,8 +402,8 @@ export function IntroFilm({ onExit, leaving }: IntroFilmProps) {
       }`}
       style={{ overscrollBehavior: "contain", touchAction: "none" }}
     >
-      {/* Film: two stacked copies, forward and reversed, inside a "camera" that turns toward captions. */}
-      <div ref={cameraRef} className="absolute inset-0 will-change-transform">
+      {/* Film: two stacked copies, forward and reversed. */}
+      <div className="absolute inset-0">
         {(["fwd", "rev"] as const).map((which) => (
           <video
             key={which}
