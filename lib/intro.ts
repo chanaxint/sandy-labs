@@ -43,11 +43,36 @@ export const introConfig = {
   touchSeconds: 0.03,
   /** Film seconds added per arrow / Page Down key press. */
   keySeconds: 2,
-  /** How far (seconds) the target may run ahead of the picture, so it never drifts long after scrolling stops. */
-  maxLead: 2.5,
-  /** Playback speed limits while catching up with the scroll. */
+  /**
+   * How far (seconds) the target may run ahead of the picture. This is how long
+   * the film keeps gliding after scrolling stops, so it stays short.
+   */
+  maxLead: 0.9,
+  /**
+   * Scroll speed through the film, as [film time, multiplier] points with linear
+   * blending between them: steady over the jet, quicker on the approach to the
+   * island, back to normal in the forest. Caption reading time is added on top
+   * (`captionSlowdown`).
+   */
+  pace: [
+    [0, 1],
+    [9.4, 1],
+    [10.6, 1.45],
+    [15.0, 1.45],
+    [16.2, 1],
+  ] as [number, number][],
+  /** Scroll moves the film this much slower while a caption is fully on screen. */
+  captionSlowdown: 0.35,
+  /** How far the camera turns toward a caption: horizontal shift in % and the zoom that hides the edges. */
+  lookShift: 1.8,
+  lookZoom: 0.045,
+  /** Playback speed limits while catching up with the scroll (maxRate is scaled by `pace`). */
   minRate: 0.5,
   maxRate: 2.2,
+  /** Playback speed per second the picture is behind the scroll target. */
+  catchUp: 2.6,
+  /** Absolute speed ceiling: above ~2.6x software video decoders start to drop frames. */
+  rateCeiling: 2.6,
   /**
    * Lines that slide through while the camera moves through the forest
    * (about 16s-25.5s in the film). They follow the film's position, so they

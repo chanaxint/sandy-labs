@@ -11,6 +11,7 @@ type IntroFilmProps = {
 };
 
 const { duration, wheelSeconds, touchSeconds, keySeconds, maxLead, minRate, maxRate } = introConfig;
+const { pace, captionSlowdown, lookShift, lookZoom, captions, catchUp, rateCeiling } = introConfig;
 /** Closer than this to the target counts as "arrived" and playback pauses. */
 const SETTLE = 0.04;
 
@@ -33,6 +34,35 @@ function captionStyle(t: number, start: number, end: number, fromRight: boolean)
   if (p < 0.7) return { x: -dir * 2 * ((p - 0.3) / 0.4), opacity: 1 };
   const q = easeIn((p - 0.7) / 0.3);
   return { x: -dir * (2 + 12 * q), opacity: 1 - q };
+}
+
+/** Scroll-to-film multiplier at film time t: section pace, slowed while a caption is readable. */
+function paceAt(t: number) {
+  let base = pace[pace.length - 1][1];
+  for (let i = 0; i < pace.length - 1; i++) {
+    const [t0, v0] = pace[i];
+    const [t1, v1] = pace[i + 1];
+    if (t < t0) {
+      base = v0;
+      break;
+    }
+    if (t <= t1) {
+      base = v0 + (v1 - v0) * ((t - t0) / (t1 - t0));
+      break;
+    }
+  }
+  const reading = Math.max(0, ...captions.map((c) => captionStyle(t, c.start, c.end, c.from === "right").opacity));
+  return base * (1 - captionSlowdown * reading);
+}
+
+/** Which way (and how much) the camera should look: +1 toward a right-hand caption, -1 toward a left one. */
+function lookAt(t: number) {
+  let look = 0;
+  for (const c of captions) {
+    const p = (t - c.start) / (c.end - c.start);
+    if (p > 0 && p < 1) look += (c.from === "right" ? 1 : -1) * Math.sin(Math.PI * p);
+  }
+  return clamp(look, -1, 1);
 }
 
 /**
@@ -58,6 +88,7 @@ export function IntroFilm({ onExit, leaving }: IntroFilmProps) {
   const readyRef = useRef(false);
   const captionRefs = useRef<(HTMLParagraphElement | null)[]>([]);
   const captionShadeRef = useRef<HTMLDivElement>(null);
+  const cameraRef = useRef<HTMLDivElement>(null);
   const rate = useRef(minRate);
   const rateSetAt = useRef(0);
 
@@ -93,7 +124,9 @@ export function IntroFilm({ onExit, leaving }: IntroFilmProps) {
       }
       if (!readyRef.current) return;
       const t = now();
-      target.current = clamp(target.current + seconds, Math.max(0, t - maxLead), Math.min(duration, t + maxLead));
+      const speed = paceAt(t);
+      const lead = maxLead * speed; // faster sections may run further ahead, captions less
+      target.current = clamp(target.current + seconds * speed, Math.max(0, t - lead), Math.min(duration, t + lead));
       if (target.current > 0.15) setStarted(true);
     },
     [exit, now],
@@ -109,9 +142,21 @@ export function IntroFilm({ onExit, leaving }: IntroFilmProps) {
       setActive(which);
     };
 
+    let look = 0;
     const paintCaptions = (t: number) => {
+      // Ease the camera toward the active caption, like turning to read it.
+      look += (lookAt(t) - look) * 0.06;
+      const cam = cameraRef.current;
+      if (cam) {
+        const a = Math.abs(look);
+        const transform =
+          a < 0.001
+            ? "none"
+            : `translate3d(${(-look * lookShift).toFixed(3)}%, 0, 0) scale(${(1 + lookZoom * a).toFixed(4)})`;
+        if (cam.style.transform !== transform) cam.style.transform = transform;
+      }
       let strongest = 0;
-      introConfig.captions.forEach((c, i) => {
+      captions.forEach((c, i) => {
         const el = captionRefs.current[i];
         if (!el) return;
         const { x, opacity } = captionStyle(t, c.start, c.end, c.from === "right");
@@ -175,16 +220,14 @@ export function IntroFilm({ onExit, leaving }: IntroFilmProps) {
 
       // Ease the speed and only touch playbackRate when it changes meaningfully:
       // frequent rate changes make some decoders drop frames.
-      const want = clamp(Math.abs(diff) * 1.4, minRate, maxRate);
+      // Catch up quickly (short glide after scrolling stops); top speed follows the section pace.
+      const want = clamp(Math.abs(diff) * catchUp, minRate, Math.min(rateCeiling, maxRate * paceAt(t)));
       rate.current += (want - rate.current) * 0.12;
       const stamp = performance.now();
       if (video.paused) {
         video.playbackRate = rate.current;
         rateSetAt.current = stamp;
-      } else if (
-        Math.abs(video.playbackRate - rate.current) / rate.current > 0.1 &&
-        stamp - rateSetAt.current > 120
-      ) {
+      } else if (Math.abs(video.playbackRate - rate.current) / rate.current > 0.1 && stamp - rateSetAt.current > 120) {
         video.playbackRate = Math.round(rate.current * 20) / 20;
         rateSetAt.current = stamp;
       }
@@ -354,21 +397,23 @@ export function IntroFilm({ onExit, leaving }: IntroFilmProps) {
       }`}
       style={{ overscrollBehavior: "contain", touchAction: "none" }}
     >
-      {/* Film: two stacked copies, forward and reversed. */}
-      {(["fwd", "rev"] as const).map((which) => (
-        <video
-          key={which}
-          ref={which === "fwd" ? fwdRef : revRef}
-          muted
-          playsInline
-          preload="none"
-          poster={which === "fwd" ? introConfig.poster : undefined}
-          disablePictureInPicture
-          aria-hidden
-          tabIndex={-1}
-          className={`absolute inset-0 h-full w-full object-cover ${active === which ? "opacity-100" : "opacity-0"}`}
-        />
-      ))}
+      {/* Film: two stacked copies, forward and reversed, inside a "camera" that turns toward captions. */}
+      <div ref={cameraRef} className="absolute inset-0 will-change-transform">
+        {(["fwd", "rev"] as const).map((which) => (
+          <video
+            key={which}
+            ref={which === "fwd" ? fwdRef : revRef}
+            muted
+            playsInline
+            preload="none"
+            poster={which === "fwd" ? introConfig.poster : undefined}
+            disablePictureInPicture
+            aria-hidden
+            tabIndex={-1}
+            className={`absolute inset-0 h-full w-full object-cover ${active === which ? "opacity-100" : "opacity-0"}`}
+          />
+        ))}
+      </div>
 
       {/* Lines that drift through the forest, driven by the film's position */}
       <div
@@ -378,7 +423,7 @@ export function IntroFilm({ onExit, leaving }: IntroFilmProps) {
         style={{ opacity: 0 }}
       />
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-        {introConfig.captions.map((c, i) => (
+        {captions.map((c, i) => (
           <p
             key={c.text}
             ref={(el) => {
@@ -399,8 +444,14 @@ export function IntroFilm({ onExit, leaving }: IntroFilmProps) {
       </div>
 
       {/* Soft shading only where the controls sit */}
-      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/25 to-transparent" />
-      <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/30 to-transparent" />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/25 to-transparent"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/30 to-transparent"
+      />
 
       <button
         type="button"

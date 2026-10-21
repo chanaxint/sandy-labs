@@ -47,7 +47,9 @@ their first scroll.
   reversed copy follows in the background. AV1 is used only where the device decodes it
   in hardware, otherwise H.264 (`lib/videoPreload.ts`).
 - Component: `components/intro/IntroFilm.tsx`, mounted by `IntroGate.tsx` in `app/page.tsx`
-- Scroll sensitivity, speed limits and file paths: `lib/intro.ts`
+- Scroll sensitivity, per-section pace (quicker on the approach to the island, slower while a
+  caption is readable), the short glide after scrolling stops, the camera's turn toward
+  captions, captions themselves and file paths: `lib/intro.ts`
 - Video files: `public/media/intro/` (1080p and 720p, H.264 + AV1, forward + reversed)
 
 The footage is joined at 4K (TensorPix 4K upscales for the drone and forest clips,
