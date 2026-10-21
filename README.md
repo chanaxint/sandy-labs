@@ -46,8 +46,8 @@ their first scroll.
 - Scroll sensitivity, speed limits and file paths: `lib/intro.ts`
 - Video files: `public/media/intro/` (1080p and 720p, H.264 + AV1, forward + reversed)
 
-The footage was joined, upscaled to 4K (Real-ESRGAN for the drone clip, Lanczos for the
-plane and forest clips) and encoded with:
+The footage was joined at 4K (Real-ESRGAN for the drone clip, Lanczos for the plane
+clip, a TensorPix 4K upscale supplied for the forest clip) and encoded with:
 
 ```bash
 scripts/intro/build-intro.sh plane.mp4 drone.mp4 forest.mp4 /tmp/intro-work
