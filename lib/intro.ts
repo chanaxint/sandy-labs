@@ -39,7 +39,7 @@ export const introConfig = {
   },
   poster: "/media/intro/intro-poster.jpg",
   /** Length of the clip in seconds. */
-  duration: 712 / 24, // 29.67s at 24 fps (updated with the next video build)
+  duration: 752 / 24, // 31.33s: 712 frames of footage + a 40-frame tilt down to the logo, at 24 fps
   /** Film seconds per pixel of wheel scroll (one mouse-wheel notch ≈ 100px ≈ 0.7s). */
   wheelSeconds: 0.007,
   /** Film seconds per pixel of finger drag on touch screens. */
