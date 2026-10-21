@@ -12,7 +12,9 @@
 #    matching frame pair, framing and colour eased into the next clip, 3-frame
 #    dissolve. Audio is dropped.
 #    With a photo of the logo written in sand, sand_logo.py presses those grooves
-#    into the closing beach shot (tracked so the logo stays put on the ground).
+#    into the closing beach shot (tracked so the logo stays put on the ground) and
+#    adds a tilt down to a top-down view of it. camera_look.py then bakes the small
+#    turn toward each caption into the frames (timings from lib/intro.ts).
 # 3. Writes a 4K master to <work-dir> and web encodes (1080p/720p, forward and
 #    reversed, H.264 + AV1) to public/media/intro/.
 #
@@ -56,10 +58,11 @@ prep "$C" "$WORK/c4k.mp4" classic "$C" "$WORK/c4k.mp4" "eq=contrast=1.06:saturat
 [ -f "$WORK/intro-joined-4k.mp4" ] ||
   "$PY" "$HERE/stitch.py" "$WORK/intro-joined-4k.mp4" "$WORK/a4k.mp4" "$WORK/b4k.mp4" "$WORK/c4k.mp4"
 if [ -n "$LOGO" ]; then
-  "$PY" "$HERE/sand_logo.py" "$WORK/intro-joined-4k.mp4" "$LOGO" "$WORK/sandy-labs-intro-4k.mp4"
+  "$PY" "$HERE/sand_logo.py" "$WORK/intro-joined-4k.mp4" "$LOGO" "$WORK/intro-logo-4k.mp4"
 else
-  cp "$WORK/intro-joined-4k.mp4" "$WORK/sandy-labs-intro-4k.mp4"
+  cp "$WORK/intro-joined-4k.mp4" "$WORK/intro-logo-4k.mp4"
 fi
+"$PY" "$HERE/camera_look.py" "$WORK/intro-logo-4k.mp4" "$WORK/sandy-labs-intro-4k.mp4"
 
 web() { # height h264-crf av1-crf name
   local vf="scale=-2:$1:flags=lanczos"
