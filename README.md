@@ -31,6 +31,29 @@ lib/                     questionnaire options + validation, brief builder, exam
                          navigation, hero media config, shape helpers
 ```
 
+## Intro film
+
+Before the homepage, a full-screen film plays in steps: jet above the clouds → island
+from above → closer → inside the forest → out onto the beach → homepage. Each scroll
+gesture, swipe or arrow key plays to the next stop and pauses; scrolling back plays a
+reversed copy. "Skip intro" or Escape leaves at any time, links to a section
+(`/#contact`) skip it, and reduced-motion users get cuts between stops instead of playback.
+
+- Component: `components/intro/IntroFilm.tsx`, mounted by `IntroGate.tsx` in `app/page.tsx`
+- Stops, captions, speed and file paths: `lib/intro.ts`
+- Video files: `public/media/intro/` (1080p and 720p, H.264 + AV1, forward + reversed)
+
+The footage was joined, upscaled to 4K (Real-ESRGAN for the 720p clips) and encoded with:
+
+```bash
+scripts/intro/build-intro.sh plane.mp4 drone.mp4 forest.mp4 /tmp/intro-work
+```
+
+It needs ffmpeg (with libx264 and libsvtav1) and, for the AI upscale, Python with
+`numpy onnx onnxruntime` plus the two Real-ESRGAN weight files next to
+`scripts/intro/upscale.py` (download links and checksums are in that file). The 4K
+master is written to the work folder; it is not committed because of its size.
+
 ## Replacing the island visuals
 
 The hero uses a procedurally drawn SVG island so nothing depends on missing files.

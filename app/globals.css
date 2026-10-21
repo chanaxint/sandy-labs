@@ -197,6 +197,44 @@
   animation: fade-in 500ms var(--ease-island) both;
 }
 
+/* ---------- Intro film ---------- */
+@keyframes intro-drift {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.04);
+  }
+}
+
+@keyframes intro-wheel {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  70% {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+}
+
+@utility animate-intro-drift {
+  animation: intro-drift 9s ease-in-out infinite alternate;
+}
+
+@utility animate-intro-wheel {
+  animation: intro-wheel 1.8s var(--ease-island) infinite;
+}
+
+/* The hero's entrance waits until the intro has been left. */
+[data-intro="active"] .animate-rise {
+  animation-play-state: paused;
+}
+
 /* ---------- Reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {
   html {
