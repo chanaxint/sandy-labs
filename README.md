@@ -46,15 +46,17 @@ their first scroll.
 - Scroll sensitivity, speed limits and file paths: `lib/intro.ts`
 - Video files: `public/media/intro/` (1080p and 720p, H.264 + AV1, forward + reversed)
 
-The footage was joined at 4K (Real-ESRGAN for the drone clip, Lanczos for the plane
-clip, a TensorPix 4K upscale supplied for the forest clip) and encoded with:
+The footage is joined at 4K (TensorPix 4K upscales for the drone and forest clips,
+Lanczos for the plane clip). `scripts/intro/stitch.py` matches each join frame by frame:
+it finds the best-matching frame pair, eases framing (shift, zoom, rotation) and colour
+into the next clip over 1.5 seconds and dissolves over 3 frames. Build with:
 
 ```bash
 scripts/intro/build-intro.sh plane.mp4 drone.mp4 forest.mp4 /tmp/intro-work
 ```
 
-It needs ffmpeg (with libx264 and libsvtav1) and, for the AI upscale, Python with
-`numpy onnx onnxruntime` plus the two Real-ESRGAN weight files next to
+It needs ffmpeg (with libx264 and libsvtav1) and Python with `numpy opencv-python-headless`
+(plus `onnx onnxruntime` for clips below 4K) plus the two Real-ESRGAN weight files next to
 `scripts/intro/upscale.py` (download links and checksums are in that file). The 4K
 master is written to the work folder; it is not committed because of its size.
 

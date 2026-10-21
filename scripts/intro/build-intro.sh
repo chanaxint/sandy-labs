@@ -3,16 +3,18 @@
 #
 #   scripts/intro/build-intro.sh <plane.mp4> <drone.mp4> <forest.mp4> <work-dir>
 #
-# 1. Brings every clip to 3840x2160 at 24 fps. Clips already at 4K are used as they
-#    are (the forest clip is a TensorPix 4K upscale supplied separately). The drone
-#    clip (rocky island, coastline) uses Real-ESRGAN (upscale.py: Python with
-#    numpy/onnx/onnxruntime + the weights next to it). Other clips use Lanczos +
-#    contrast-adaptive sharpening; Real-ESRGAN smooths dense foliage into a painted look.
-# 2. Joins them with short cross-fades and removes audio.
+# 1. Brings every clip to 3840x2160 at 24 fps. Clips already at 4K (the drone and
+#    forest clips are TensorPix 4K upscales supplied separately) are used as they are.
+#    Below 4K, the drone clip uses Real-ESRGAN (upscale.py: numpy/onnx/onnxruntime +
+#    the weights next to it) and the others Lanczos + contrast-adaptive sharpening;
+#    Real-ESRGAN smooths dense foliage into a painted look.
+# 2. Stitches them frame-matched (stitch.py: numpy + opencv-python-headless): best
+#    matching frame pair, framing and colour eased into the next clip, 3-frame
+#    dissolve. Audio is dropped.
 # 3. Writes a 4K master to <work-dir> and web encodes (1080p/720p, forward and
 #    reversed, H.264 + AV1) to public/media/intro/.
 #
-# After changing footage, update `duration` and the stop times in lib/intro.ts.
+# After changing footage, update `duration` in lib/intro.ts (printed at the end).
 set -euo pipefail
 
 A=$1 B=$2 C=$3 WORK=$4
@@ -36,26 +38,20 @@ classic() { # src dst [extra filters]
     -c:v libx264 -preset medium -crf 12 -pix_fmt yuv420p "$2"
 }
 
-[ -f "$WORK/a4k.mp4" ] || classic "$A" "$WORK/a4k.mp4" "hqdn3d=1.2:1.2:2:2"
-[ -f "$WORK/b4k.mp4" ] || "$PY" "$HERE/upscale.py" "$B" "$WORK/b4k.mp4" --denoise 0.2
-if is4k "$C"; then
-  [ -f "$WORK/c4k.mp4" ] || native "$C" "$WORK/c4k.mp4"
-else
-  # The 720p forest source is slightly hazy: a touch more contrast and saturation.
-  [ -f "$WORK/c4k.mp4" ] || classic "$C" "$WORK/c4k.mp4" "eq=contrast=1.06:saturation=1.08"
-fi
+prep() { # src dst fallback-command...
+  local src=$1 dst=$2
+  shift 2
+  [ -f "$dst" ] && return
+  if is4k "$src"; then native "$src" "$dst"; else "$@"; fi
+}
+
+prep "$A" "$WORK/a4k.mp4" classic "$A" "$WORK/a4k.mp4" "hqdn3d=1.2:1.2:2:2"
+prep "$B" "$WORK/b4k.mp4" "$PY" "$HERE/upscale.py" "$B" "$WORK/b4k.mp4" --denoise 0.2
+# The 720p forest source is slightly hazy: a touch more contrast and saturation.
+prep "$C" "$WORK/c4k.mp4" classic "$C" "$WORK/c4k.mp4" "eq=contrast=1.06:saturation=1.08"
 
 # A ends where B begins (island from above); B ends where C begins (forest).
-# Cross-fade 0.5s and 0.3s respectively: total = 10 + 10 + 10 - 0.8 = 29.2s.
-norm="fps=24,settb=AVTB,format=yuv420p,setsar=1"
-ffmpeg -v error -y -i "$WORK/a4k.mp4" -i "$WORK/b4k.mp4" -i "$WORK/c4k.mp4" -filter_complex \
-  "[0:v]$norm,trim=duration=10,setpts=PTS-STARTPTS[a];
-   [1:v]$norm,trim=duration=10,setpts=PTS-STARTPTS[b];
-   [2:v]$norm,setpts=PTS-STARTPTS[c];
-   [a][b]xfade=transition=fade:duration=0.5:offset=9.5[ab];
-   [ab][c]xfade=transition=fade:duration=0.3:offset=19.2,format=yuv420p[v]" \
-  -map "[v]" -an -c:v libx264 -preset slow -crf 16 -profile:v high -movflags +faststart \
-  "$WORK/sandy-labs-intro-4k.mp4"
+"$PY" "$HERE/stitch.py" "$WORK/sandy-labs-intro-4k.mp4" "$WORK/a4k.mp4" "$WORK/b4k.mp4" "$WORK/c4k.mp4"
 
 web() { # height h264-crf av1-crf name
   local vf="scale=-2:$1:flags=lanczos"
