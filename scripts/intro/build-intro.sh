@@ -3,9 +3,10 @@
 #
 #   scripts/intro/build-intro.sh <plane.mp4> <drone.mp4> <forest.mp4> <work-dir>
 #
-# 1. Upscales to 3840x2160: 720p clips with Real-ESRGAN (upscale.py, needs a Python
-#    env with torch + the realesr-general-x4v3 / wdn weights next to upscale.py);
-#    1080p clips with Lanczos + light denoise + contrast-adaptive sharpening.
+# 1. Upscales to 3840x2160. The drone clip (rocky island, coastline) uses Real-ESRGAN
+#    (upscale.py: Python with numpy/onnx/onnxruntime + the weights next to it). The
+#    plane and forest clips use Lanczos + contrast-adaptive sharpening: Real-ESRGAN
+#    smooths dense foliage into a painted look, so the forest stays classic.
 # 2. Joins them with short cross-fades and removes audio.
 # 3. Writes a 4K master to <work-dir> and web encodes (1080p/720p, forward and
 #    reversed, H.264 + AV1) to public/media/intro/.
@@ -19,21 +20,16 @@ OUT=$(cd "$HERE/../.." && pwd)/public/media/intro
 PY=${PYTHON:-python3}
 mkdir -p "$WORK" "$OUT"
 
-upscale() { # src dst
-  local h
-  h=$(ffprobe -v error -select_streams v:0 -show_entries stream=height -of csv=p=0 "$1")
-  if [ "$h" -ge 1080 ]; then
-    ffmpeg -v error -y -i "$1" -an \
-      -vf "hqdn3d=1.2:1.2:2:2,scale=3840:2160:flags=lanczos,cas=0.45" \
-      -c:v libx264 -preset medium -crf 12 -pix_fmt yuv420p "$2"
-  else
-    "$PY" "$HERE/upscale.py" "$1" "$2" --denoise 0.2
-  fi
+classic() { # src dst [extra filters]
+  ffmpeg -v error -y -i "$1" -an \
+    -vf "${3:+$3,}scale=3840:2160:flags=lanczos,cas=0.45" \
+    -c:v libx264 -preset medium -crf 12 -pix_fmt yuv420p "$2"
 }
 
-[ -f "$WORK/a4k.mp4" ] || upscale "$A" "$WORK/a4k.mp4"
-[ -f "$WORK/b4k.mp4" ] || upscale "$B" "$WORK/b4k.mp4"
-[ -f "$WORK/c4k.mp4" ] || upscale "$C" "$WORK/c4k.mp4"
+[ -f "$WORK/a4k.mp4" ] || classic "$A" "$WORK/a4k.mp4" "hqdn3d=1.2:1.2:2:2"
+[ -f "$WORK/b4k.mp4" ] || "$PY" "$HERE/upscale.py" "$B" "$WORK/b4k.mp4" --denoise 0.2
+# The forest source is slightly hazy: a touch more contrast and saturation.
+[ -f "$WORK/c4k.mp4" ] || classic "$C" "$WORK/c4k.mp4" "eq=contrast=1.06:saturation=1.08"
 
 # A ends where B begins (island from above); B ends where C begins (forest).
 # Cross-fade 0.5s and 0.3s respectively: total = 10 + 10 + 10 - 0.8 = 29.2s.
@@ -60,10 +56,10 @@ web() { # height h264-crf av1-crf name
     ffmpeg -v error -y -i "$WORK/sandy-labs-intro-4k.mp4" -vf "$f" "${av1[@]}" "$OUT/$4$dir.av1.mp4"
   done
 }
-# H.264 for every browser, AV1 (~45% smaller) where supported. Keyframe every 2s
+# H.264 for every browser, AV1 (~30-45% smaller) where supported. Keyframe every 2s
 # keeps the one seek per direction change quick.
-web 1080 25 34 intro-1080
-web 720 26 36 intro-720
+web 1080 23 32 intro-1080
+web 720 25 35 intro-720
 
 ffmpeg -v error -y -i "$OUT/intro-1080.mp4" -frames:v 1 -q:v 4 "$OUT/intro-poster.jpg"
 

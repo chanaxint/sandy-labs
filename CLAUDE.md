@@ -65,7 +65,7 @@ Rules:
 - Examples are design concepts, never presented as client work. No invented testimonials,
   contact details or claims.
 - Hero media: `lib/media.ts`. Never reference asset paths that don't exist.
-- Intro film (scroll-stepped video before the homepage): `lib/intro.ts`, `components/intro/`,
+- Intro film (scroll-driven video before the homepage): `lib/intro.ts`, `components/intro/`,
   rebuild videos with `scripts/intro/build-intro.sh`. Playwright's Chromium cannot play H.264,
   so browser tests exercise the AV1 files.
 

@@ -198,15 +198,6 @@
 }
 
 /* ---------- Intro film ---------- */
-@keyframes intro-drift {
-  from {
-    transform: scale(1);
-  }
-  to {
-    transform: scale(1.04);
-  }
-}
-
 @keyframes intro-wheel {
   0% {
     transform: translateY(0);
@@ -220,10 +211,6 @@
     transform: translateY(0);
     opacity: 0;
   }
-}
-
-@utility animate-intro-drift {
-  animation: intro-drift 9s ease-in-out infinite alternate;
 }
 
 @utility animate-intro-wheel {

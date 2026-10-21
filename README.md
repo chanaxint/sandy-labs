@@ -33,17 +33,21 @@ lib/                     questionnaire options + validation, brief builder, exam
 
 ## Intro film
 
-Before the homepage, a full-screen film plays in steps: jet above the clouds → island
-from above → closer → inside the forest → out onto the beach → homepage. Each scroll
-gesture, swipe or arrow key plays to the next stop and pauses; scrolling back plays a
-reversed copy. "Skip intro" or Escape leaves at any time, links to a section
-(`/#contact`) skip it, and reduced-motion users get cuts between stops instead of playback.
+Before the homepage, a full-screen film follows the visitor's scroll: jet above the
+clouds → island from above → closer → inside the forest → out onto the beach → homepage.
+Scrolling moves a target point in the film and the video plays toward it at a speed that
+eases with the distance, so it glides with the scroll rather than stepping frame by frame;
+scrolling back plays a reversed copy. On screen there is only the film, a small
+"Skip intro" and a "Scroll" hint. Escape or "Skip intro" leaves at any time, links to a
+section (`/#contact`) skip it, and reduced-motion visitors go straight to the homepage on
+their first scroll.
 
 - Component: `components/intro/IntroFilm.tsx`, mounted by `IntroGate.tsx` in `app/page.tsx`
-- Stops, captions, speed and file paths: `lib/intro.ts`
+- Scroll sensitivity, speed limits and file paths: `lib/intro.ts`
 - Video files: `public/media/intro/` (1080p and 720p, H.264 + AV1, forward + reversed)
 
-The footage was joined, upscaled to 4K (Real-ESRGAN for the 720p clips) and encoded with:
+The footage was joined, upscaled to 4K (Real-ESRGAN for the drone clip, Lanczos for the
+plane and forest clips) and encoded with:
 
 ```bash
 scripts/intro/build-intro.sh plane.mp4 drone.mp4 forest.mp4 /tmp/intro-work
