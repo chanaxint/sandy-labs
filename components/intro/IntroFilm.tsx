@@ -15,6 +15,25 @@ const { duration, wheelSeconds, touchSeconds, keySeconds, maxLead, minRate, maxR
 const SETTLE = 0.04;
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+const easeOut = (x: number) => 1 - (1 - x) ** 3;
+const easeIn = (x: number) => x ** 3;
+
+/**
+ * Caption placement for film time t: slide in from its side, drift slowly while
+ * readable, then leave toward the other side. Offsets are in vw.
+ */
+function captionStyle(t: number, start: number, end: number, fromRight: boolean) {
+  const p = (t - start) / (end - start);
+  const dir = fromRight ? 1 : -1;
+  if (p <= 0 || p >= 1) return { x: dir * 16, opacity: 0 };
+  if (p < 0.3) {
+    const e = easeOut(p / 0.3);
+    return { x: dir * 16 * (1 - e), opacity: e };
+  }
+  if (p < 0.7) return { x: -dir * 2 * ((p - 0.3) / 0.4), opacity: 1 };
+  const q = easeIn((p - 0.7) / 0.3);
+  return { x: -dir * (2 + 12 * q), opacity: 1 - q };
+}
 
 /**
  * Full-screen, scroll-driven intro film. Scrolling (wheel, touch, keys) moves a
@@ -37,6 +56,8 @@ export function IntroFilm({ onExit, leaving }: IntroFilmProps) {
   const reduce = useRef(false);
 
   const readyRef = useRef(false);
+  const captionRefs = useRef<(HTMLParagraphElement | null)[]>([]);
+  const captionShadeRef = useRef<HTMLDivElement>(null);
   const rate = useRef(minRate);
   const rateSetAt = useRef(0);
 
@@ -88,10 +109,29 @@ export function IntroFilm({ onExit, leaving }: IntroFilmProps) {
       setActive(which);
     };
 
+    const paintCaptions = (t: number) => {
+      let strongest = 0;
+      introConfig.captions.forEach((c, i) => {
+        const el = captionRefs.current[i];
+        if (!el) return;
+        const { x, opacity } = captionStyle(t, c.start, c.end, c.from === "right");
+        strongest = Math.max(strongest, opacity);
+        const transform = `translate3d(${x.toFixed(2)}vw, 0, 0)`;
+        const alpha = opacity.toFixed(3);
+        if (el.style.transform !== transform) el.style.transform = transform;
+        if (el.style.opacity !== alpha) el.style.opacity = alpha;
+      });
+      // Darken the picture slightly only while a line is on screen, for legibility.
+      const shade = captionShadeRef.current;
+      const shadeAlpha = (strongest * 0.32).toFixed(3);
+      if (shade && shade.style.opacity !== shadeAlpha) shade.style.opacity = shadeAlpha;
+    };
+
     const tick = () => {
       raf = requestAnimationFrame(tick);
       const fwd = fwdRef.current;
       const rev = revRef.current;
+      if (fwd && rev && readyRef.current && !reduce.current) paintCaptions(now());
       if (!fwd || !rev || !readyRef.current || exited.current || switching.current || reduce.current) return;
 
       const t = now();
@@ -329,6 +369,34 @@ export function IntroFilm({ onExit, leaving }: IntroFilmProps) {
           className={`absolute inset-0 h-full w-full object-cover ${active === which ? "opacity-100" : "opacity-0"}`}
         />
       ))}
+
+      {/* Lines that drift through the forest, driven by the film's position */}
+      <div
+        ref={captionShadeRef}
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_90%_at_50%_50%,rgba(0,0,0,0.55),rgba(0,0,0,0.85))]"
+        style={{ opacity: 0 }}
+      />
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        {introConfig.captions.map((c, i) => (
+          <p
+            key={c.text}
+            ref={(el) => {
+              captionRefs.current[i] = el;
+            }}
+            className={`absolute max-w-[86vw] font-display text-[clamp(2rem,5.2vw,4.75rem)] leading-[1.04] font-light tracking-[-0.025em] text-balance text-sand-50 will-change-transform sm:max-w-[58vw] ${
+              c.from === "right" ? "right-[6vw] text-right" : "left-[6vw] text-left"
+            }`}
+            style={{
+              top: `${c.top}%`,
+              opacity: 0,
+              textShadow: "0 2px 28px rgba(0, 0, 0, 0.45), 0 1px 3px rgba(0, 0, 0, 0.35)",
+            }}
+          >
+            {c.text}
+          </p>
+        ))}
+      </div>
 
       {/* Soft shading only where the controls sit */}
       <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/25 to-transparent" />
