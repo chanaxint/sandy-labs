@@ -1,0 +1,223 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: var(--font-fraunces), "Iowan Old Style", Georgia, serif;
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+
+  --color-ink: #13201c;
+  --color-ink-soft: #3c4a44;
+  --color-mist: #6b7a73;
+
+  --color-sand-50: #faf7f1;
+  --color-sand-100: #f4eee3;
+  --color-sand-200: #e9dfcc;
+  --color-sand-300: #d9c8a8;
+  --color-sand-500: #b39466;
+  --color-sand-700: #7d6440;
+
+  --color-lagoon-100: #dcefec;
+  --color-lagoon-300: #8fcfca;
+  --color-lagoon-500: #2c929a;
+  --color-lagoon-700: #155f69;
+  --color-lagoon-900: #0a3640;
+
+  --color-palm-100: #e3ebdf;
+  --color-palm-300: #a6bf9c;
+  --color-palm-500: #577f5a;
+  --color-palm-700: #2c4c35;
+  --color-palm-900: #172a1e;
+
+  --color-coral: #c0613f;
+
+  --ease-island: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-sand-50);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  section[id] {
+    scroll-margin-top: 4.5rem;
+  }
+
+  ::selection {
+    background-color: var(--color-lagoon-300);
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-lagoon-500);
+    outline-offset: 3px;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+}
+
+@layer components {
+  .eyebrow {
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+
+  .field {
+    width: 100%;
+    border: 1px solid var(--color-sand-300);
+    background-color: #fff;
+    padding: 0.85rem 1rem;
+    font-size: 0.95rem;
+    color: var(--color-ink);
+    transition:
+      border-color 200ms,
+      box-shadow 200ms;
+  }
+
+  .field::placeholder {
+    color: var(--color-mist);
+    opacity: 0.8;
+  }
+
+  .field:focus {
+    outline: none;
+    border-color: var(--color-lagoon-500);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-lagoon-500) 18%, transparent);
+  }
+
+  .field[aria-invalid="true"] {
+    border-color: var(--color-coral);
+  }
+
+  .hairline {
+    border-color: color-mix(in srgb, var(--color-ink) 12%, transparent);
+  }
+}
+
+/* ---------- Scroll reveal ---------- */
+.reveal {
+  opacity: 0;
+  transform: translate3d(0, 28px, 0);
+  transition:
+    opacity 900ms var(--ease-island),
+    transform 1100ms var(--ease-island);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---------- Hero island motion ---------- */
+@keyframes island-breathe {
+  from {
+    transform: scale(1.06) translate3d(0, 0, 0);
+  }
+  to {
+    transform: scale(1.12) translate3d(-1.2%, -0.8%, 0);
+  }
+}
+
+@keyframes cloud-drift {
+  from {
+    transform: translate3d(-8%, 0, 0);
+  }
+  to {
+    transform: translate3d(8%, -2%, 0);
+  }
+}
+
+@keyframes shimmer {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 24px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@utility animate-breathe {
+  animation: island-breathe 28s ease-in-out infinite alternate;
+}
+
+@utility animate-cloud {
+  animation: cloud-drift var(--cloud-duration, 60s) ease-in-out infinite alternate;
+}
+
+@utility animate-shimmer {
+  animation: shimmer 7s ease-in-out infinite;
+}
+
+@utility animate-rise {
+  opacity: 0;
+  animation: rise-in 1200ms var(--ease-island) forwards;
+  animation-delay: var(--rise-delay, 0ms);
+}
+
+@utility animate-fade {
+  animation: fade-in 500ms var(--ease-island) both;
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+  }
+
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+
+  .animate-rise {
+    opacity: 1;
+  }
+}

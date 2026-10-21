@@ -1,0 +1,51 @@
+# Sandy Labs — Homepage
+
+Frontend homepage for Sandy Labs, an island-themed website creation studio.
+Built with Next.js (App Router), React, TypeScript, Tailwind CSS v4 and Lucide icons.
+
+```bash
+npm install
+npm run dev        # http://localhost:3000
+npm run build      # production build
+npm run lint       # ESLint
+npm run typecheck  # TypeScript
+```
+
+## Structure
+
+```
+app/                     layout, homepage, /privacy and /terms placeholders, global styles
+components/layout/       Header, MenuPanel, Footer, PlaceholderPage
+components/hero/         Hero, IslandIllustration (code-drawn island + clouds)
+components/questionnaire BriefProvider (shared state), Questionnaire, Steps, OptionTile,
+                         ProgressIndicator, Composer, SelectionSummary, BriefConfirmation, Field
+components/examples/     ExamplesSection, ExampleCard, ExampleDialog, ExamplePreview
+components/sections/     WhatWeDo, HowItWorks, Contact
+components/ui/           Reveal, SectionHeading, TopoLines
+lib/                     questionnaire options + validation, brief builder, example data,
+                         navigation, hero media config, shape helpers
+```
+
+## Replacing the island visuals
+
+The hero uses a procedurally drawn SVG island so nothing depends on missing files.
+To use real footage, add files to `public/media/` and set them in `lib/media.ts`:
+
+```ts
+export const heroMedia = {
+  video: "/media/island-hero.mp4",
+  poster: "/media/island-hero-poster.jpg",
+  image: null,
+  alt: "Aerial view of …",
+};
+```
+
+Example concept previews are drawn in code (`components/examples/ExamplePreview.tsx`).
+Add an image field to `ExampleConcept` in `lib/examples.ts` to swap in screenshots.
+
+## What is (and isn't) connected
+
+- The questionnaire builds a structured `WebsiteBrief` (`lib/brief.ts`) on the client only.
+  `buildBrief()` returns the payload a future generation backend can receive.
+- The contact form validates locally; no email service is connected.
+- No AI, authentication, payments, database or publishing yet.
