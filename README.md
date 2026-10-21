@@ -42,6 +42,10 @@ scrolling back plays a reversed copy. On screen there is only the film, a small
 section (`/#contact`) skip it, and reduced-motion visitors go straight to the homepage on
 their first scroll.
 
+- Loading: the forward clip is downloaded completely before the film responds (thin
+  progress bar), so playback runs from memory and never waits on the network; the
+  reversed copy follows in the background. AV1 is used only where the device decodes it
+  in hardware, otherwise H.264 (`lib/videoPreload.ts`).
 - Component: `components/intro/IntroFilm.tsx`, mounted by `IntroGate.tsx` in `app/page.tsx`
 - Scroll sensitivity, speed limits and file paths: `lib/intro.ts`
 - Video files: `public/media/intro/` (1080p and 720p, H.264 + AV1, forward + reversed)
@@ -59,6 +63,20 @@ It needs ffmpeg (with libx264 and libsvtav1) and Python with `numpy opencv-pytho
 (plus `onnx onnxruntime` for clips below 4K) plus the two Real-ESRGAN weight files next to
 `scripts/intro/upscale.py` (download links and checksums are in that file). The 4K
 master is written to the work folder; it is not committed because of its size.
+
+## Hero art
+
+The hero island and clouds are drawn in code (`components/hero/IslandIllustration.tsx`)
+but shipped as pre-rendered WebP images in `public/media/hero/`: painting the live SVG
+filters made the page stutter. After changing the drawing, regenerate the images with
+`npm run dev` running:
+
+```bash
+node scripts/hero/render-hero.mjs
+```
+
+(It reads the art from the development-only `/hero-art` page and needs Playwright and
+ffmpeg.)
 
 ## Replacing the island visuals
 

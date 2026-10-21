@@ -5,7 +5,14 @@ import Image from "next/image";
 import { useEffect, useRef, type CSSProperties } from "react";
 import { heroMedia } from "@/lib/media";
 import { scrollToSection, sectionIds } from "@/lib/navigation";
-import { Cloud, IslandIllustration } from "./IslandIllustration";
+
+/** A pre-rendered cloud layer (see scripts/hero/render-hero.mjs). */
+function CloudImage({ name, className }: { name: string; className: string }) {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element -- static art, already optimised
+    <img src={`/media/hero/${name}.webp`} alt="" width={1200} height={720} decoding="async" className={className} />
+  );
+}
 
 /**
  * Cinematic opening. Layers (ocean/island, cloud shadows, clouds) move at
@@ -37,8 +44,10 @@ export function Hero() {
       root.style.setProperty("--mx", pointerX.toFixed(4));
       root.style.setProperty("--my", pointerY.toFixed(4));
     };
+    // Nothing to update while the intro film covers the page.
+    const covered = () => root.closest('[data-intro="active"]') !== null;
     const schedule = () => {
-      if (!frame) frame = requestAnimationFrame(render);
+      if (!frame && !covered()) frame = requestAnimationFrame(render);
     };
     const onPointer = (e: PointerEvent) => {
       if (e.pointerType !== "mouse") return;
@@ -87,35 +96,45 @@ export function Hero() {
             <Image src={heroMedia.image} alt={heroMedia.alt} fill priority unoptimized className="object-cover" />
           ) : (
             <div className="animate-breathe h-full w-full">
-              <IslandIllustration className="h-full w-full" />
+              {/* Pre-rendered from IslandIllustration (scripts/hero/render-hero.mjs): painting
+                  the live SVG filters made the page stutter. */}
+              {/* eslint-disable-next-line @next/next/no-img-element -- static art, already optimised */}
+              <img
+                src="/media/hero/island-2560.webp"
+                srcSet="/media/hero/island-1280.webp 1280w, /media/hero/island-2560.webp 2560w"
+                sizes="112vw"
+                alt=""
+                width={2560}
+                height={1600}
+                fetchPriority="high"
+                className="h-full w-full object-cover"
+              />
             </div>
           )}
         </div>
 
         {/* Cloud shadows sit on the water, clouds float above: parallax gives altitude */}
         <div className="pointer-events-none absolute inset-0 will-change-transform" style={layer(-22, 90)}>
-          <Cloud
-            seed={21}
-            shadow
+          <CloudImage
+            name="cloud-shadow-1"
             className="animate-cloud absolute top-[52%] left-[8%] w-[46vw] max-w-[720px] opacity-40 [--cloud-duration:70s]"
           />
-          <Cloud
-            seed={34}
-            shadow
+          <CloudImage
+            name="cloud-shadow-2"
             className="animate-cloud absolute top-[6%] right-[2%] w-[38vw] max-w-[600px] opacity-35 [--cloud-duration:85s]"
           />
         </div>
         <div className="pointer-events-none absolute inset-0 will-change-transform" style={layer(-40, -40)}>
-          <Cloud
-            seed={21}
+          <CloudImage
+            name="cloud-1"
             className="animate-cloud absolute top-[44%] left-[3%] w-[46vw] max-w-[720px] opacity-90 [--cloud-duration:70s]"
           />
-          <Cloud
-            seed={34}
+          <CloudImage
+            name="cloud-2"
             className="animate-cloud absolute -top-[4%] right-[-4%] w-[38vw] max-w-[600px] opacity-80 [--cloud-duration:85s]"
           />
-          <Cloud
-            seed={57}
+          <CloudImage
+            name="cloud-3"
             className="animate-cloud absolute bottom-[-6%] right-[22%] w-[30vw] max-w-[480px] opacity-60 [--cloud-duration:95s]"
           />
         </div>

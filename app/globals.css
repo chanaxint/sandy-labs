@@ -217,8 +217,11 @@
   animation: intro-wheel 1.8s var(--ease-island) infinite;
 }
 
-/* The hero's entrance waits until the intro has been left. */
-[data-intro="active"] .animate-rise {
+/* While the intro covers the page: the hero's entrance waits for it, and its
+   ambient loops pause so they cost nothing underneath. */
+[data-intro="active"] .animate-rise,
+[data-intro="active"] .animate-breathe,
+[data-intro="active"] .animate-cloud {
   animation-play-state: paused;
 }
 

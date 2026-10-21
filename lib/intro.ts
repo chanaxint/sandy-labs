@@ -35,5 +35,5 @@ export const introConfig = {
   maxLead: 2.5,
   /** Playback speed limits while catching up with the scroll. */
   minRate: 0.5,
-  maxRate: 3,
+  maxRate: 2.2,
 };

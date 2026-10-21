@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { introConfig } from "@/lib/intro";
+import { fetchToObjectUrl, rankVariants } from "@/lib/videoPreload";
 
 type IntroFilmProps = {
   /** Called once the visitor has left the intro (reached the end or skipped). */
@@ -20,6 +21,10 @@ const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v
  * target time; a frame loop plays the video toward it with a speed that eases
  * with the remaining distance, so the picture glides after the scroll rather
  * than stepping frame by frame. Scrolling back plays a reversed copy of the clip.
+ *
+ * The forward clip is downloaded completely (with a progress bar) before the
+ * film responds, so playback never waits on the network; the reversed copy
+ * follows in the background.
  */
 export function IntroFilm({ onExit, leaving }: IntroFilmProps) {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -31,9 +36,15 @@ export function IntroFilm({ onExit, leaving }: IntroFilmProps) {
   const exited = useRef(false);
   const reduce = useRef(false);
 
+  const readyRef = useRef(false);
+  const rate = useRef(minRate);
+  const rateSetAt = useRef(0);
+
   const [active, setActive] = useState<"fwd" | "rev">("fwd");
   const [started, setStarted] = useState(false);
   const [waiting, setWaiting] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [progress, setProgress] = useState(0);
 
   const exit = useCallback(() => {
     if (exited.current) return;
@@ -59,6 +70,7 @@ export function IntroFilm({ onExit, leaving }: IntroFilmProps) {
         if (seconds > 0) exit();
         return;
       }
+      if (!readyRef.current) return;
       const t = now();
       target.current = clamp(target.current + seconds, Math.max(0, t - maxLead), Math.min(duration, t + maxLead));
       if (target.current > 0.15) setStarted(true);
@@ -80,7 +92,7 @@ export function IntroFilm({ onExit, leaving }: IntroFilmProps) {
       raf = requestAnimationFrame(tick);
       const fwd = fwdRef.current;
       const rev = revRef.current;
-      if (!fwd || !rev || exited.current || switching.current || reduce.current) return;
+      if (!fwd || !rev || !readyRef.current || exited.current || switching.current || reduce.current) return;
 
       const t = now();
       if (t >= duration - 0.08 && target.current >= duration - 0.1) {
@@ -109,6 +121,7 @@ export function IntroFilm({ onExit, leaving }: IntroFilmProps) {
         // Change of direction: line the other copy up on the same frame, then swap.
         const next = dir === "fwd" ? fwd : rev;
         video.pause();
+        rate.current = minRate;
         switching.current = true;
         const done = () => {
           next.removeEventListener("seeked", done);
@@ -120,8 +133,21 @@ export function IntroFilm({ onExit, leaving }: IntroFilmProps) {
         return;
       }
 
-      const rate = clamp(Math.abs(diff) * 1.4, minRate, maxRate);
-      if (Math.abs(video.playbackRate - rate) > 0.05) video.playbackRate = rate;
+      // Ease the speed and only touch playbackRate when it changes meaningfully:
+      // frequent rate changes make some decoders drop frames.
+      const want = clamp(Math.abs(diff) * 1.4, minRate, maxRate);
+      rate.current += (want - rate.current) * 0.12;
+      const stamp = performance.now();
+      if (video.paused) {
+        video.playbackRate = rate.current;
+        rateSetAt.current = stamp;
+      } else if (
+        Math.abs(video.playbackRate - rate.current) / rate.current > 0.1 &&
+        stamp - rateSetAt.current > 120
+      ) {
+        video.playbackRate = Math.round(rate.current * 20) / 20;
+        rateSetAt.current = stamp;
+      }
       if (video.paused) {
         video.play().catch(() => {
           // Playback refused (e.g. power saving): jump instead.
@@ -186,52 +212,93 @@ export function IntroFilm({ onExit, leaving }: IntroFilmProps) {
     };
   }, [nudge, exit]);
 
-  // Pick resolution and codec once on the client; load the reverse copy after the forward one.
+  // Choose resolution and codec, download the forward clip with progress, then the reverse one.
   useEffect(() => {
     const fwd = fwdRef.current;
     const rev = revRef.current;
     if (!fwd || !rev) return;
+    const controller = new AbortController();
+    const objectUrls: string[] = [];
+    const markReady = () => {
+      if (readyRef.current) return;
+      readyRef.current = true;
+      setReady(true);
+    };
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      markReady(); // the poster is all reduced-motion visitors see
+      return;
+    }
+
     // 1080p from laptop width up (or tablets at 2x); 720p for phones.
     const wide = window.innerWidth * Math.min(window.devicePixelRatio || 1, 2) >= 1200;
     const base = wide ? introConfig.sources.hd : introConfig.sources.sd;
-    let ext = fwd.canPlayType('video/mp4; codecs="av01.0.08M.08"') === "probably" ? ".av1.mp4" : ".mp4";
+    const [width, height] = wide ? [1920, 1080] : [1280, 720];
 
-    const assign = (video: HTMLVideoElement, reverse: boolean) => {
-      video.src = `${base}${reverse ? "-reverse" : ""}${ext}`;
-      video.load();
+    const loads = (video: HTMLVideoElement, src: string) =>
+      new Promise<boolean>((resolve) => {
+        const ok = () => done(true);
+        const fail = () => done(false);
+        const done = (result: boolean) => {
+          video.removeEventListener("loadeddata", ok);
+          video.removeEventListener("error", fail);
+          resolve(result);
+        };
+        video.addEventListener("loadeddata", ok);
+        video.addEventListener("error", fail);
+        video.src = src;
+        video.load();
+      });
+
+    let shown = -1;
+    const onProgress = (fraction: number) => {
+      const pct = Math.floor(fraction * 100);
+      if (pct !== shown) {
+        shown = pct;
+        setProgress(pct);
+      }
     };
-    // AV1 missing or undecodable: fall back to H.264 for both copies.
-    const onError = () => {
-      if (ext === ".mp4") return;
-      ext = ".mp4";
-      assign(fwd, false);
-      if (rev.getAttribute("src")) assign(rev, true);
-    };
-    const loadReverse = () => {
-      if (reduce.current || rev.getAttribute("src")) return;
-      rev.preload = "auto"; // "none" until now so it doesn't compete with the forward copy
-      assign(rev, true);
-    };
+
+    (async () => {
+      const variants = await rankVariants(fwd, width, height);
+      for (const variant of variants) {
+        try {
+          const url = await fetchToObjectUrl(`${base}${variant.ext}`, onProgress, controller.signal);
+          objectUrls.push(url);
+          if (!(await loads(fwd, url))) continue; // can't decode this one: try the next codec
+          markReady();
+          const reverse = await fetchToObjectUrl(`${base}-reverse${variant.ext}`, undefined, controller.signal);
+          objectUrls.push(reverse);
+          rev.preload = "auto";
+          rev.src = reverse;
+          rev.load();
+          return;
+        } catch {
+          if (controller.signal.aborted) return;
+          if (readyRef.current) return; // forward clip plays; reverse falls back to seeking
+        }
+      }
+      // Downloads failed (e.g. blocked fetch): stream the best variant instead.
+      const fallback = variants[0];
+      if (!fallback) return;
+      fwd.addEventListener("canplay", markReady, { once: true });
+      fwd.src = `${base}${fallback.ext}`;
+      fwd.load();
+    })();
+
     const onWaiting = () => setWaiting(true);
     const onPlaying = () => setWaiting(false);
-
-    fwd.addEventListener("error", onError);
-    rev.addEventListener("error", onError);
-    fwd.addEventListener("canplaythrough", loadReverse, { once: true });
     for (const v of [fwd, rev]) {
       v.addEventListener("waiting", onWaiting);
       v.addEventListener("playing", onPlaying);
     }
-    assign(fwd, false);
-
     return () => {
-      fwd.removeEventListener("error", onError);
-      rev.removeEventListener("error", onError);
-      fwd.removeEventListener("canplaythrough", loadReverse);
+      controller.abort();
       for (const v of [fwd, rev]) {
         v.removeEventListener("waiting", onWaiting);
         v.removeEventListener("playing", onPlaying);
       }
+      for (const url of objectUrls) URL.revokeObjectURL(url);
     };
   }, []);
 
@@ -254,7 +321,7 @@ export function IntroFilm({ onExit, leaving }: IntroFilmProps) {
           ref={which === "fwd" ? fwdRef : revRef}
           muted
           playsInline
-          preload={which === "fwd" ? "auto" : "none"}
+          preload="none"
           poster={which === "fwd" ? introConfig.poster : undefined}
           disablePictureInPicture
           aria-hidden
@@ -280,7 +347,7 @@ export function IntroFilm({ onExit, leaving }: IntroFilmProps) {
         onClick={() => nudge(keySeconds)}
         aria-label="Scroll down to continue"
         className={`absolute bottom-7 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2 text-sand-50/85 transition-opacity duration-700 ease-[var(--ease-island)] hover:text-sand-50 ${
-          started || leaving ? "pointer-events-none opacity-0" : "opacity-100"
+          !ready || started || leaving ? "pointer-events-none opacity-0" : "opacity-100 delay-300"
         }`}
       >
         <span className="relative flex h-8 w-5 justify-center rounded-full border border-current">
@@ -288,6 +355,26 @@ export function IntroFilm({ onExit, leaving }: IntroFilmProps) {
         </span>
         <span className="text-[0.65rem] font-medium tracking-[0.2em] uppercase">Scroll</span>
       </button>
+
+      {/* Loading: the film responds once the forward clip is fully downloaded. */}
+      <div
+        role="progressbar"
+        aria-label="Loading intro"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={progress}
+        className={`pointer-events-none absolute bottom-9 left-1/2 flex w-36 -translate-x-1/2 flex-col items-center gap-2.5 text-sand-50/80 transition-opacity duration-300 ${
+          ready ? "opacity-0" : "opacity-100"
+        }`}
+      >
+        <span className="text-[0.65rem] font-medium tracking-[0.2em] tabular-nums uppercase">Loading {progress}%</span>
+        <span className="block h-px w-full overflow-hidden bg-sand-50/25">
+          <span
+            className="block h-full origin-left bg-sand-50 transition-transform duration-300 ease-out"
+            style={{ transform: `scaleX(${progress / 100})` }}
+          />
+        </span>
+      </div>
 
       {waiting && started ? (
         <div aria-hidden className="absolute top-1/2 left-1/2 h-7 w-7 -translate-x-1/2 -translate-y-1/2">

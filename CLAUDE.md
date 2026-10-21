@@ -65,6 +65,8 @@ Rules:
 - Examples are design concepts, never presented as client work. No invented testimonials,
   contact details or claims.
 - Hero media: `lib/media.ts`. Never reference asset paths that don't exist.
+- Hero art is pre-rendered to `public/media/hero/*.webp` (live SVG filters stuttered); regenerate
+  with `scripts/hero/render-hero.mjs` after editing `IslandIllustration.tsx`.
 - Intro film (scroll-driven video before the homepage): `lib/intro.ts`, `components/intro/`,
   rebuild videos with `scripts/intro/build-intro.sh`. Playwright's Chromium cannot play H.264,
   so browser tests exercise the AV1 files.
