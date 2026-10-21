@@ -5,7 +5,8 @@
  * inside the forest → out onto the beach). Scrolling moves a target position in
  * the film and the video plays toward it at a speed that eases with the distance,
  * so it follows the scroll smoothly instead of jumping frame by frame. A reversed
- * copy plays when the visitor scrolls back. Reaching the end opens the homepage.
+ * copy plays when the visitor scrolls back. The film ends looking at the Sandy
+ * Labs logo pressed into the sand, rests there briefly, then opens the homepage.
  * While the camera moves through the forest, short lines slide through on top.
  *
  * To replace the footage, re-encode with `scripts/intro/build-intro.sh` (or keep
@@ -71,6 +72,8 @@ export const introConfig = {
   maxRate: 2.2,
   /** Playback speed per second the picture is behind the scroll target. */
   catchUp: 2.6,
+  /** How long (ms) the film rests on the logo in the sand before the homepage opens. */
+  endHold: 2200,
   /** Absolute speed ceiling: above ~2.6x software video decoders start to drop frames. */
   rateCeiling: 2.6,
   /**

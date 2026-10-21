@@ -11,7 +11,7 @@ type IntroFilmProps = {
 };
 
 const { duration, wheelSeconds, touchSeconds, keySeconds, maxLead, minRate, maxRate } = introConfig;
-const { pace, captionSlowdown, lookShift, lookZoom, captions, catchUp, rateCeiling } = introConfig;
+const { pace, captionSlowdown, lookShift, lookZoom, captions, catchUp, rateCeiling, endHold } = introConfig;
 /** Closer than this to the target counts as "arrived" and playback pauses. */
 const SETTLE = 0.04;
 
@@ -86,6 +86,7 @@ export function IntroFilm({ onExit, leaving }: IntroFilmProps) {
   const reduce = useRef(false);
 
   const readyRef = useRef(false);
+  const endReachedAt = useRef(0);
   const captionRefs = useRef<(HTMLParagraphElement | null)[]>([]);
   const captionShadeRef = useRef<HTMLDivElement>(null);
   const cameraRef = useRef<HTMLDivElement>(null);
@@ -123,6 +124,11 @@ export function IntroFilm({ onExit, leaving }: IntroFilmProps) {
         return;
       }
       if (!readyRef.current) return;
+      // Resting on the logo: a fresh scroll onward (not trackpad momentum) goes straight in.
+      if (endReachedAt.current && seconds > 0 && performance.now() - endReachedAt.current > 600) {
+        exit();
+        return;
+      }
       const t = now();
       const speed = paceAt(t);
       const lead = maxLead * speed; // faster sections may run further ahead, captions less
@@ -181,9 +187,12 @@ export function IntroFilm({ onExit, leaving }: IntroFilmProps) {
 
       const t = now();
       if (t >= duration - 0.08 && target.current >= duration - 0.1) {
-        exit();
+        // The film ends on the logo in the sand: rest on it, then open the homepage.
+        if (!endReachedAt.current) endReachedAt.current = performance.now();
+        if (performance.now() - endReachedAt.current > endHold) exit();
         return;
       }
+      endReachedAt.current = 0;
 
       const diff = target.current - t;
       const video = activeRef.current === "fwd" ? fwd : rev;

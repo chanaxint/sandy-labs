@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Builds the intro film from the three source clips.
 #
-#   scripts/intro/build-intro.sh <plane.mp4> <drone.mp4> <forest.mp4> <work-dir>
+#   scripts/intro/build-intro.sh <plane.mp4> <drone.mp4> <forest.mp4> <work-dir> [sand-logo-photo.jpg]
 #
 # 1. Brings every clip to 3840x2160 at 24 fps. Clips already at 4K (the drone and
 #    forest clips are TensorPix 4K upscales supplied separately) are used as they are.
@@ -11,13 +11,15 @@
 # 2. Stitches them frame-matched (stitch.py: numpy + opencv-python-headless): best
 #    matching frame pair, framing and colour eased into the next clip, 3-frame
 #    dissolve. Audio is dropped.
+#    With a photo of the logo written in sand, sand_logo.py presses those grooves
+#    into the closing beach shot (tracked so the logo stays put on the ground).
 # 3. Writes a 4K master to <work-dir> and web encodes (1080p/720p, forward and
 #    reversed, H.264 + AV1) to public/media/intro/.
 #
 # After changing footage, update `duration` in lib/intro.ts (printed at the end).
 set -euo pipefail
 
-A=$1 B=$2 C=$3 WORK=$4
+A=$1 B=$2 C=$3 WORK=$4 LOGO=${5:-}
 HERE=$(cd "$(dirname "$0")" && pwd)
 OUT=$(cd "$HERE/../.." && pwd)/public/media/intro
 PY=${PYTHON:-python3}
@@ -51,7 +53,13 @@ prep "$B" "$WORK/b4k.mp4" "$PY" "$HERE/upscale.py" "$B" "$WORK/b4k.mp4" --denois
 prep "$C" "$WORK/c4k.mp4" classic "$C" "$WORK/c4k.mp4" "eq=contrast=1.06:saturation=1.08"
 
 # A ends where B begins (island from above); B ends where C begins (forest).
-"$PY" "$HERE/stitch.py" "$WORK/sandy-labs-intro-4k.mp4" "$WORK/a4k.mp4" "$WORK/b4k.mp4" "$WORK/c4k.mp4"
+[ -f "$WORK/intro-joined-4k.mp4" ] ||
+  "$PY" "$HERE/stitch.py" "$WORK/intro-joined-4k.mp4" "$WORK/a4k.mp4" "$WORK/b4k.mp4" "$WORK/c4k.mp4"
+if [ -n "$LOGO" ]; then
+  "$PY" "$HERE/sand_logo.py" "$WORK/intro-joined-4k.mp4" "$LOGO" "$WORK/sandy-labs-intro-4k.mp4"
+else
+  cp "$WORK/intro-joined-4k.mp4" "$WORK/sandy-labs-intro-4k.mp4"
+fi
 
 web() { # height h264-crf av1-crf name
   local vf="scale=-2:$1:flags=lanczos"
