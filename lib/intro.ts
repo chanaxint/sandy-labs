@@ -5,11 +5,11 @@
  * inside the forest → out onto the beach). Scrolling moves a target position in
  * the film and the video plays toward it at a speed that eases with the distance,
  * so it follows the scroll smoothly instead of jumping frame by frame. A reversed
- * copy plays when the visitor scrolls back. The film ends looking at the Sandy
- * Labs logo pressed into the sand, rests there briefly, then opens the homepage.
- * While the camera moves through the forest, short lines slide through on top;
- * the camera's small turn toward each line is baked into the video
- * (scripts/intro/camera_look.py reads the caption timings below).
+ * copy plays when the visitor scrolls back. At the end the camera tilts down to
+ * look straight at the sand from above and the Sandy Labs logo is drawn into it
+ * (baked into the video by scripts/intro/sand_logo.py, so it follows the scroll
+ * and rewinds too); the film rests on it briefly, then opens the homepage.
+ * While the camera moves through the forest, short lines slide through on top.
  *
  * To replace the footage, re-encode with `scripts/intro/build-intro.sh` (or keep
  * the same file names) and update `duration` below.
@@ -39,7 +39,7 @@ export const introConfig = {
   },
   poster: "/media/intro/intro-poster.jpg",
   /** Length of the clip in seconds. */
-  duration: 752 / 24, // 31.33s: 712 frames of footage + a 40-frame tilt down to the logo, at 24 fps
+  duration: 864 / 24, // 36s at 24 fps: 712 frames of footage, a 44-frame tilt down, 12 on the sand, 96 drawing the logo
   /** Film seconds per pixel of wheel scroll (one mouse-wheel notch ≈ 100px ≈ 0.7s). */
   wheelSeconds: 0.007,
   /** Film seconds per pixel of finger drag on touch screens. */
@@ -64,14 +64,14 @@ export const introConfig = {
     [15.0, 1.45],
     [16.2, 1],
   ] as [number, number][],
-  /** Scroll moves the film this much slower while a caption is fully on screen. */
-  captionSlowdown: 0.35,
+  /** Scroll moves the film this much slower while a caption is fully on screen (just a touch). */
+  captionSlowdown: 0.1,
   /** Playback speed limits while catching up with the scroll (maxRate is scaled by `pace`). */
   minRate: 0.5,
   maxRate: 2.2,
   /** Playback speed per second the picture is behind the scroll target. */
   catchUp: 2.2,
-  /** How long (ms) the film rests on the logo in the sand before the homepage opens. */
+  /** How long (ms) the film rests on the finished logo before the homepage opens. */
   endHold: 2200,
   /** Absolute speed ceiling: above ~2.6x software video decoders start to drop frames. */
   rateCeiling: 2.6,
