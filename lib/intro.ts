@@ -24,7 +24,7 @@ export const introConfig = {
   },
   poster: "/media/intro/intro-poster.jpg",
   /** Length of the clip in seconds. */
-  duration: 29.2,
+  duration: 712 / 24, // 29.67s: 712 frames at 24 fps
   /** Film seconds per pixel of wheel scroll (one mouse-wheel notch ≈ 100px ≈ 0.7s). */
   wheelSeconds: 0.007,
   /** Film seconds per pixel of finger drag on touch screens. */
