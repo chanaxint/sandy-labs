@@ -1,7 +1,12 @@
 # Sandy Labs — Homepage
 
 Frontend homepage for Sandy Labs, an island-themed website creation studio.
-Built with Next.js (App Router), React, TypeScript, Tailwind CSS v4 and Lucide icons.
+Built with Next.js (App Router), React, TypeScript, Tailwind CSS v4, Lucide icons and Motion.
+
+Motion (`motion/react`) handles enter/exit transitions: questionnaire steps, the brief
+confirmation, requirement notes and the example dialog. It is loaded through `LazyMotion`
+in `components/ui/MotionProvider.tsx` and respects the OS reduced-motion setting. Other
+motion (hero parallax, scroll reveals, menu) is plain CSS.
 
 ```bash
 npm install
@@ -21,7 +26,7 @@ components/questionnaire BriefProvider (shared state), Questionnaire, Steps, Opt
                          ProgressIndicator, Composer, SelectionSummary, BriefConfirmation, Field
 components/examples/     ExamplesSection, ExampleCard, ExampleDialog, ExamplePreview
 components/sections/     WhatWeDo, HowItWorks, Contact
-components/ui/           Reveal, SectionHeading, TopoLines
+components/ui/           MotionProvider, Reveal, SectionHeading, TopoLines
 lib/                     questionnaire options + validation, brief builder, example data,
                          navigation, hero media config, shape helpers
 ```

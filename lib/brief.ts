@@ -60,7 +60,7 @@ export function buildBrief(a: BriefAnswers): WebsiteBrief {
       pages: a.pages.map((id) => labelFor(pages, id)),
       additionalFeatures: a.additionalFeatures.trim() || undefined,
     },
-    requirements: a.notes.map((n) => n.trim()).filter(Boolean),
+    requirements: a.notes.map((n) => n.text.trim()).filter(Boolean),
   };
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { exampleConcepts, type ExampleConcept } from "@/lib/examples";
 import { scrollToSection, sectionIds } from "@/lib/navigation";
 import { useBrief } from "../questionnaire/BriefProvider";
@@ -10,16 +10,35 @@ import { ExampleCard } from "./ExampleCard";
 import { ExampleDialog } from "./ExampleDialog";
 
 // Asymmetric, editorial column spans; repeats for any number of concepts.
-const spans = ["lg:col-span-7", "lg:col-span-5 lg:mt-24", "lg:col-span-5", "lg:col-span-7 lg:mt-24", "lg:col-span-6", "lg:col-span-6 lg:mt-24"];
+const spans = [
+  "lg:col-span-7",
+  "lg:col-span-5 lg:mt-24",
+  "lg:col-span-5",
+  "lg:col-span-7 lg:mt-24",
+  "lg:col-span-6",
+  "lg:col-span-6 lg:mt-24",
+];
 
 export function ExamplesSection() {
   const [active, setActive] = useState<ExampleConcept | null>(null);
   const { applyConcept } = useBrief();
+  // Scroll only after the dialog has closed, so focus returning to the
+  // Explore button does not pull the page back.
+  const scrollAfterClose = useRef(false);
 
   const use = (concept: ExampleConcept) => {
     applyConcept(concept);
+    scrollAfterClose.current = true;
     setActive(null);
-    requestAnimationFrame(() => scrollToSection(sectionIds.create));
+  };
+
+  const onExited = () => {
+    if (!scrollAfterClose.current) return;
+    scrollAfterClose.current = false;
+    requestAnimationFrame(() => {
+      scrollToSection(sectionIds.create);
+      document.querySelector<HTMLElement>(`#${sectionIds.create} h3[tabindex="-1"]`)?.focus({ preventScroll: true });
+    });
   };
 
   return (
@@ -46,7 +65,7 @@ export function ExamplesSection() {
         </div>
       </div>
 
-      <ExampleDialog concept={active} onClose={() => setActive(null)} onUse={use} />
+      <ExampleDialog concept={active} onClose={() => setActive(null)} onUse={use} onExited={onExited} />
     </section>
   );
 }

@@ -1,7 +1,9 @@
 "use client";
 
 import { ArrowUp, X } from "lucide-react";
+import { AnimatePresence, m } from "motion/react";
 import { useEffect, useId, useRef, type KeyboardEvent } from "react";
+import { createNote } from "@/lib/questionnaire";
 import { useBrief } from "./BriefProvider";
 
 type ComposerProps = {
@@ -32,7 +34,7 @@ export function Composer({ draft, onDraftChange }: ComposerProps) {
   const send = () => {
     const text = draft.trim();
     if (!text) return;
-    update("notes", [...answers.notes, text]);
+    update("notes", [...answers.notes, createNote(text)]);
     onDraftChange("");
     textareaRef.current?.focus();
   };
@@ -44,36 +46,46 @@ export function Composer({ draft, onDraftChange }: ComposerProps) {
     }
   };
 
-  const removeNote = (index: number) => {
+  const removeNote = (id: string) => {
     update(
       "notes",
-      answers.notes.filter((_, i) => i !== index),
+      answers.notes.filter((n) => n.id !== id),
     );
+    textareaRef.current?.focus();
   };
 
   return (
     <div className="mx-auto w-full max-w-3xl">
-      {answers.notes.length > 0 ? (
-        <ul className="mb-5 space-y-3" aria-label="Your additional requirements">
+      <ul className="flex flex-col" aria-label="Your additional requirements">
+        <AnimatePresence initial={false}>
           {answers.notes.map((note, i) => (
-            <li key={`${i}-${note.slice(0, 12)}`} className="animate-fade flex justify-end">
+            <m.li
+              key={note.id}
+              layout
+              initial={{ opacity: 0, y: 16, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.25 } }}
+              style={{ originX: 1, originY: 1 }}
+              className="flex justify-end pb-3 last:pb-5"
+            >
               <div className="group relative max-w-[85%] rounded-[20px] rounded-br-[6px] bg-lagoon-900 py-3 pr-11 pl-5 text-[0.95rem] leading-relaxed whitespace-pre-wrap text-sand-50">
-                {note}
+                {note.text}
                 <button
                   type="button"
-                  onClick={() => removeNote(i)}
+                  onClick={() => removeNote(note.id)}
                   className="absolute top-2.5 right-2.5 rounded-full p-1 text-sand-50/60 transition-colors hover:bg-white/10 hover:text-sand-50"
                   aria-label={`Remove requirement ${i + 1}`}
                 >
                   <X aria-hidden className="h-3.5 w-3.5" />
                 </button>
               </div>
-            </li>
+            </m.li>
           ))}
-        </ul>
-      ) : null}
+        </AnimatePresence>
+      </ul>
 
-      <form
+      <m.form
+        layout="position"
         onSubmit={(e) => {
           e.preventDefault();
           send();
@@ -109,7 +121,7 @@ export function Composer({ draft, onDraftChange }: ComposerProps) {
             <ArrowUp aria-hidden className="h-[18px] w-[18px]" strokeWidth={2.2} />
           </button>
         </div>
-      </form>
+      </m.form>
     </div>
   );
 }

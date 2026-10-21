@@ -89,6 +89,11 @@ export const motionHeavyExperiences: ExperienceId[] = [
   "interactive-products",
 ];
 
+export type RequirementNote = {
+  id: string;
+  text: string;
+};
+
 export type BriefAnswers = {
   industry: IndustryId | null;
   industryOther: string;
@@ -100,8 +105,15 @@ export type BriefAnswers = {
   experiences: ExperienceId[];
   pages: PageId[];
   additionalFeatures: string;
-  notes: string[];
+  notes: RequirementNote[];
 };
+
+let noteCounter = 0;
+
+export function createNote(text: string): RequirementNote {
+  noteCounter += 1;
+  return { id: `note-${Date.now().toString(36)}-${noteCounter}`, text };
+}
 
 export const emptyAnswers: BriefAnswers = {
   industry: null,
