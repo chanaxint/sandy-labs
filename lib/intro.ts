@@ -40,17 +40,17 @@ export const introConfig = {
   poster: "/media/intro/intro-poster.jpg",
   /** Length of the clip in seconds. */
   duration: 864 / 24, // 36s at 24 fps: 712 frames of footage, a 44-frame tilt down, 12 on the sand, 96 drawing the logo
-  /** Film seconds per pixel of wheel scroll (one mouse-wheel notch ≈ 100px ≈ 0.7s). */
-  wheelSeconds: 0.007,
+  /** Film seconds per pixel of wheel scroll (one mouse-wheel notch ≈ 100px ≈ 1.1s). */
+  wheelSeconds: 0.011,
   /** Film seconds per pixel of finger drag on touch screens. */
-  touchSeconds: 0.03,
+  touchSeconds: 0.045,
   /** Film seconds added per arrow / Page Down key press. */
-  keySeconds: 2,
+  keySeconds: 3,
   /**
    * How far (seconds) the target may run ahead of the picture. This is how long
    * the film keeps gliding after scrolling stops, so it stays short.
    */
-  maxLead: 1.2,
+  maxLead: 1.4,
   /**
    * Scroll speed through the film, as [film time, multiplier] points with linear
    * blending between them: steady over the jet, quicker on the approach to the
@@ -68,13 +68,18 @@ export const introConfig = {
   captionSlowdown: 0.1,
   /** Playback speed limits while catching up with the scroll (maxRate is scaled by `pace`). */
   minRate: 0.5,
-  maxRate: 2.2,
+  maxRate: 3.2,
   /** Playback speed per second the picture is behind the scroll target. */
-  catchUp: 2.2,
+  catchUp: 2.6,
   /** How long (ms) the film rests on the finished logo before the homepage opens. */
   endHold: 2200,
-  /** Absolute speed ceiling: above ~2.6x software video decoders start to drop frames. */
-  rateCeiling: 2.6,
+  /**
+   * Absolute speed ceiling. If the device's decoder falls behind (a stall), the
+   * ceiling drops to just below that speed, never under `rateFloor`, and climbs
+   * back slowly, so fast machines get the full speed and slow ones stay smooth.
+   */
+  rateCeiling: 3.4,
+  rateFloor: 2.2,
   /**
    * Lines that slide through while the camera moves through the forest
    * (about 16s-25.5s in the film). They follow the film's position, so they

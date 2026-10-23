@@ -11,7 +11,7 @@ type IntroFilmProps = {
 };
 
 const { duration, wheelSeconds, touchSeconds, keySeconds, maxLead, minRate, maxRate } = introConfig;
-const { pace, captionSlowdown, captions, catchUp, rateCeiling, endHold } = introConfig;
+const { pace, captionSlowdown, captions, catchUp, rateCeiling, rateFloor, endHold } = introConfig;
 /** Closer than this to the target counts as "arrived" and playback pauses. */
 const SETTLE = 0.04;
 
@@ -81,6 +81,8 @@ export function IntroFilm({ onExit, leaving }: IntroFilmProps) {
   const captionShadeRef = useRef<HTMLDivElement>(null);
   const rate = useRef(minRate);
   const rateSetAt = useRef(0);
+  /** Speed ceiling for this device: lowered when the decoder falls behind, then recovering slowly. */
+  const ceiling = useRef({ low: rateCeiling, at: 0 });
 
   const [active, setActive] = useState<"fwd" | "rev">("fwd");
   const [started, setStarted] = useState(false);
@@ -226,9 +228,10 @@ export function IntroFilm({ onExit, leaving }: IntroFilmProps) {
 
       // Ease the speed in small, frequent steps so speed changes glide rather than
       // jump; top speed follows the section pace.
-      const want = clamp(Math.abs(diff) * catchUp, minRate, Math.min(rateCeiling, maxRate * paceAt(t)));
-      rate.current += (want - rate.current) * 0.08;
       const stamp = performance.now();
+      const top = Math.min(rateCeiling, ceiling.current.low + ((stamp - ceiling.current.at) / 1000) * 0.04);
+      const want = clamp(Math.abs(diff) * catchUp, minRate, Math.min(top, maxRate * paceAt(t)));
+      rate.current += (want - rate.current) * 0.08;
       if (video.paused) {
         video.playbackRate = rate.current;
         rateSetAt.current = stamp;
@@ -374,7 +377,14 @@ export function IntroFilm({ onExit, leaving }: IntroFilmProps) {
       fwd.load();
     })();
 
-    const onWaiting = () => setWaiting(true);
+    const onWaiting = (e: Event) => {
+      setWaiting(true);
+      // The decoder can't keep up at this speed (not a seek): play slower from now on.
+      const v = e.currentTarget as HTMLVideoElement;
+      if (!v.seeking && !switching.current && v.playbackRate > rateFloor) {
+        ceiling.current = { low: Math.max(rateFloor, v.playbackRate * 0.85), at: performance.now() };
+      }
+    };
     const onPlaying = () => setWaiting(false);
     for (const v of [fwd, rev]) {
       v.addEventListener("waiting", onWaiting);
