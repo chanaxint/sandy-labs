@@ -5,10 +5,11 @@
  * inside the forest → out onto the beach). Scrolling moves a target position in
  * the film and the video plays toward it at a speed that eases with the distance,
  * so it follows the scroll smoothly instead of jumping frame by frame. A reversed
- * copy plays when the visitor scrolls back. At the end the camera tilts down to
- * look straight at the sand from above and the Sandy Labs logo is drawn into it
- * (baked into the video by scripts/intro/sand_logo.py, so it follows the scroll
- * and rewinds too); the film rests on it briefly, then opens the homepage.
+ * copy plays when the visitor scrolls back. At the end the camera glides to a
+ * stop looking out at the beach through the palms and the Sandy Labs logo is
+ * drawn in white in the middle of the frame (baked into the video by
+ * scripts/intro/air_logo.py, so it follows the scroll and rewinds too); the film
+ * rests on it briefly, then opens the homepage.
  * While the camera moves through the forest, short lines slide through on top.
  *
  * To replace the footage, re-encode with `scripts/intro/build-intro.sh` (or keep
@@ -39,7 +40,7 @@ export const introConfig = {
   },
   poster: "/media/intro/intro-poster.jpg",
   /** Length of the clip in seconds. */
-  duration: 864 / 24, // 36s at 24 fps: 712 frames of footage, a 44-frame tilt down, 12 on the sand, 96 drawing the logo
+  duration: 737 / 24, // 30.7s at 24 fps: 647 frames of footage (the last 24 slowing to a stop), 6 still, 84 drawing the logo
   /** Film seconds per pixel of wheel scroll (one mouse-wheel notch ≈ 100px ≈ 1.1s). */
   wheelSeconds: 0.011,
   /** Film seconds per pixel of finger drag on touch screens. */
@@ -50,7 +51,7 @@ export const introConfig = {
    * How far (seconds) the target may run ahead of the picture. This is how long
    * the film keeps gliding after scrolling stops, so it stays short.
    */
-  maxLead: 1.4,
+  maxLead: 1.9,
   /**
    * Scroll speed through the film, as [film time, multiplier] points with linear
    * blending between them: steady over the jet, quicker on the approach to the
@@ -70,7 +71,7 @@ export const introConfig = {
   minRate: 0.5,
   maxRate: 3.2,
   /** Playback speed per second the picture is behind the scroll target. */
-  catchUp: 2.6,
+  catchUp: 1.9,
   /** How long (ms) the film rests on the finished logo before the homepage opens. */
   endHold: 2200,
   /**

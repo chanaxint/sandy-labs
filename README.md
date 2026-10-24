@@ -34,8 +34,8 @@ lib/                     questionnaire options + validation, brief builder, exam
 ## Intro film
 
 Before the homepage, a full-screen film follows the visitor's scroll: jet above the
-clouds → island from above → closer → inside the forest → out onto the beach → the camera
-looks straight down at the sand and the Sandy Labs logo is drawn into it → homepage.
+clouds → island from above → closer → inside the forest → the camera comes to rest looking
+out at the beach through the palms and the Sandy Labs logo is drawn in white → homepage.
 Scrolling moves a target point in the film and the video plays toward it at a speed that
 eases with the distance, so it glides with the scroll rather than stepping frame by frame;
 scrolling back plays a reversed copy. On screen there is only the film, a small
@@ -56,14 +56,14 @@ their first scroll.
 The footage is joined at 4K (TensorPix 4K upscales for the drone and forest clips,
 Lanczos for the plane clip). `scripts/intro/stitch.py` matches each join frame by frame:
 it finds the best-matching frame pair, eases framing (shift, zoom, rotation) and colour
-into the next clip over 1.5 seconds and dissolves over 3 frames. `scripts/intro/sand_logo.py`
-adds the ending from a photo of the logo written in sand: the camera tilts down to look
-straight at the beach's own sand, then the photo's grooves are pressed into it in
-drawing order (island outline, inner line, lagoon, S-A-N-D-Y, the lines and LABS). The
+into the next clip over 1.5 seconds and dissolves over 3 frames. `scripts/intro/air_logo.py`
+adds the ending from the logo image (white lines on black): the camera slows to a stop on
+a frame that is sharp in the middle, then the logo is drawn in white in the middle of the
+frame in drawing order (island outline, lagoon, S-A-N-D-Y, the lines and LABS). The
 drawing is part of the video, so it follows the scroll and rewinds like the rest. Build with:
 
 ```bash
-scripts/intro/build-intro.sh plane.mp4 drone.mp4 forest.mp4 /tmp/intro-work sand-logo.jpg
+scripts/intro/build-intro.sh plane.mp4 drone.mp4 forest.mp4 /tmp/intro-work logo.png
 ```
 
 It needs ffmpeg (with libx264 and libsvtav1) and Python with `numpy opencv-python-headless`

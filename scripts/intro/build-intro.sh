@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Builds the intro film from the three source clips.
 #
-#   scripts/intro/build-intro.sh <plane.mp4> <drone.mp4> <forest.mp4> <work-dir> [sand-logo-photo.jpg]
+#   scripts/intro/build-intro.sh <plane.mp4> <drone.mp4> <forest.mp4> <work-dir> [logo-white-on-black.png]
 #
 # 1. Brings every clip to 3840x2160 at 24 fps. Clips already at 4K (the drone and
 #    forest clips are TensorPix 4K upscales supplied separately) are used as they are.
@@ -11,9 +11,9 @@
 # 2. Stitches them frame-matched (stitch.py: numpy + opencv-python-headless): best
 #    matching frame pair, framing and colour eased into the next clip, 3-frame
 #    dissolve. Audio is dropped.
-#    With a photo of the logo written in sand, sand_logo.py adds the ending: the
-#    camera tilts down to look straight at the beach's sand and the logo is drawn
-#    into it stroke by stroke.
+#    With the logo image (white lines on black), air_logo.py adds the ending: the
+#    camera glides to a stop looking out at the beach through the palms and the
+#    logo is drawn in white in the middle of the frame, stroke by stroke.
 # 3. Writes a 4K master to <work-dir> and web encodes (1080p/720p, forward and
 #    reversed, H.264 + AV1) to public/media/intro/.
 #
@@ -57,7 +57,7 @@ prep "$C" "$WORK/c4k.mp4" classic "$C" "$WORK/c4k.mp4" "eq=contrast=1.06:saturat
 [ -f "$WORK/intro-joined-4k.mp4" ] ||
   "$PY" "$HERE/stitch.py" "$WORK/intro-joined-4k.mp4" "$WORK/a4k.mp4" "$WORK/b4k.mp4" "$WORK/c4k.mp4"
 if [ -n "$LOGO" ]; then
-  "$PY" "$HERE/sand_logo.py" "$WORK/intro-joined-4k.mp4" "$LOGO" "$WORK/sandy-labs-intro-4k.mp4"
+  "$PY" "$HERE/air_logo.py" "$WORK/intro-joined-4k.mp4" "$LOGO" "$WORK/sandy-labs-intro-4k.mp4"
 else
   cp "$WORK/intro-joined-4k.mp4" "$WORK/sandy-labs-intro-4k.mp4"
 fi
