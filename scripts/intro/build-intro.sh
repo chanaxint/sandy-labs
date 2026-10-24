@@ -12,7 +12,7 @@
 #    matching frame pair, framing and colour eased into the next clip, 3-frame
 #    dissolve. Audio is dropped.
 #    With a photo of the logo written in sand, sand_logo.py adds the ending: the
-#    camera tilts down to a top-down view of clean sand and the logo is drawn
+#    camera tilts down to look straight at the beach's sand and the logo is drawn
 #    into it stroke by stroke.
 # 3. Writes a 4K master to <work-dir> and web encodes (1080p/720p, forward and
 #    reversed, H.264 + AV1) to public/media/intro/.

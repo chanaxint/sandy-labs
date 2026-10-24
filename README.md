@@ -57,8 +57,8 @@ The footage is joined at 4K (TensorPix 4K upscales for the drone and forest clip
 Lanczos for the plane clip). `scripts/intro/stitch.py` matches each join frame by frame:
 it finds the best-matching frame pair, eases framing (shift, zoom, rotation) and colour
 into the next clip over 1.5 seconds and dissolves over 3 frames. `scripts/intro/sand_logo.py`
-adds the ending from a photo of the logo written in sand: the camera tilts down to a
-top-down view of the same sand with the logo removed, then the grooves are revealed in
+adds the ending from a photo of the logo written in sand: the camera tilts down to look
+straight at the beach's own sand, then the photo's grooves are pressed into it in
 drawing order (island outline, inner line, lagoon, S-A-N-D-Y, the lines and LABS). The
 drawing is part of the video, so it follows the scroll and rewinds like the rest. Build with:
 
