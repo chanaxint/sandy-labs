@@ -8,8 +8,8 @@
  * copy plays when the visitor scrolls back. At the end the camera glides to a
  * stop looking out at the beach through the palms and the Sandy Labs logo is
  * drawn in white in the middle of the frame (baked into the video by
- * scripts/intro/air_logo.py, so it follows the scroll and rewinds too); the film
- * rests on it briefly, then opens the homepage.
+ * scripts/intro/air_logo.py). Once a scroll reaches that ending it plays by
+ * itself; the film rests on the logo briefly, then opens the homepage.
  * While the camera moves through the forest, short lines slide through on top.
  *
  * To replace the footage, re-encode with `scripts/intro/build-intro.sh` (or keep
@@ -40,7 +40,13 @@ export const introConfig = {
   },
   poster: "/media/intro/intro-poster.jpg",
   /** Length of the clip in seconds. */
-  duration: 737 / 24, // 30.7s at 24 fps: 647 frames of footage (the last 24 slowing to a stop), 6 still, 84 drawing the logo
+  duration: 765 / 24, // 31.9s at 24 fps: 623 frames of footage, a 60-frame slow-down and push-in, 4 still, 78 drawing the logo
+  /**
+   * Where the ending starts (the camera slowing to a stop, then the logo being
+   * drawn). Once a scroll reaches it, the ending plays by itself at normal speed;
+   * scrolling no longer steers it.
+   */
+  autoplayFrom: 623 / 24,
   /** Film seconds per pixel of wheel scroll (one mouse-wheel notch ≈ 100px ≈ 1.1s). */
   wheelSeconds: 0.011,
   /** Film seconds per pixel of finger drag on touch screens. */

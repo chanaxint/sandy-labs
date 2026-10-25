@@ -62,7 +62,8 @@ pushing in on the sharp middle of the frame while the motion blur left at the ed
 into a soft focus blur (the footage is blurred toward the edges in every frame there), then
 the logo is drawn in white in the middle of the
 frame in drawing order (island outline, lagoon, S-A-N-D-Y, the lines and LABS). The
-drawing is part of the video, so it follows the scroll and rewinds like the rest. Build with:
+drawing is part of the video; once a scroll reaches the ending, the site plays it by itself
+at normal speed (`autoplayFrom` in `lib/intro.ts`). Build with:
 
 ```bash
 scripts/intro/build-intro.sh plane.mp4 drone.mp4 forest.mp4 /tmp/intro-work logo.png

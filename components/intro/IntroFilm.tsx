@@ -11,7 +11,9 @@ type IntroFilmProps = {
 };
 
 const { duration, wheelSeconds, touchSeconds, keySeconds, maxLead, minRate, maxRate } = introConfig;
-const { pace, captionSlowdown, captions, catchUp, rateCeiling, rateFloor, endHold } = introConfig;
+const { pace, captionSlowdown, captions, catchUp, rateCeiling, rateFloor, endHold, autoplayFrom } = introConfig;
+/** A scroll target this close to the ending (seconds) sets it playing on its own. */
+const AUTOPLAY_REACH = 0.6;
 /** Closer than this to the target counts as "arrived" and playback pauses. */
 const SETTLE = 0.04;
 
@@ -83,6 +85,8 @@ export function IntroFilm({ onExit, leaving }: IntroFilmProps) {
   const rateSetAt = useRef(0);
   /** Speed ceiling for this device: lowered when the decoder falls behind, then recovering slowly. */
   const ceiling = useRef({ low: rateCeiling, at: 0 });
+  /** The ending (slow-down, push-in, logo) plays by itself once reached; scrolling no longer steers it. */
+  const autoplaying = useRef(false);
 
   const [active, setActive] = useState<"fwd" | "rev">("fwd");
   const [started, setStarted] = useState(false);
@@ -120,11 +124,16 @@ export function IntroFilm({ onExit, leaving }: IntroFilmProps) {
         exit();
         return;
       }
+      if (autoplaying.current) return;
       const t = now();
       const speed = paceAt(t);
       const lead = maxLead * speed; // faster sections may run further ahead, captions less
       target.current = clamp(target.current + seconds * speed, Math.max(0, t - lead), Math.min(duration, t + lead));
       if (target.current > 0.15) setStarted(true);
+      if (target.current >= autoplayFrom - AUTOPLAY_REACH) {
+        autoplaying.current = true;
+        target.current = duration;
+      }
     },
     [exit, now],
   );
@@ -230,7 +239,12 @@ export function IntroFilm({ onExit, leaving }: IntroFilmProps) {
       // jump; top speed follows the section pace.
       const stamp = performance.now();
       const top = Math.min(rateCeiling, ceiling.current.low + ((stamp - ceiling.current.at) / 1000) * 0.04);
-      const want = clamp(Math.abs(diff) * catchUp, minRate, Math.min(top, maxRate * paceAt(t)));
+      const limit = Math.min(top, maxRate * paceAt(t));
+      let want = clamp(Math.abs(diff) * catchUp, minRate, limit);
+      if (autoplaying.current) {
+        // Glide in from the scroll speed, then play the ending at its own pace (1x).
+        want = t < autoplayFrom ? clamp((autoplayFrom - t) * catchUp, 1, limit) : 1;
+      }
       rate.current += (want - rate.current) * 0.08;
       if (video.paused) {
         video.playbackRate = rate.current;
