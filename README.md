@@ -57,8 +57,10 @@ The footage is joined at 4K (TensorPix 4K upscales for the drone and forest clip
 Lanczos for the plane clip). `scripts/intro/stitch.py` matches each join frame by frame:
 it finds the best-matching frame pair, eases framing (shift, zoom, rotation) and colour
 into the next clip over 1.5 seconds and dissolves over 3 frames. `scripts/intro/air_logo.py`
-adds the ending from the logo image (white lines on black): the camera slows to a stop on
-a frame that is sharp in the middle, then the logo is drawn in white in the middle of the
+adds the ending from the logo image (white lines on black): the camera slows to a stop,
+pushing in on the sharp middle of the frame while the motion blur left at the edges turns
+into a soft focus blur (the footage is blurred toward the edges in every frame there), then
+the logo is drawn in white in the middle of the
 frame in drawing order (island outline, lagoon, S-A-N-D-Y, the lines and LABS). The
 drawing is part of the video, so it follows the scroll and rewinds like the rest. Build with:
 

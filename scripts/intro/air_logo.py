@@ -2,9 +2,12 @@
 the palms, and the Sandy Labs logo is drawn in white in the middle of the frame,
 stroke by stroke, as if written in the air.
 
-- Ending: the film stops at END (a frame that is sharp in the middle; the
-  camera moves forward, so the edges carry some motion blur in every frame).
-  The last stretch before it is retimed to slow to a stop instead of halting.
+- Ending: the film stops at END. The camera moves forward through the palms,
+  so every frame here is motion-blurred toward the edges; only the middle is
+  sharp. The last stretch is retimed to slow to a stop, and as it slows the
+  camera pushes in on the sharp middle while the blur left at the edges is
+  turned into a soft, even focus blur, so the still reads as a stopped camera
+  focused on the sea rather than a paused moving shot.
 - Logo: the white-on-black logo image, cleaned into crisp anti-aliased lines at
   4K, with a soft shadow so it reads against the sky and sand.
 - Drawing: the island outline is swept around the island from its notch, then
@@ -32,6 +35,9 @@ GAP_FRAMES = 1.0      # pause between strokes, in frames
 DRAW_TAIL = 3         # last strokes finish this many frames before the end
 FRONT_FRAMES = 1.5    # softness of the drawing front, in frames
 CUT_RADIUS = 5        # (logo image pixels) where closed shapes are opened to be drawn in one direction
+PUSH_IN = 1.55        # final zoom on the sharp middle of the frame
+FOCUS_SIGMA = 14      # (output pixels) soft focus blur at the frame's edges
+FOCUS_FROM, FOCUS_TO = 0.35, 0.9  # radius (fraction of the half-diagonal) where it starts / is full
 LOGO_WIDTH = 0.3      # logo width as a fraction of the frame width
 LOGO_CENTRE = (0.5, 0.48)
 SHADOW = 0.35         # darkening under the lines, for contrast
@@ -57,6 +63,16 @@ def between(a, b, f):
     wb = cv2.remap(b, gx - (1 - f) * fba[..., 0], gy - (1 - f) * fba[..., 1], cv2.INTER_LINEAR,
                    borderMode=cv2.BORDER_REFLECT)
     return (wa.astype(np.float32) * (1 - f) + wb.astype(np.float32) * f).astype(np.uint8)
+
+
+def settle(frame, u, focus):
+    """The frame pushed in on its middle and softened at the edges, u (0..1) of the way to the still."""
+    e = 1 - (1 - u) ** 2
+    z = 1 + (PUSH_IN - 1) * e
+    m = cv2.getRotationMatrix2D((W / 2, H / 2), 0, z)
+    f = cv2.warpAffine(frame, m, (W, H), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REFLECT).astype(np.float32)
+    w = (focus * e)[..., None]
+    return f * (1 - w) + cv2.GaussianBlur(f, (0, 0), FOCUS_SIGMA) * w
 
 
 def logo_alpha(path):
@@ -193,17 +209,22 @@ def main():
     # The camera glides to a stop: speed falls linearly from 1 to 0, so the source
     # position follows an ease-out. In-between positions are synthesised from the
     # optical flow between neighbouring frames (a plain blend would show doubles).
+    gx, gy = np.meshgrid(np.linspace(-1, 1, W, dtype=np.float32), np.linspace(-1, 1, H, dtype=np.float32))
+    r = np.sqrt((gx ** 2 + gy ** 2) / 2)
+    focus = np.clip((r - FOCUS_FROM) / (FOCUS_TO - FOCUS_FROM), 0, 1)
+    focus = focus * focus * (3 - 2 * focus)
     tail = decode(src, first_eased, END)
     for k in range(1, EASE_FRAMES + 1):
         u = k / EASE_FRAMES
         pos = EASE_SOURCE * (1 - (1 - u) ** 2)
         i = min(int(pos), EASE_SOURCE - 1)
         f = pos - i
-        write(tail[i] if f < 0.02 else tail[i + 1] if f > 0.98 else between(tail[i], tail[i + 1], f))
+        frame = tail[i] if f < 0.02 else tail[i + 1] if f > 0.98 else between(tail[i], tail[i + 1], f)
+        write(np.clip(settle(frame, u, focus), 0, 255).astype(np.uint8))
         written += 1
-    last = tail[-1].astype(np.float32)
+    last = settle(tail[-1], 1.0, focus)
     for _ in range(REST_FRAMES):
-        write(last.astype(np.uint8))
+        write(np.clip(last, 0, 255).astype(np.uint8))
         written += 1
 
     # Draw the logo, dimming the picture a little as it appears.
