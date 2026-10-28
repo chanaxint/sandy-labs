@@ -1,6 +1,6 @@
 "use client";
 
-import type { CSSProperties } from "react";
+import { useLayoutEffect, useRef, type CSSProperties } from "react";
 import { useLang } from "@/lib/i18n/lang";
 import { cta, story, type Place, type StoryLine } from "@/lib/journey/story";
 
@@ -22,12 +22,20 @@ function placeVars(mobile: Place, desktop: Place): CSSProperties {
 /**
  * The story lines over the journey film (copy and timing: lib/journey/story.ts). They
  * are rendered once, hidden; the film's scroll timeline (lib/journey/storyTimeline.ts)
- * shows each one at its moment. Only the words change with the language.
+ * shows each one at its moment, word by word. When the language changes the words are
+ * new elements, so the timeline is told to rebuild (`story:change`).
  */
 export function StoryOverlays() {
   const { lang } = useLang();
+  const root = useRef<HTMLDivElement>(null);
+  const mounted = useRef(false);
+  useLayoutEffect(() => {
+    if (mounted.current) root.current?.dispatchEvent(new Event("story:change", { bubbles: true }));
+    mounted.current = true;
+  }, [lang]);
+
   return (
-    <div className="pointer-events-none absolute inset-0 z-10">
+    <div ref={root} className="pointer-events-none absolute inset-0 z-10">
       {story.map((line) => (
         <Overlay key={line.id} line={line} words={line.text[lang]} ctaLabel={line.id === "final" ? cta[lang] : undefined} />
       ))}
@@ -38,39 +46,9 @@ export function StoryOverlays() {
 function Overlay({ line, words, ctaLabel }: { line: StoryLine; words: string[]; ctaLabel?: string }) {
   const first = line.id === "clouds";
   const right = line.desktop.align === "right";
+  const giant = line.size === "giant";
   const mask = line.motion === "mask";
-  const block = (
-    <div
-      data-story={line.id}
-      data-tone={line.tone}
-      data-veil={line.veil ? "" : undefined}
-      // Hidden until the timeline shows it (the first line is visible from the start).
-      className={`story ${first ? "" : "invisible opacity-0"}`}
-    >
-      <p className={`story-text ${line.id === "final" ? "story-text-final" : ""} ${right ? "md:text-right" : ""}`}>
-        {words.map((w, i) =>
-          mask ? (
-            <span key={i} className="story-mask">
-              <span data-line className="block">
-                {w}
-              </span>
-            </span>
-          ) : (
-            <span key={i} data-line className="block">
-              {w}
-            </span>
-          ),
-        )}
-      </p>
-      {ctaLabel ? (
-        <div data-line className="mt-8 md:mt-10">
-          <button type="button" className="story-cta pointer-events-auto">
-            {ctaLabel}
-          </button>
-        </div>
-      ) : null}
-    </div>
-  );
+  const size = giant ? "story-text-giant" : line.id === "final" ? "story-text-final" : "";
 
   return (
     <div
@@ -79,7 +57,37 @@ function Overlay({ line, words, ctaLabel }: { line: StoryLine; words: string[]; 
       } ${first ? "story-intro" : ""}`}
       style={placeVars(line.mobile, line.desktop)}
     >
-      {block}
+      <div
+        data-story={line.id}
+        data-tone={line.tone}
+        data-veil={line.veil ? "" : undefined}
+        // Hidden until the timeline shows it (the first line is visible from the start).
+        className={`story ${first ? "" : "invisible opacity-0"}`}
+      >
+        <p className={`story-text ${size} ${giant ? "text-center" : right ? "md:text-right" : ""}`}>
+          {words.map((text, i) => (
+            <span key={i} className="story-line">
+              {text.split(" ").map((word, j, all) => (
+                <span key={j}>
+                  <span className={mask ? "story-mask" : "story-word"}>
+                    <span data-word className="inline-block">
+                      {word}
+                    </span>
+                  </span>
+                  {j < all.length - 1 ? " " : null}
+                </span>
+              ))}
+            </span>
+          ))}
+        </p>
+        {ctaLabel ? (
+          <div data-word className="mt-9 md:mt-11">
+            <button type="button" className="story-cta pointer-events-auto">
+              {ctaLabel}
+            </button>
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }

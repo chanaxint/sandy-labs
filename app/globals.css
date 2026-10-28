@@ -2,6 +2,7 @@
 
 @theme {
   --font-sans: var(--font-instrument), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-serif), ui-serif, Georgia, serif;
   --color-ink: #0f1e2c;
   --color-snow: #f6f7f4;
 }
@@ -48,33 +49,54 @@ body {
 
 .story-text {
   margin: 0;
-  font-size: clamp(1.75rem, 1rem + 2.6vw, 3.5rem);
+  font-family: var(--font-serif);
+  font-size: clamp(2.1rem, 1.1rem + 3.1vw, 4.4rem);
   font-weight: 400;
-  line-height: 1.06;
-  letter-spacing: -0.028em;
-  font-feature-settings: "ss01", "kern";
-}
-.story-text > [data-line],
-.story-mask > [data-line] {
-  will-change: transform, opacity;
+  line-height: 1.02;
+  letter-spacing: -0.012em;
 }
 .story-text-final {
-  font-size: clamp(2.25rem, 1.2rem + 4vw, 5.25rem);
-  letter-spacing: -0.034em;
+  font-size: clamp(2.8rem, 1.4rem + 4.8vw, 6.5rem);
+  letter-spacing: -0.018em;
+}
+/* The jump: one line across the frame, the rider in front of it. */
+.story-text-giant {
+  font-size: clamp(3.6rem, 17vw, 20rem);
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+}
+.story-line {
+  display: block;
 }
 @media (min-width: 48rem) {
-  .story-text > *,
-  .story-mask {
+  .story-line {
     white-space: nowrap;
   }
 }
+@media (max-width: 47.99rem) {
+  /* Phones: the giant line breaks between its words, still filling the width. */
+  .story-text-giant {
+    font-size: 23vw;
+    white-space: normal;
+  }
+}
 
-/* Mask reveal: each line slides up from behind its own edge (room for descenders). */
+/* Words: each its own inline box, so it can rise, blur and settle on its own. */
+.story-word,
 .story-mask {
-  display: block;
+  display: inline-block;
+}
+.story-word > [data-word],
+.story-mask > [data-word] {
+  will-change: transform, opacity, filter;
+}
+/* Mask reveal: each word slides up from behind its own edge (room for accents and descenders). */
+.story-mask {
   overflow: hidden;
-  padding-bottom: 0.14em;
-  margin-bottom: -0.14em;
+  vertical-align: top;
+  padding: 0.08em 0.04em 0.2em;
+  margin: -0.08em -0.04em -0.2em;
 }
 
 .story-cta {

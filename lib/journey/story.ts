@@ -32,11 +32,14 @@ export type StoryLine = {
   out: number;
   gone?: number;
   /**
-   * haze: rises a little out of a soft blur (clouds, fog, dusk);
-   * mask: lines slide up from behind a mask (crisp, bright shots);
-   * drift: slides in sideways, with the camera (arrivals from one side).
+   * Word by word, one after another:
+   * haze: each word rises a little out of a soft blur (clouds, fog, dusk);
+   * mask: each word slides up from behind its own edge (crisp, bright shots);
+   * drift: each word slides in sideways with the camera, sharpening as it lands.
    */
   motion: "haze" | "mask" | "drift";
+  /** giant: one line across the whole frame, centred (the jump; the rider passes in front). */
+  size?: "giant";
   tone: "light" | "dark";
   /** A faint local shade behind the words, for busy footage (never over the whole frame). */
   veil?: boolean;
@@ -61,8 +64,8 @@ export const story: StoryLine[] = [
     text: { en: ["Let's take a journey."], tr: ["Haydi, bir gezintiye çıkalım."] },
     in: 0,
     shown: 0,
-    out: 210,
-    gone: 285,
+    out: 190,
+    gone: 300,
     motion: "haze",
     tone: "light",
     desktop: topLeft,
@@ -74,10 +77,10 @@ export const story: StoryLine[] = [
     // the top left holds the line on desktop; phones (all island) get a faint veil.
     id: "island",
     text: { en: ["Everything starts", "with an idea."], tr: ["Her şey bir", "fikirle başlar."] },
-    in: 452,
-    shown: 482,
-    out: 540,
-    gone: 572,
+    in: 436,
+    shown: 500,
+    out: 532,
+    gone: 576,
     motion: "mask",
     tone: "light",
     veil: true,
@@ -89,10 +92,10 @@ export const story: StoryLine[] = [
     // wall rises top-right from ~1030, so the line is gone before it.
     id: "takeoff",
     text: { en: ["Imagine it.", "We'll bring it to life."], tr: ["Hayal et.", "Gerisini bize bırak."] },
-    in: 880,
-    shown: 920,
-    out: 985,
-    gone: 1022,
+    in: 850,
+    shown: 935,
+    out: 975,
+    gone: 1026,
     motion: "drift",
     tone: "light",
     desktop: topRight,
@@ -104,10 +107,10 @@ export const story: StoryLine[] = [
     // the fog (~1685) and is clear by ~1720: the line lives in the white between.
     id: "swap",
     text: { en: ["One idea.", "Endless possibilities."], tr: ["Bir fikir.", "Sonsuz olasılık."] },
-    in: 1612,
-    shown: 1645,
-    out: 1682,
-    gone: 1712,
+    in: 1596,
+    shown: 1652,
+    out: 1672,
+    gone: 1716,
     motion: "haze",
     tone: "dark",
     desktop: topLeft,
@@ -119,29 +122,31 @@ export const story: StoryLine[] = [
     // the plane holds the centre. Phones: the bright peaks at the top.
     id: "mountains",
     text: { en: ["Experiences", "beyond the ordinary."], tr: ["Sıradanın ötesinde", "deneyimler."] },
-    in: 1800,
-    shown: 1840,
-    out: 1990,
-    gone: 2030,
+    in: 1782,
+    shown: 1880,
+    out: 1975,
+    gone: 2045,
     motion: "mask",
     tone: "dark",
     desktop: { bottom: "25vh", right: margin.x, align: "right" },
     mobile: phoneTop,
   },
   {
-    // The snowboarder rides in from the top right (~2476) and carves to the centre; the
-    // line leaves before he crosses towards the left (~2650).
+    // The jump: the snowboarder rides up to the lip (~3060), lifts off (~3095), hangs in the
+    // air over the valley and lands (~3160); the camera then tilts down (~3205) and the
+    // sky leaves the frame. One giant line across the sky and mountains, with the rider in
+    // front of it (his cut-out is drawn over the line: scripts/journey/matte_rider.py).
     id: "rider",
     text: { en: ["Feel the motion."], tr: ["Hareketi hisset."] },
-    in: 2440,
-    shown: 2482,
-    out: 2580,
-    gone: 2622,
-    motion: "drift",
+    in: 3024,
+    shown: 3098,
+    out: 3150,
+    gone: 3208,
+    motion: "haze",
+    size: "giant",
     tone: "dark",
-    // Below the dark ridge at the top, on open snow.
-    desktop: { top: "25vh", left: margin.x, align: "left" },
-    mobile: { ...phoneTop, top: "20vh" },
+    desktop: { top: "31%", left: "0", right: "0", align: "left", centerY: true },
+    mobile: { top: "28%", left: "0", right: "0", align: "left", centerY: true },
   },
   {
     // Miami appears through the clouds (3850–3890); gone before the jet's nose rises
@@ -149,10 +154,10 @@ export const story: StoryLine[] = [
     // middle, so the line sits on the open water at the bottom left.
     id: "miami",
     text: { en: ["3D. Motion.", "Design without limits."], tr: ["3D. Animasyon.", "Sınır tanımayan tasarım."] },
-    in: 3850,
-    shown: 3892,
-    out: 3935,
-    gone: 3968,
+    in: 3842,
+    shown: 3905,
+    out: 3928,
+    gone: 3970,
     motion: "haze",
     tone: "light",
     veil: true,
@@ -165,10 +170,10 @@ export const story: StoryLine[] = [
     // so the line is gone by then.
     id: "jet",
     text: { en: ["In around", "5 minutes."], tr: ["Yaklaşık", "5 dakikada."] },
-    in: 3992,
-    shown: 4030,
-    out: 4140,
-    gone: 4180,
+    in: 3980,
+    shown: 4060,
+    out: 4128,
+    gone: 4186,
     motion: "mask",
     tone: "dark",
     desktop: { top: "clamp(2rem, 6vh, 4rem)", right: margin.x, align: "right" },
@@ -178,10 +183,10 @@ export const story: StoryLine[] = [
     // The camera tilts up into the sky (4500–4580) and the day turns to night (4640–4800).
     id: "night",
     text: { en: ["More than a website.", "An experience."], tr: ["Sadece bir site değil.", "Bir deneyim."] },
-    in: 4632,
-    shown: 4690,
-    out: 4790,
-    gone: 4836,
+    in: 4600,
+    shown: 4705,
+    out: 4775,
+    gone: 4842,
     motion: "haze",
     tone: "light",
     desktop: bottomLeft,
@@ -191,8 +196,8 @@ export const story: StoryLine[] = [
     // The night sky to the end of the film: stays, with the call to action.
     id: "final",
     text: { en: ["The next journey", "is yours."], tr: ["Sıradaki yolculuk", "senin."] },
-    in: 4870,
-    shown: 4940,
+    in: 4850,
+    shown: 4975,
     out: Infinity,
     motion: "haze",
     tone: "light",
