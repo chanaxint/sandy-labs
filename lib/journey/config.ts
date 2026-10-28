@@ -7,13 +7,13 @@
 export const journeyConfig = {
   /** The encoded film (must match public/media/journey/*.json; the player checks at runtime). */
   film: {
-    frames: 2529, // 2517 source frames + 12 eased into the camera turn (smooth_cuts.py)
+    frames: 2529, // the 30 fps encode now in public/media/journey (60 fps rebuild pending)
     fps: 30,
   },
   /**
    * Scroll distance per second of film, in % of the viewport height. 30 means one
    * screen of scrolling plays ~3.3 s of film; a 100px mouse-wheel notch on a 900px
-   * screen plays ~0.37 s (~11 frames). Lower = faster journey, higher = slower.
+   * screen plays ~0.37 s (~22 frames). Lower = faster journey, higher = slower.
    */
   vhPerSecond: 30,
   /**
@@ -23,18 +23,11 @@ export const journeyConfig = {
   scrub: true as boolean | number,
   /**
    * Cross-fade between neighbouring source frames for the fraction of a frame the
-   * scroll is between them, so slow scrolling glides instead of stepping at 30 fps.
+   * scroll is between them, so very slow scrolling glides instead of stepping.
    * Only while scrolling slowly (faster, it would double moving parts); uses only real
    * frames (no synthesised in-betweens). Off with reduced motion.
    */
   blendFrames: true,
-
-  /**
-   * Opening load: this share of the film (from where the visitor is) downloads behind a
-   * progress indicator before scrolling starts; the rest follows in the background,
-   * ahead of the scroll.
-   */
-  preloadFraction: 0.5,
 
   /** Encodes in public/media/journey (see scripts/journey/build-journey.sh). */
   media: {
@@ -45,27 +38,36 @@ export const journeyConfig = {
     thumbEvery: 10,
     thumbColumns: 16,
     /**
-     * Sizes, largest first; a size is used when the screen needs at least `minWidth` device
-     * pixels (so 1920-wide screens get 1440p "2K") and the device decodes it fast enough.
+     * Sizes, largest first, each with its codecs in order of preference (the first one the
+     * browser decodes is used). The smallest one plays from the first moment; the size this
+     * screen needs (at least `minWidth` device pixels: 1920-wide screens get 1440p "2K",
+     * 4K screens 2160p) loads alongside and takes over wherever its frames are ready, if
+     * the device decodes it fast enough. `touch: false` keeps a size off phones and tablets
+     * (4K decoding costs them battery and data for little visible gain).
      */
     tiers: [
-      { height: 1440, minWidth: 1700 },
-      { height: 1080, minWidth: 1200 },
-      { height: 720, minWidth: 0 },
-    ],
-    /** Codecs in order of preference; the first one the browser can decode is used. */
-    codecs: ["h264", "av1"] as const,
+      { height: 2160, minWidth: 3000, codecs: ["h264"], touch: false },
+      { height: 1440, minWidth: 1700, codecs: ["h264"] },
+      { height: 1080, minWidth: 1200, codecs: ["h264", "av1"] },
+      { height: 720, minWidth: 0, codecs: ["h264", "av1"] },
+    ] as { height: number; minWidth: number; codecs: JourneyCodec[]; touch?: boolean }[],
   },
 
   /** Decoding and memory. */
   decode: {
     /**
-     * Decoded frames kept around the current position, as bitmaps the size of the screen
-     * (≈8 MB each at 1920×1080).
+     * Memory for decoded frames around the position (bitmaps the size of the screen:
+     * ≈8 MB at 1920×1080, ≈33 MB at 3840×2160), per size; the frame count follows from
+     * it, between `minFrames` and `maxFrames`.
      */
-    cacheFrames: 30,
-    cacheFramesMobile: 20,
-    /** Frames decoded ahead of the scroll in the direction it is moving. */
+    cacheMB: 400,
+    cacheMBMobile: 150,
+    minFrames: 12,
+    maxFrames: 40,
+    /** Encoded bytes kept in memory per size; beyond it, the parts farthest away are let go. */
+    bufferMB: 220,
+    bufferMBMobile: 90,
+    /** Frames decoded ahead of the scroll in the direction it is moving (at most 60% of the cache). */
     lookahead: 24,
     /** Frames queued in the decoder at most. */
     queue: 12,
@@ -74,17 +76,18 @@ export const journeyConfig = {
     /** While decoding catches up, show the closest decoded frame up to this many frames away. */
     nearestWithin: 45,
     /** Byte-range requests are grouped into chunks of this many keyframe intervals. */
-    gopsPerChunk: 3,
+    gopsPerChunk: 2,
     /** Parallel downloads. */
     connections: 3,
     /**
-     * Decode speed (frames/s) a size needs on this device, measured at start-up; below it
-     * the next smaller size is used. Brisk scrolling (one screen per second) plays
-     * 100 / vhPerSecond film seconds per second, i.e. ~100 frames/s at 30vh and 30 fps.
+     * Decode speed (frames/s) the screen-sized film needs on this device: it only has to
+     * keep up with ordinary scrolling (one screen in ~2 s plays ~1.7 film seconds per
+     * second, ~100 frames/s at 30vh and 60 fps), because when it falls behind the
+     * smallest size fills in. Below it, the next smaller size is tried.
      */
     minDecodeFps: 110,
     /**
-     * The start-up test decodes one second of film on an idle decoder, which reads about
+     * The start-up test decodes one keyframe interval on an idle decoder, which reads about
      * twice the speed sustained while scrolling and drawing; it must clear this multiple.
      */
     startupMargin: 2,
@@ -93,8 +96,8 @@ export const journeyConfig = {
   /** Backing-store limits for the full-screen canvas. */
   canvas: {
     maxPixelRatio: 2,
-    maxWidth: 2560,
+    maxWidth: 3840,
   },
 };
 
-export type JourneyCodec = (typeof journeyConfig.media.codecs)[number];
+export type JourneyCodec = "h264" | "av1";

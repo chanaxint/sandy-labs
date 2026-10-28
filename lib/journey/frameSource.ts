@@ -2,7 +2,9 @@
  * Decodes the journey film frame by frame with WebCodecs, for exact scroll scrubbing.
  *
  * - Bytes arrive in chunks (HTTP Range, a few keyframe intervals each), nearest to the
- *   current position first, so a page opened mid-way doesn't wait for the whole file.
+ *   current position first and ahead of the scroll. Each chunk keeps its own buffer;
+ *   past a memory budget the chunks farthest from the position are let go (and fetched
+ *   again if the visitor comes back), so a large file never sits in memory whole.
  * - Frames are decoded from the keyframe before the one wanted, in decode order (the
  *   encode has no B-frames, so frame i is packet i); the decoder runs ahead in the
  *   scroll direction and, when scrolling back, decodes the previous keyframe interval
@@ -35,6 +37,7 @@ export type FilmIndex = {
 export type FrameSourceStats = {
   loadedBytes: number;
   totalBytes: number;
+  bufferedBytes: number;
   cached: number;
   decodeQueue: number;
   decoded: number;
@@ -51,20 +54,31 @@ type Chunk = {
   /** File holding the chunk, and where that file starts in the whole encode. */
   url: string;
   fileStart: number;
-  /** Bytes of the chunk received so far (for progress). */
+  /** The chunk's bytes once loaded; bytes received so far while loading (for progress). */
+  data: Uint8Array | null;
   received: number;
   state: "idle" | "loading" | "done";
 };
 
+export type FrameSourceOptions = {
+  /** Decoded frames kept around the position. */
+  cacheFrames: number;
+  /** Frames decoded ahead of the scroll (kept below `cacheFrames`, or they'd be dropped and decoded again). */
+  lookahead: number;
+  /** Bytes of the encode kept in memory at most. */
+  maxBufferedBytes: number;
+  /** Parallel downloads. */
+  connections: number;
+};
+
 export class FrameSource {
   readonly index: FilmIndex;
-  private readonly data: Uint8Array;
   private readonly chunks: Chunk[];
   private readonly chunkOf: Int32Array;
   private readonly keyBefore: Int32Array;
   private readonly isKey: Uint8Array;
   private readonly config: VideoDecoderConfig;
-  private readonly cacheLimit: number;
+  private readonly options: FrameSourceOptions;
   private decoder: VideoDecoder | null = null;
   private readonly cache = new Map<number, ImageBitmap>();
   /** Frames out of the decoder whose bitmap is still being made. */
@@ -85,22 +99,19 @@ export class FrameSource {
   private direction: 1 | -1 = 1;
   private loading = 0;
   private loadedBytes = 0;
+  private bufferedBytes = 0;
   private decodedCount = 0;
-  /** Sustained decode speed: outputs and time while the decoder had work queued. */
+  /** Sustained decode speed: outputs and time while the visitor waited on a frame. */
   private busySeconds = 0;
   private busyOutputs = 0;
   private lastUpdate = 0;
-  private wholeFile = false;
-  /** While the opening preload runs, downloads follow its order only. */
-  private preloading = false;
   private disposed = false;
   private readonly abort = new AbortController();
 
-  constructor(base: string, index: FilmIndex, config: VideoDecoderConfig, cacheLimit: number) {
+  constructor(base: string, index: FilmIndex, config: VideoDecoderConfig, options: FrameSourceOptions) {
     this.index = index;
     this.config = config;
-    this.cacheLimit = cacheLimit;
-    this.data = new Uint8Array(index.bytes);
+    this.options = options;
 
     const n = index.frames;
     this.keyBefore = new Int32Array(n);
@@ -128,13 +139,13 @@ export class FrameSource {
       const start = index.offsets[first];
       const end = index.offsets[last] + index.sizes[last];
       for (let i = first; i <= last; i++) this.chunkOf[i] = this.chunks.length;
-      this.chunks.push({ first, last, start, end, url: base + file.url, fileStart: file.start, received: 0, state: "idle" });
+      this.chunks.push({ first, last, start, end, url: base + file.url, fileStart: file.start, data: null, received: 0, state: "idle" });
       g += take;
     }
   }
 
   /** Picks the first codec variant the browser can decode, or null (no WebCodecs). */
-  static async open(variants: { indexUrl: string }[], cacheLimit: number): Promise<FrameSource | null> {
+  static async open(variants: { indexUrl: string }[], options: FrameSourceOptions): Promise<FrameSource | null> {
     if (typeof VideoDecoder === "undefined") return null;
     for (const v of variants) {
       try {
@@ -148,7 +159,7 @@ export class FrameSource {
         };
         const support = await VideoDecoder.isConfigSupported(config);
         const base = v.indexUrl.slice(0, v.indexUrl.lastIndexOf("/") + 1);
-        if (support.supported) return new FrameSource(base, index, config, cacheLimit);
+        if (support.supported) return new FrameSource(base, index, config, options);
       } catch {
         // Try the next variant.
       }
@@ -167,7 +178,6 @@ export class FrameSource {
     if (first.state !== "done") return 0;
     const count = Math.min(this.index.keyframes[1] ?? this.index.frames, this.index.frames);
     const times: number[] = [];
-    const started = performance.now();
     const decoder = new VideoDecoder({
       output: (f) => {
         times.push(performance.now());
@@ -176,15 +186,8 @@ export class FrameSource {
       error: () => undefined,
     });
     decoder.configure(this.config);
-    for (let i = 0; i < count; i++) {
-      decoder.decode(
-        new EncodedVideoChunk({
-          type: this.isKey[i] ? "key" : "delta",
-          timestamp: i,
-          data: this.data.subarray(this.index.offsets[i], this.index.offsets[i] + this.index.sizes[i]),
-        }),
-      );
-    }
+    const started = performance.now();
+    for (let i = 0; i < count; i++) decoder.decode(this.chunkFor(i));
     await decoder.flush().catch(() => undefined);
     decoder.close();
     // From the first frame sent to the last one out: decoders return frames in bursts, so
@@ -200,6 +203,7 @@ export class FrameSource {
     return {
       loadedBytes: this.loadedBytes,
       totalBytes: this.index.bytes,
+      bufferedBytes: this.bufferedBytes,
       cached: this.cache.size,
       decodeQueue: this.decoder?.decodeQueueSize ?? 0,
       decoded: this.decodedCount,
@@ -225,6 +229,11 @@ export class FrameSource {
     return this.busySeconds >= minSeconds ? this.busyOutputs / this.busySeconds : undefined;
   }
 
+  /** Whether the bytes for frame i (and the frames before it back to its keyframe) are here. */
+  hasData(i: number): boolean {
+    return this.available(Math.max(0, Math.min(this.index.frames - 1, Math.round(i))));
+  }
+
   /** The decoded frame, if it is in the cache. */
   frame(i: number): ImageBitmap | undefined {
     return this.cache.get(i);
@@ -246,42 +255,10 @@ export class FrameSource {
   }
 
   /**
-   * Downloads the chunks holding `count` frames from `from` on, in order, a few at a
-   * time, reporting progress (0..1) as bytes arrive. The rest loads later, nearest the
-   * scroll position first, as `update` runs.
+   * Where the scroll is now; call every frame. Schedules downloads and, unless
+   * `decode` is false (another source is being shown), decoding.
    */
-  async preload(from: number, count: number, onProgress: (p: number) => void): Promise<void> {
-    const last = Math.min(this.index.frames - 1, from + count);
-    const first = this.chunkOf[Math.max(0, from)];
-    const wanted = this.chunks.filter((c, i) => i >= first && c.first <= last);
-    const total = wanted.reduce((sum, c) => sum + c.end - c.start, 0);
-    const report = () => {
-      const done = wanted.reduce((sum, c) => sum + (c.state === "done" ? c.end - c.start : c.received), 0);
-      onProgress(Math.min(1, done / total));
-    };
-    this.preloading = true;
-    const timer = setInterval(report, 100);
-    try {
-      for (let attempt = 0; attempt < 3 && !this.disposed; attempt++) {
-        const queue = wanted.filter((c) => c.state !== "done");
-        if (!queue.length) break;
-        const worker = async () => {
-          for (let c = queue.shift(); c && !this.disposed; c = queue.shift()) {
-            if (c.state === "idle") await this.load(c);
-            while (c.state === "loading") await new Promise((r) => setTimeout(r, 30));
-          }
-        };
-        await Promise.all(Array.from({ length: journeyConfig.decode.connections }, worker));
-      }
-    } finally {
-      clearInterval(timer);
-      this.preloading = false;
-      report();
-    }
-  }
-
-  /** Where the scroll is now; call every frame. Schedules downloads and decoding. */
-  update(target: number, direction: 1 | -1) {
+  update(target: number, direction: 1 | -1, decode = true) {
     if (this.disposed) return;
     const now = performance.now();
     if (this.lastUpdate && this.waiting) this.busySeconds += Math.min(0.1, (now - this.lastUpdate) / 1000);
@@ -289,8 +266,12 @@ export class FrameSource {
     this.target = Math.max(0, Math.min(this.index.frames - 1, target));
     this.direction = direction;
     this.pumpDownloads();
+    if (!decode) {
+      this.waiting = false;
+      return;
+    }
     this.pumpDecoder();
-    this.evict(this.cacheLimit);
+    this.evict(this.options.cacheFrames);
     // Safety net: frames were sent and one is needed, but nothing has come out for a while.
     if (this.waiting && this.runNext - 1 > this.lastOutput && now - this.lastOutputAt > 500) {
       this.lastOutputAt = now;
@@ -304,35 +285,75 @@ export class FrameSource {
     if (this.decoder && this.decoder.state !== "closed") this.decoder.close();
     for (const b of this.cache.values()) b.close();
     this.cache.clear();
+    for (const c of this.chunks) c.data = null;
   }
 
   // ---------------------------------------------------------------- downloads
 
   private pumpDownloads() {
-    if (this.wholeFile || this.preloading) return;
-    const max = journeyConfig.decode.connections;
-    while (this.loading < max) {
+    while (this.loading < this.options.connections) {
       const chunk = this.nextChunk();
-      if (!chunk) return;
+      if (!chunk) break;
       void this.load(chunk);
     }
+    this.releaseFarChunks();
   }
 
-  /** The idle chunk nearest the current position, ahead of the scroll counting as nearer. */
-  private nextChunk(): Chunk | undefined {
+  /** Distance of chunk i from the position, chunks ahead of the scroll counting as nearer. */
+  private chunkScore(i: number) {
     const here = this.chunkOf[Math.round(this.target)];
+    const d = (i - here) * this.direction;
+    return d >= 0 ? d : -d * 1.5 + 0.5;
+  }
+
+  /** The idle chunk nearest the position, while the memory budget allows another. */
+  private nextChunk(): Chunk | undefined {
     let best: Chunk | undefined;
     let bestScore = Infinity;
     this.chunks.forEach((c, i) => {
       if (c.state !== "idle") return;
-      const d = (i - here) * this.direction;
-      const score = d >= 0 ? d : -d * 1.5 + 0.5;
+      const score = this.chunkScore(i);
       if (score < bestScore) {
         bestScore = score;
         best = c;
       }
     });
+    if (!best) return undefined;
+    const size = best.end - best.start;
+    if (this.bufferedBytes + size > this.options.maxBufferedBytes) {
+      // Full: only worth it if the chunk is nearer than the farthest one held.
+      const far = this.farthestLoaded();
+      if (!far || this.chunkScore(this.chunks.indexOf(far)) <= bestScore) return undefined;
+    }
     return best;
+  }
+
+  private farthestLoaded(): Chunk | undefined {
+    let far: Chunk | undefined;
+    let farScore = -1;
+    this.chunks.forEach((c, i) => {
+      if (c.state !== "done") return;
+      const score = this.chunkScore(i);
+      if (score > farScore) {
+        farScore = score;
+        far = c;
+      }
+    });
+    return far;
+  }
+
+  /** Over the memory budget: let go of the chunks farthest from the position. */
+  private releaseFarChunks() {
+    const here = this.chunkOf[Math.round(this.target)];
+    while (this.bufferedBytes > this.options.maxBufferedBytes) {
+      const far = this.farthestLoaded();
+      // Never the chunk in use or the one just ahead.
+      if (!far || Math.abs(this.chunks.indexOf(far) - here) <= 1) return;
+      this.bufferedBytes -= far.end - far.start;
+      far.data = null;
+      far.received = 0;
+      far.state = "idle";
+    }
   }
 
   private async load(chunk: Chunk) {
@@ -343,24 +364,30 @@ export class FrameSource {
         headers: { Range: `bytes=${chunk.start - chunk.fileStart}-${chunk.end - 1 - chunk.fileStart}` },
         signal: this.abort.signal,
       });
-      if (res.status === 200) {
-        // No range support: take the whole file in one stream.
-        await this.loadWhole(res, chunk.fileStart);
-        return;
-      }
-      if (res.status !== 206) throw new Error(`HTTP ${res.status}`);
-      // Read as it arrives, so progress moves smoothly.
+      if (res.status !== 200 && res.status !== 206) throw new Error(`HTTP ${res.status}`);
+      // A server without range support sends the whole file: skip to the chunk's bytes.
+      const skip = res.status === 200 ? chunk.start - chunk.fileStart : 0;
+      const size = chunk.end - chunk.start;
+      const data = new Uint8Array(size);
       const reader = res.body!.getReader();
-      let at = chunk.start;
+      let seen = 0;
       for (;;) {
         const { done, value } = await reader.read();
         if (done) break;
-        this.data.set(value, at);
-        at += value.byteLength;
-        chunk.received = at - chunk.start;
+        const from = Math.max(0, skip - seen);
+        const to = Math.min(value.byteLength, skip + size - seen);
+        if (to > from) data.set(value.subarray(from, to), seen + from - skip);
+        seen += value.byteLength;
+        chunk.received = Math.max(0, Math.min(size, seen - skip));
+        if (seen >= skip + size) {
+          void reader.cancel();
+          break;
+        }
       }
-      if (at !== chunk.end) throw new Error("short read");
-      this.loadedBytes += chunk.end - chunk.start;
+      if (chunk.received !== size) throw new Error("short read");
+      chunk.data = data;
+      this.loadedBytes += size;
+      this.bufferedBytes += size;
       chunk.state = "done";
     } catch {
       chunk.received = 0;
@@ -370,23 +397,19 @@ export class FrameSource {
     }
   }
 
-  /** A whole file arrived (server without range support): every chunk in it is done as its bytes land. */
-  private async loadWhole(res: Response, fileStart: number) {
-    if (this.index.parts.length === 1) this.wholeFile = true;
-    const reader = res.body!.getReader();
-    let at = fileStart;
-    for (;;) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      this.data.set(value, at);
-      at += value.byteLength;
-      this.loadedBytes += value.byteLength;
-      for (const c of this.chunks) if (c.fileStart === fileStart && c.end <= at) c.state = "done";
-    }
-  }
-
   private available(i: number) {
     return this.chunks[this.chunkOf[i]].state === "done";
+  }
+
+  /** Encoded frame i, from its chunk's buffer. */
+  private chunkFor(i: number) {
+    const c = this.chunks[this.chunkOf[i]];
+    const at = this.index.offsets[i] - c.start;
+    return new EncodedVideoChunk({
+      type: this.isKey[i] ? "key" : "delta",
+      timestamp: i,
+      data: c.data!.subarray(at, at + this.index.sizes[i]),
+    });
   }
 
   // ---------------------------------------------------------------- decoding
@@ -413,7 +436,7 @@ export class FrameSource {
     this.lastOutput = Math.max(this.lastOutput, i);
     this.lastOutputAt = performance.now();
     // Frames only decoded on the way to others (far from the position) aren't kept.
-    const far = Math.abs(i - this.target) > this.cacheLimit;
+    const far = Math.abs(i - this.target) > this.options.cacheFrames;
     if (this.disposed || far || this.cache.has(i) || this.converting.has(i)) {
       frame.close();
       return;
@@ -442,7 +465,7 @@ export class FrameSource {
   private wanted(): { from: number; to: number } {
     const n = this.index.frames;
     const t = Math.round(this.target);
-    const ahead = journeyConfig.decode.lookahead;
+    const ahead = this.options.lookahead;
     return this.direction > 0 ? { from: t, to: Math.min(n - 1, t + ahead) } : { from: Math.max(0, t - ahead), to: t };
   }
 
@@ -479,13 +502,7 @@ export class FrameSource {
     while (budget > 0 && this.runNext <= end) {
       const i = this.runNext;
       if (!this.available(i)) break;
-      decoder.decode(
-        new EncodedVideoChunk({
-          type: this.isKey[i] ? "key" : "delta",
-          timestamp: i,
-          data: this.data.subarray(this.index.offsets[i], this.index.offsets[i] + this.index.sizes[i]),
-        }),
-      );
+      decoder.decode(this.chunkFor(i));
       this.runNext++;
       budget--;
     }

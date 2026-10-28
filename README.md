@@ -52,30 +52,35 @@ scripts/intro/              pipeline that built the previous intro videos
 
 ## The journey film
 
-The source (3840×2160, 30 fps, 84 s, 2517 frames) is encoded by
-`scripts/journey/build-journey.sh <source.mp4>`, after `smooth_cuts.py` softens two rough spots
-(a light zoom blur and fade over the hard cut at 36.6 s; time eased through the abrupt camera
-turn at 54 s with optical-flow in-betweens, +12 frames → 2529): every source frame kept, 1440p ("2K"),
-1080p and 720p, H.264 and AV1, no B-frames and a keyframe every second, tuned against
-blocking and banding in flat sky and snow, plus a JSON index of each frame's byte range.
-Files over 45 MB are split into `.bin` parts at keyframes (GitHub's 100 MB file limit). The player decodes frames itself with WebCodecs and draws the one the scroll
-position asks for on a full-screen canvas:
+The source (3840×2160, 60 fps, 84 s, 5034 frames) is encoded by
+`scripts/journey/build-journey.sh <source.mp4>`. First `fix_duplicates.py` rebuilds the
+in-between frames that the 60 fps conversion had copied from a neighbour (a stop twelve
+times a second) from the optical flow, then `smooth_cuts.py` softens two rough spots (a light
+zoom blur and fade over the hard cut at 36.6 s; time eased through the abrupt camera turn at
+54 s with optical-flow in-betweens, +24 frames → 5058). Every frame is kept at 2160p (4K),
+1440p ("2K"), 1080p and 720p in H.264 (1080p and 720p also in AV1), no B-frames and a keyframe
+every second, tuned against blocking and banding in flat sky and snow, plus a JSON index of
+each frame's byte range. Files over 45 MB are split into `.bin` parts at keyframes (GitHub's
+100 MB file limit). The player decodes frames itself with WebCodecs and draws the one the
+scroll position asks for on a full-screen canvas:
 
 - Scroll down plays forward, up plays back, stopping the scroll stops the film; the film is
   a function of the scroll position (`scrub: true`), smoothed only once, by Lenis.
 - Pace: `vhPerSecond` (30 = one screen of scrolling per ~3.3 s of film, ~25 screens in all).
   Smoothing: `scrollSettings.lerp` in `lib/scroll/engine.ts`. Both in one place each.
 - While scrolling slowly, the two real frames around the position are cross-faded for the
-  fraction of a frame in between, so it glides instead of stepping at 30 fps (not when
-  scrolling faster, where it would double moving parts).
-- Opening load: the first half of the film (`preloadFraction`, from where the visitor is)
-  downloads behind a slim "Loading %" indicator while the scroll is held; the rest follows
-  in the background, ahead of the scroll.
-- Bytes load in ranges around the current position first; frames decode ahead in the scroll
-  direction; a small cache of decoded frames (hardware decoders have limited buffers).
-- The size is chosen per screen and device: 1440p on screens 1920+ device pixels wide,
-  1080p from 1200, else 720p; each only if the device decodes it fast enough (tested at
-  start-up and again while scrolling), otherwise the next size down.
+  fraction of a frame in between, so it glides instead of stepping (not when scrolling
+  faster, where it would double moving parts).
+- No waiting: the page scrolls at once. 720p (light to fetch and decode) plays from the
+  first moment; the size the screen needs loads alongside and takes over wherever its
+  frames are ready, with 720p filling in after a long jump or a scroll too fast to follow.
+- The sharp size is chosen per screen and device: 2160p on screens 3000+ device pixels
+  wide, 1440p from 1700, 1080p from 1200; each only if the device decodes it fast enough
+  (tested at start-up and again while scrolling), otherwise the next size down.
+- Bytes load in ranges around the current position first, ahead of the scroll; past a
+  memory budget the parts farthest away are let go (and fetched again if needed). Frames
+  decode ahead in the scroll direction into a cache sized from a memory budget (fewer
+  frames at 4K; hardware decoders have limited buffers).
 - Never black: poster behind the canvas, then the nearest decoded frame or a thumbnail.
 - Reloading keeps the position. Without WebCodecs it falls back to seeking a `<video>`.
 - Debug panel: shown in development, or with `?debug` in production.

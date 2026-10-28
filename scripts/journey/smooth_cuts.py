@@ -20,6 +20,7 @@ import sys
 import cv2
 import numpy as np
 
+# Frame numbers and durations below are at 30 fps; they are scaled to the source's rate.
 CUT = 1098            # first frame of the incoming shot
 CUT_BLUR = (1092, 1105)  # frames that get motion blur (peak at the cut)
 CUT_FADE = 5          # frames the incoming shot takes to fade in
@@ -28,6 +29,17 @@ DRIFT = 0.004         # forward zoom per frame of the held outgoing frame
 
 TURN = (1609, 1629)   # source frames eased through (the turn is at 1619)
 TURN_EXTRA = 12       # frames added: the turn plays at a quarter of the speed at its slowest
+
+
+def at_rate(scale):
+    """Rescales the frame numbers above from 30 fps to the source's frame rate."""
+    global CUT, CUT_BLUR, CUT_FADE, DRIFT, TURN, TURN_EXTRA
+    CUT = round(CUT * scale)
+    CUT_BLUR = (round(CUT_BLUR[0] * scale), round(CUT_BLUR[1] * scale))
+    CUT_FADE = round(CUT_FADE * scale)
+    DRIFT /= scale
+    TURN = (round(TURN[0] * scale), round(TURN[1] * scale))
+    TURN_EXTRA = round(TURN_EXTRA * scale)
 
 
 def probe(path):
@@ -68,10 +80,13 @@ def smoothstep(x):
     return x * x * (3 - 2 * x)
 
 
-def fix_cut(frames):
+def fix_cut(frames, scale):
     out = {}
     a0, a1 = CUT_BLUR
-    last_out = frames[CUT - 1]
+    # The last real frame of the outgoing shot: above 30 fps, the in-betweens next to the
+    # cut were interpolated across it (a morph of both shots), so they are left out.
+    last = CUT - max(1, round(scale))
+    last_out = frames[last]
     for i in range(a0, a1 + 1):
         # Blur rises into the cut and clears after it.
         if i < CUT:
@@ -79,13 +94,16 @@ def fix_cut(frames):
         else:
             b = smoothstep(1 - (i - CUT) / (a1 - CUT + 1))
         amount = BLUR_ZOOM * b
-        if i < CUT:
+        if i <= last:
             out[i] = np.clip(zoom_blur(frames[i], amount), 0, 255).astype(np.uint8)
+            continue
+        if i < CUT:  # in-between across the cut: the outgoing shot drifting on instead
+            out[i] = np.clip(zoom_blur(zoom(last_out, 1 + DRIFT * (i - last)), amount), 0, 255).astype(np.uint8)
             continue
         incoming = zoom_blur(frames[i], amount)
         fade = smoothstep((i - CUT + 1) / (CUT_FADE + 1))
         if fade < 1:
-            held = zoom_blur(zoom(last_out, 1 + DRIFT * (i - CUT + 1)), amount)
+            held = zoom_blur(zoom(last_out, 1 + DRIFT * (i - last)), amount)
             incoming = held * (1 - fade) + incoming * fade
         out[i] = np.clip(incoming, 0, 255).astype(np.uint8)
     return out
@@ -131,7 +149,11 @@ def ease_turn(frames):
 def main():
     src, dst = sys.argv[1:3]
     w, h, rate, n = probe(src)
-    patches = fix_cut(decode_range(src, CUT_BLUR[0], CUT_BLUR[1], w, h))
+    num, den = map(int, rate.split("/"))
+    scale = num / den / 30
+    if abs(scale - 1) > 1e-3:
+        at_rate(scale)
+    patches = fix_cut(decode_range(src, CUT_BLUR[0], CUT_BLUR[1], w, h), scale)
     turn = ease_turn(decode_range(src, TURN[0], TURN[1], w, h))
 
     dec = subprocess.Popen(["ffmpeg", "-v", "error", "-i", src, "-f", "rawvideo", "-pix_fmt", "rgb24", "-"],
