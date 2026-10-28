@@ -2,27 +2,32 @@
  * The journey film as a scroll scene medium: scroll progress → film frame → canvas.
  *
  * Two frame sources play together, so nothing waits on a download:
- * - `base`, the smallest size, opens at once and is light to fetch and decode;
- * - `best`, the size this screen needs (up to 2160p), loads alongside, after a quick
- *   decode-speed test (stepping down a size if the device is too slow for it), and is
- *   shown wherever its frames are ready. Where they aren't (a long jump, a fast scroll
- *   the decoder can't follow), `base` fills in until `best` catches up.
+ * - `base`, the fill-in: the smallest size at half the frame rate, opens at once and is
+ *   light to fetch and decode;
+ * - `best`, the size this screen needs (up to 2160p, full frame rate), loads alongside
+ *   after a quick decode-speed test (stepping down a size if the device is too slow for
+ *   it), and is shown wherever its frames are ready.
+ * Where `best` has nothing close (a long jump, or a scroll faster than this device
+ * decodes it), `base` fills in. While the scroll outruns it, `best` pauses decoding
+ * instead of falling ever further behind, and picks up again as the scroll slows.
  *
  * Each display frame (on the shared GSAP ticker) it draws, full-screen ("cover", no
  * distortion), the first of: the exact frame of `best` (cross-faded with the next one
  * for the fraction of a frame the scroll is between them, `blendFrames`), the exact
  * frame of `base`, the nearest decoded frame, a small thumbnail of that moment, and
  * before anything is ready the poster behind the canvas, so it is never black.
- * Without WebCodecs it falls back to seeking a <video> element.
+ * Frames are held and drawn on the GPU (renderer.ts). Without WebCodecs it falls back
+ * to seeking a <video> element.
  */
 import { gsap, prefersReducedMotion } from "@/lib/scroll/engine";
 import type { SceneMedia, SceneUpdate } from "@/lib/scroll/scene";
 import { journeyConfig } from "./config";
-import { FrameSource, type FilmView, type FrameSourceOptions, type FrameSourceStats } from "./frameSource";
+import { FrameSource, type FrameSourceOptions, type FrameSourceStats } from "./frameSource";
+import { createRenderer, type Picture } from "./renderer";
 
 export type FilmStatus = {
   progress: number;
-  /** Frame position the scroll asks for (fractional). */
+  /** Frame position the scroll asks for (fractional, in film frames). */
   target: number;
   /** What is on screen. */
   shown: number;
@@ -30,10 +35,13 @@ export type FilmStatus = {
   frames: number;
   fps: number;
   renderFps: number;
+  /** Film frames per second the scroll asks for right now. */
+  demand: number;
   variant: string;
+  renderer: string;
   /** Height of the size on screen. */
   size?: number;
-  /** The size on screen (or filling in), and the sharp size. */
+  /** The fill-in size and the sharp size. */
   source?: FrameSourceStats;
   best?: FrameSourceStats;
 };
@@ -47,26 +55,31 @@ export const filmStatus: FilmStatus = {
   frames: journeyConfig.film.frames,
   fps: journeyConfig.film.fps,
   renderFps: 0,
+  demand: 0,
   variant: "",
+  renderer: "",
 };
 
-type Drawable = CanvasImageSource;
+type Near = { s: FrameSource; index: number; frame: Picture };
 
 export function createFilm(stage: HTMLElement): SceneMedia {
   const canvas = stage.querySelector("canvas")!;
-  const ctx = canvas.getContext("2d", { alpha: true, desynchronized: false })!;
   const reduce = prefersReducedMotion();
   const coarse = window.matchMedia("(pointer: coarse)").matches;
-  const { media, decode } = journeyConfig;
+  const { media, decode, film } = journeyConfig;
 
-  /** The smallest size: plays from the start. */
+  /** The fill-in size: plays from the start. */
   let base: FrameSource | null = null;
   /** The size this screen needs, once it has passed the decode-speed test (null if none did). */
   let best: FrameSource | null = null;
   /** A smaller `best` being prepared because the current one can't keep up. */
   let next: FrameSource | null = null;
+  /** Frames per second `best` decodes here: from the start-up test, then as measured. */
+  let bestSpeed = 0;
   let tierIndex = 0;
   let video: HTMLVideoElement | null = null;
+  let videoPicture: Picture | null = null;
+  let thumbPicture: Picture | null = null;
   let disposed = false;
   let progress = 0;
   let direction: 1 | -1 = 1;
@@ -74,9 +87,19 @@ export function createFilm(stage: HTMLElement): SceneMedia {
   let lastTick = 0;
   let lastTarget = 0;
   let fpsAvg = 60;
+  let demand = 0;
   let baseNote = "";
   let bestNote = "";
   let steppingDown = false;
+
+  const prefer = new URLSearchParams(location.search).get("renderer");
+  const renderer = createRenderer(canvas, () => {
+    // GPU context lost: every stored frame is gone; they are decoded again once it's back.
+    for (const s of [base, best, next]) s?.clear();
+    thumbPicture = null;
+    lastKey = "";
+  }, prefer === "2d" || prefer === "webgl" ? prefer : undefined);
+  filmStatus.renderer = renderer.kind;
 
   // Thumbnails: one sheet, decoded once, for instant (blurred) frames anywhere.
   const thumbs = new Image();
@@ -93,11 +116,11 @@ export function createFilm(stage: HTMLElement): SceneMedia {
   const last = media.tiers.length - 1;
   const first = Math.max(0, media.tiers.findIndex((t) => needWidth >= t.minWidth && (t.touch !== false || !coarse)));
 
-  /** Memory per size: decoded frames from a budget divided by the frame size on screen. */
+  /** Memory per size: decoded frames from a budget divided by the size of one frame. */
   const optionsFor = (t: number): FrameSourceOptions => {
     const h = media.tiers[t].height;
-    const px = Math.min(canvas.width * canvas.height, ((h * 16) / 9) * h);
-    const frames = Math.floor(((coarse ? decode.cacheMBMobile : decode.cacheMB) * 1e6) / (px * 4));
+    const bytes = ((h * 16) / 9) * h * 4;
+    const frames = Math.floor(((coarse ? decode.cacheMBMobile : decode.cacheMB) * 1e6) / bytes);
     const cacheFrames = Math.max(decode.minFrames, Math.min(decode.maxFrames, frames));
     return {
       cacheFrames,
@@ -112,31 +135,13 @@ export function createFilm(stage: HTMLElement): SceneMedia {
     return FrameSource.open(
       media.tiers[t].codecs.map((c) => ({ indexUrl: `${name}.${c}.json` })),
       optionsFor(t),
+      renderer,
     );
   };
-  const describe = (s: FrameSource) => `${s.index.codec} ${s.index.width}x${s.index.height}`;
+  const describe = (s: FrameSource) => `${s.index.codec} ${s.index.width}x${s.index.height}@${s.index.fps}`;
   const updateVariant = () => {
     filmStatus.variant = [baseNote, bestNote].filter(Boolean).join(" + ");
   };
-
-  /** The part of a frame the canvas shows ("cover"), stored no larger than the screen needs. */
-  const viewFor = (s: FrameSource): FilmView => {
-    const fw = s.index.width;
-    const fh = s.index.height;
-    const scale = Math.max(canvas.width / fw, canvas.height / fh);
-    const sw = Math.min(fw, canvas.width / scale);
-    const sh = Math.min(fh, canvas.height / scale);
-    const keep = Math.min(1, scale);
-    return {
-      sx: Math.round((fw - sw) / 2),
-      sy: Math.round((fh - sh) / 2),
-      sw: Math.round(sw),
-      sh: Math.round(sh),
-      width: Math.max(1, Math.round(sw * keep)),
-      height: Math.max(1, Math.round(sh * keep)),
-    };
-  };
-  const applyView = (s: FrameSource) => s.setView(viewFor(s));
 
   // Canvas backing store follows its CSS size × pixel ratio (capped).
   const resize = () => {
@@ -146,8 +151,8 @@ export function createFilm(stage: HTMLElement): SceneMedia {
     if (canvas.width !== w || canvas.height !== h) {
       canvas.width = w;
       canvas.height = h;
+      renderer.resized();
       lastKey = "";
-      for (const s of [base, best, next]) if (s) applyView(s);
     }
   };
   const observer = new ResizeObserver(resize);
@@ -162,10 +167,7 @@ export function createFilm(stage: HTMLElement): SceneMedia {
       baseNote = `${video.currentSrc || video.src} (video seek fallback)`;
       return updateVariant();
     }
-    applyView(s);
     base = s;
-    filmStatus.frames = s.frameCount;
-    filmStatus.fps = s.index.fps;
     baseNote = `${describe(s)} (fill-in)`;
     updateVariant();
   });
@@ -178,14 +180,16 @@ export function createFilm(stage: HTMLElement): SceneMedia {
         const s = await openTier(t);
         if (!s) {
           if (typeof VideoDecoder === "undefined") return;
-          continue; // this size isn't decodable here (e.g. no 2160p support): try the next one
+          bestNote += `${bestNote ? ", " : ""}${media.tiers[t].height}p not decodable`;
+          updateVariant();
+          continue; // e.g. no 2160p support: try the next size
         }
-        applyView(s);
         const fps = await s.benchmark();
         if (disposed) return s.dispose();
         if (fps >= decode.minDecodeFps * decode.startupMargin) {
           best = s;
-          bestNote = `${describe(s)} (start ${Math.round(fps)} fps)`;
+          bestSpeed = fps / decode.startupMargin;
+          bestNote += `${bestNote ? ", " : ""}${describe(s)} (start ${Math.round(fps)} fps)`;
           return updateVariant();
         }
         bestNote += `${bestNote ? ", " : ""}${s.index.height}p too slow (${Math.round(fps)} fps)`;
@@ -195,42 +199,41 @@ export function createFilm(stage: HTMLElement): SceneMedia {
     })();
   }
 
-  /** Draws src (or a w×h region at sx,sy of it) to cover the canvas. */
-  const cover = (src: Drawable, sw: number, sh: number, sx = 0, sy = 0) => {
-    const cw = canvas.width;
-    const ch = canvas.height;
-    const scale = Math.max(cw / sw, ch / sh);
-    const w = cw / scale;
-    const h = ch / scale;
-    ctx.drawImage(src, sx + (sw - w) / 2, sy + (sh - h) / 2, w, h, 0, 0, cw, ch);
+  /** Film frames → frames of s (the fill-in has half as many). */
+  const frameOf = (s: FrameSource, target: number) => Math.min(s.frameCount - 1, (target * s.frameCount) / film.frames);
+  const filmFrameOf = (s: FrameSource, i: number) => (i * film.frames) / s.frameCount;
+
+  const show = (s: FrameSource, i: number, picture: Picture, mode: FilmStatus["mode"]) => {
+    const key = `f${s.index.height}:${i}:${canvas.width}`;
+    if (key !== lastKey) {
+      lastKey = key;
+      renderer.draw(picture);
+    }
+    filmStatus.shown = filmFrameOf(s, i);
+    filmStatus.mode = mode;
+    filmStatus.size = s.index.height;
   };
 
-  /** Decoded frames are already cropped to the screen's shape: they just fill the canvas. */
-  const fill = (bitmap: ImageBitmap) => ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-
-  const frameCount = () => base?.frameCount ?? best?.frameCount ?? journeyConfig.film.frames;
-
   /**
-   * Draws frame `target` from s if it has it: blended with the next frame while the scroll
-   * moves slowly, else the exact frame (or the next one past the halfway point).
+   * Draws film frame `target` from s if it has it: blended with the next frame while the
+   * scroll moves slowly, else the exact frame (or the next one past the halfway point).
    */
-  const drawExact = (s: FrameSource, target: number, step: number, n: number) => {
-    const a = Math.floor(target);
-    const frac = target - a;
+  const drawExact = (s: FrameSource, target: number, step: number) => {
+    const at = frameOf(s, target);
+    const a = Math.floor(at);
+    const frac = at - a;
     const fa = s.frame(a);
     // Cross-fade only while the scroll moves under a frame per display frame (slow), where
     // the film would otherwise step; faster, every display frame shows a new frame anyway
     // and blending would only double the moving parts.
-    const blend = journeyConfig.blendFrames && !reduce && step < 1 && frac > 0.02 && a + 1 < n;
+    const blend = journeyConfig.blendFrames && !reduce && frameOf(s, step) < 1 && frac > 0.02 && a + 1 < s.frameCount;
     const fb = blend ? s.frame(a + 1) : undefined;
     if (fa && fb) {
       const key = `b${s.index.height}:${a}:${Math.round(frac * 50)}:${canvas.width}`;
       if (key !== lastKey) {
         lastKey = key;
-        fill(fa);
-        ctx.globalAlpha = frac;
-        fill(fb);
-        ctx.globalAlpha = 1;
+        renderer.draw(fa);
+        renderer.draw(fb, frac);
       }
       filmStatus.shown = target;
       filmStatus.mode = "blend";
@@ -243,15 +246,11 @@ export function createFilm(stage: HTMLElement): SceneMedia {
     return true;
   };
 
-  const show = (s: FrameSource, i: number, bitmap: ImageBitmap, mode: FilmStatus["mode"]) => {
-    const key = `f${s.index.height}:${i}:${canvas.width}`;
-    if (key !== lastKey) {
-      lastKey = key;
-      fill(bitmap);
-    }
-    filmStatus.shown = i;
-    filmStatus.mode = mode;
-    filmStatus.size = s.index.height;
+  /** The decoded frame of s closest to film frame `target`, if within `within` film frames. */
+  const nearestOf = (s: FrameSource | null, target: number, within: number): Near | undefined => {
+    if (!s) return undefined;
+    const n = s.nearest(Math.round(frameOf(s, target)));
+    return n && Math.abs(filmFrameOf(s, n.index) - target) <= within ? { s, ...n } : undefined;
   };
 
   const tick = (time: number) => {
@@ -259,43 +258,48 @@ export function createFilm(stage: HTMLElement): SceneMedia {
     lastTick = time;
     if (dt > 0 && dt < 1) fpsAvg += (1 / dt - fpsAvg) * 0.05;
     filmStatus.renderFps = fpsAvg;
+    if (!renderer.ok) return;
 
-    const n = frameCount();
-    const target = progress * (n - 1);
+    const target = progress * (film.frames - 1);
     const step = Math.abs(target - lastTarget);
     lastTarget = target;
+    // Film frames per second the scroll asks for (rises at once, settles over ~0.2 s).
+    if (dt > 0 && dt < 0.25) demand = Math.max(step / dt, demand + (step / dt - demand) * Math.min(1, dt * 5));
     filmStatus.progress = progress;
     filmStatus.target = target;
+    filmStatus.demand = demand;
 
-    if (video) return drawVideo(video, target / filmStatus.fps);
+    if (video) return drawVideo(video, target / film.fps);
     stepDownIfSlow(target);
 
-    // The sharp size decodes wherever its bytes are here; the fill-in size decodes only
-    // when the sharp one has nothing close to show (so one decoder works at a time).
-    const t = Math.round(target);
-    if (best) best.update(target, direction, best.hasData(target));
-    const close = best?.nearest(t);
-    const bestCovers = !!close && Math.abs(close.index - t) <= 2;
-    base?.update(target, direction, !bestCovers);
-    filmStatus.source = (bestCovers ? best : base)?.stats();
+    // The sharp size decodes where its bytes are here and the scroll is within what this
+    // device can decode; the fill-in decodes only when the sharp size has nothing close.
+    if (best) {
+      const measured = best.sustainedFps(1);
+      if (measured !== undefined) bestSpeed = measured;
+      best.update(target, direction, best.hasData(target) && demand < bestSpeed * 0.9);
+    }
+    const close = nearestOf(best, target, 2);
+    if (base) base.update(frameOf(base, target), direction, !close);
+    filmStatus.source = base?.stats();
     filmStatus.best = best?.stats();
 
-    if (best && drawExact(best, target, step, n)) return;
-    if (close && bestCovers) return show(best!, close.index, close.frame, "nearest");
-    if (base && drawExact(base, target, step, n)) return;
+    if (best && drawExact(best, target, step)) return;
+    if (close) return show(close.s, close.index, close.frame, "nearest");
+    if (base && drawExact(base, target, step)) return;
     // While the decoders catch up, the closest real frame keeps the motion going (no blur
     // flashes); a thumbnail only stands in after a long jump with nothing decoded nearby.
-    const near = [close && best ? { s: best, ...close } : undefined, base ? withSource(base, base.nearest(t)) : undefined]
-      .filter((c): c is { s: FrameSource; index: number; frame: ImageBitmap } => !!c && Math.abs(c.index - target) <= decode.nearestWithin)
-      .sort((x, y) => Math.abs(x.index - target) - Math.abs(y.index - target))[0];
+    const near = [nearestOf(best, target, decode.nearestWithin), nearestOf(base, target, decode.nearestWithin)]
+      .filter((c): c is Near => !!c)
+      .sort((x, y) => Math.abs(filmFrameOf(x.s, x.index) - target) - Math.abs(filmFrameOf(y.s, y.index) - target))[0];
     if (near) return show(near.s, near.index, near.frame, "nearest");
     drawThumb(target);
   };
 
   /**
-   * If the decoder can't sustain ordinary scrolling at the sharp size, prepare the next
-   * smaller size in the background and swap to it once it has the current frame.
-   * (The fill-in size is the smallest and never steps down.)
+   * If the device can't decode the sharp size even at the film's own pace, prepare the
+   * next smaller size in the background and swap to it once it has the current frame.
+   * (Faster scrolling than that is what the fill-in is for.)
    */
   const stepDownIfSlow = (target: number) => {
     if (next) {
@@ -304,6 +308,7 @@ export function createFilm(stage: HTMLElement): SceneMedia {
       best?.dispose();
       best = next;
       next = null;
+      bestSpeed = decode.minDecodeFps;
       lastKey = "";
       bestNote = `${describe(best)} (stepped down for speed)`;
       return updateVariant();
@@ -326,7 +331,6 @@ export function createFilm(stage: HTMLElement): SceneMedia {
     void openTier(tierIndex).then((s) => {
       steppingDown = false;
       if (disposed || !s) return s?.dispose();
-      applyView(s);
       next = s;
     });
   };
@@ -336,25 +340,28 @@ export function createFilm(stage: HTMLElement): SceneMedia {
       filmStatus.mode = "poster";
       return;
     }
-    const i = Math.min(Math.round(target / media.thumbEvery), Math.floor((frameCount() - 1) / media.thumbEvery));
+    thumbPicture ??= renderer.wrap(thumbs, thumbs.naturalWidth, thumbs.naturalHeight);
+    const i = Math.min(Math.round(target / media.thumbEvery), Math.floor((film.frames - 1) / media.thumbEvery));
     const key = `t${i}:${canvas.width}`;
     if (key === lastKey) return;
     lastKey = key;
-    const tw = thumbs.naturalWidth / media.thumbColumns;
-    const th = (tw * 9) / 16;
-    cover(thumbs, tw, th, (i % media.thumbColumns) * tw, Math.floor(i / media.thumbColumns) * th);
+    const w = thumbs.naturalWidth / media.thumbColumns;
+    const h = (w * 9) / 16;
+    renderer.draw(thumbPicture, 1, { x: (i % media.thumbColumns) * w, y: Math.floor(i / media.thumbColumns) * h, w, h });
     filmStatus.shown = i * media.thumbEvery;
     filmStatus.mode = "thumb";
   };
 
   const drawVideo = (v: HTMLVideoElement, time: number) => {
-    if (v.readyState >= 2 && !v.seeking && Math.abs(v.currentTime - time) > 0.5 / filmStatus.fps) v.currentTime = time;
-    if (v.readyState < 2) return drawThumb(time * filmStatus.fps);
+    if (v.readyState >= 2 && !v.seeking && Math.abs(v.currentTime - time) > 0.5 / film.fps) v.currentTime = time;
+    if (v.readyState < 2) return drawThumb(time * film.fps);
     const key = `v${v.currentTime.toFixed(3)}:${canvas.width}`;
     if (key === lastKey) return;
     lastKey = key;
-    cover(v, v.videoWidth, v.videoHeight);
-    filmStatus.shown = v.currentTime * filmStatus.fps;
+    videoPicture ??= renderer.wrap(v, v.videoWidth, v.videoHeight);
+    renderer.refresh(videoPicture);
+    renderer.draw(videoPicture);
+    filmStatus.shown = v.currentTime * film.fps;
     filmStatus.mode = "video";
   };
 
@@ -372,16 +379,13 @@ export function createFilm(stage: HTMLElement): SceneMedia {
       base?.dispose();
       best?.dispose();
       next?.dispose();
+      renderer.dispose();
       if (video) {
         video.removeAttribute("src");
         video.load();
       }
     },
   };
-}
-
-function withSource(s: FrameSource, near: { index: number; frame: ImageBitmap } | undefined) {
-  return near && { s, ...near };
 }
 
 /** No WebCodecs: seek a plain <video> (smoothness depends on the browser's seeking). */

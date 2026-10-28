@@ -36,9 +36,13 @@ export function JourneyDebug() {
         `velocity   ${lenis ? lenis.velocity.toFixed(1) : "–"}`,
         `media      ${s.variant}`,
         src
-          ? `loaded     ${((src.loadedBytes / src.totalBytes) * 100).toFixed(0)}% of ${(src.totalBytes / 1e6).toFixed(1)} MB`
+          ? `loaded     ${((src.loadedBytes / src.totalBytes) * 100).toFixed(0)}% of ${(src.totalBytes / 1e6).toFixed(1)} MB (fill-in)`
           : "loaded     –",
-        src ? `decoded    ${src.decoded}   cached ${src.cached}   queue ${src.decodeQueue}` : "decoded    –",
+        `demand     ${s.demand.toFixed(0)} frames/s   drawing ${s.renderer}   on screen ${s.size ?? "–"}p`,
+        src ? `fill-in    decoded ${src.decoded}   cached ${src.cached}   queue ${src.decodeQueue}` : "fill-in    –",
+        s.best
+          ? `sharp      decoded ${s.best.decoded}   cached ${s.best.cached}   queue ${s.best.decodeQueue}   loaded ${((s.best.loadedBytes / s.best.totalBytes) * 100).toFixed(0)}%`
+          : "sharp      –",
       ].join("\n");
     };
     gsap.ticker.add(tick);

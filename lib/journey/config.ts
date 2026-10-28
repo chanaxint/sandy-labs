@@ -39,7 +39,9 @@ export const journeyConfig = {
     thumbColumns: 16,
     /**
      * Sizes, largest first, each with its codecs in order of preference (the first one the
-     * browser decodes is used). The smallest one plays from the first moment; the size this
+     * browser decodes is used). The smallest one (encoded at half the frame rate, to be
+     * light) plays from the first moment and fills in wherever the sharp one has no
+     * frame ready; the size this
      * screen needs (at least `minWidth` device pixels: 1920-wide screens get 1440p "2K",
      * 4K screens 2160p) loads alongside and takes over wherever its frames are ready, if
      * the device decodes it fast enough. `touch: false` keeps a size off phones and tablets
@@ -74,23 +76,23 @@ export const journeyConfig = {
     /** Extra frames sent past those needed: hardware decoders may hold the last few back. */
     latencyPad: 6,
     /** While decoding catches up, show the closest decoded frame up to this many frames away. */
-    nearestWithin: 45,
+    nearestWithin: 90,
     /** Byte-range requests are grouped into chunks of this many keyframe intervals. */
     gopsPerChunk: 2,
     /** Parallel downloads. */
     connections: 3,
     /**
-     * Decode speed (frames/s) the screen-sized film needs on this device: it only has to
-     * keep up with ordinary scrolling (one screen in ~2 s plays ~1.7 film seconds per
-     * second, ~100 frames/s at 30vh and 60 fps), because when it falls behind the
-     * smallest size fills in. Below it, the next smaller size is tried.
+     * Decode speed (frames/s, frames copied to the GPU included) the sharp size needs on
+     * this device: enough to play at the film's own pace with room to spare. Scrolling
+     * faster than the device decodes is covered by the fill-in, so this is not about
+     * brisk scrolling. Below it, the next smaller size is tried.
      */
-    minDecodeFps: 110,
+    minDecodeFps: 75,
     /**
-     * The start-up test decodes one keyframe interval on an idle decoder, which reads about
-     * twice the speed sustained while scrolling and drawing; it must clear this multiple.
+     * The start-up test decodes one keyframe interval on an idle decoder, which reads
+     * faster than what is sustained while scrolling and drawing; it must clear this multiple.
      */
-    startupMargin: 2,
+    startupMargin: 1.5,
   },
 
   /** Backing-store limits for the full-screen canvas. */

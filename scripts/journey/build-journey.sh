@@ -10,7 +10,8 @@
 # (decoded in hardware almost everywhere) with a frame index (index.py; files over
 # 45 MB are split into parts at keyframes): 2160p for 4K screens, 1440p ("2K") for
 # large ones, 1080p, and 720p, which plays first everywhere while the sharp size
-# loads. 720p also gets an AV1 file (used where H.264 decoding isn't available;
+# loads; it is encoded at 30 fps (every other frame), half the work for the
+# moments it fills in. 720p also gets an AV1 file (used where H.264 decoding isn't available;
 # such browsers then play 720p). Plus a
 # poster of the first frame and a sheet of small frames (every 20th, 192x108,
 # 16 per row) shown blurred wherever the real frame isn't decoded yet.
@@ -37,15 +38,17 @@ SRC="$WORK/journey-source.mp4"
 [ -f "$SRC" ] || "$PY" "$HERE/smooth_cuts.py" "$DEDUP" "$SRC"
 
 encode() { # height h264-crf [av1-crf]
-  local vf="scale=-2:$1:flags=lanczos" name="journey-$1" preset=slow
+  local vf="scale=-2:$1:flags=lanczos" name="journey-$1" preset=slow gop=$GOP
+  # The fill-in size: every other frame (30 fps), half the frames to fetch and decode.
+  if [ "$1" -le 720 ]; then vf="fps=30,$vf"; gop=$((GOP / 2)); fi
   [ "$1" -lt 2160 ] || preset=medium # 4K: several times the work; the difference doesn't show
   rm -f "$OUT/$name".*
   ffmpeg -v error -y -i "$SRC" -an -vf "$vf" -c:v libx264 -preset $preset -tune film -crf "$2" -profile:v high \
     -x264-params aq-mode=3:deblock=-1,-1 \
-    -bf 0 -g $GOP -keyint_min $GOP -sc_threshold 0 -pix_fmt yuv420p -movflags +faststart "$OUT/$name.h264.mp4"
+    -bf 0 -g $gop -keyint_min $gop -sc_threshold 0 -pix_fmt yuv420p -movflags +faststart "$OUT/$name.h264.mp4"
   "$PY" "$HERE/index.py" "$OUT/$name.h264.mp4" "$OUT/$name.h264.json" --max-part 45
   [ -n "${3:-}" ] || return 0
-  ffmpeg -v error -y -i "$SRC" -an -vf "$vf" -c:v libsvtav1 -crf "$3" -g $GOP -svtav1-params pred-struct=1 \
+  ffmpeg -v error -y -i "$SRC" -an -vf "$vf" -c:v libsvtav1 -crf "$3" -g $gop -svtav1-params pred-struct=1 \
     -pix_fmt yuv420p -movflags +faststart "$OUT/$name.av1.mp4"
   "$PY" "$HERE/index.py" "$OUT/$name.av1.mp4" "$OUT/$name.av1.json" --max-part 45
 }

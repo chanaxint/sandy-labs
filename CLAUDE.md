@@ -75,7 +75,7 @@ Rules:
 - The homepage is the journey film (`components/journey/`, `lib/journey/`): a WebCodecs
   frame player driven by a pinned `ScrollScene`. Tune it in `lib/journey/config.ts`; rebuild the
   media with `scripts/journey/build-journey.sh` (source video: GitHub release `journey-60fps`,
-  4K 60 fps; the 30 fps original is release `sandy`). 720p plays at once, the sharp size
+  4K 60 fps; the 30 fps original is release `sandy`). A 720p 30 fps fill-in plays at once, the sharp size
   takes over as it loads; there is no blocking preload.
   `JourneyDebug` is a temporary tuning panel (development, or `?debug`).
 

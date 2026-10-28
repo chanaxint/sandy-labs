@@ -9,15 +9,16 @@
  *   encode has no B-frames, so frame i is packet i); the decoder runs ahead in the
  *   scroll direction and, when scrolling back, decodes the previous keyframe interval
  *   before it is needed.
- * - Each decoded frame is copied straight into an ImageBitmap of the part the screen
- *   shows (`setView`) and the decoder's frame is released at once: hardware decoders
- *   have a small pool of output frames (often ~16) and stop decoding when it is held.
- *   The bitmaps are kept in a small cache around the current position.
+ * - Each decoded frame is copied straight into the renderer's store (a GPU texture, see
+ *   renderer.ts) and the decoder's frame is released at once: hardware decoders have a
+ *   small pool of output frames (often ~16) and stop decoding when it is held. The
+ *   copies are kept in a small cache around the current position.
  * - Hardware decoders can also keep the last few frames until more input arrives, so
  *   input runs a few frames past what is needed, and the end of the film is flushed.
- * - Nothing here touches the DOM; `createFilm` draws what `frame()` returns.
+ * - Nothing here draws; `createFilm` draws what `frame()` returns.
  */
 import { journeyConfig } from "./config";
+import type { Renderer, Picture } from "./renderer";
 
 export type FilmIndex = {
   codec: string;
@@ -43,8 +44,6 @@ export type FrameSourceStats = {
   decoded: number;
 };
 
-/** Source rectangle (frame pixels) and the size it is stored at. */
-export type FilmView = { sx: number; sy: number; sw: number; sh: number; width: number; height: number };
 
 type Chunk = {
   first: number;
@@ -80,12 +79,10 @@ export class FrameSource {
   private readonly config: VideoDecoderConfig;
   private readonly options: FrameSourceOptions;
   private decoder: VideoDecoder | null = null;
-  private readonly cache = new Map<number, ImageBitmap>();
-  /** Frames out of the decoder whose bitmap is still being made. */
+  private readonly cache = new Map<number, Picture>();
+  /** Frames out of the decoder whose copy is still being made (2D fallback only). */
   private readonly converting = new Set<number>();
-  /** Region of the frame the screen shows, and the size to keep it at. */
-  private view: FilmView | null = null;
-  private viewGeneration = 0;
+  private generation = 0;
   private lastOutputAt = 0;
   /** A frame the scroll needs isn't decoded yet (the decoder is working for the visitor). */
   private waiting = false;
@@ -108,7 +105,13 @@ export class FrameSource {
   private disposed = false;
   private readonly abort = new AbortController();
 
-  constructor(base: string, index: FilmIndex, config: VideoDecoderConfig, options: FrameSourceOptions) {
+  constructor(
+    base: string,
+    index: FilmIndex,
+    config: VideoDecoderConfig,
+    options: FrameSourceOptions,
+    private readonly renderer: Renderer,
+  ) {
     this.index = index;
     this.config = config;
     this.options = options;
@@ -145,7 +148,7 @@ export class FrameSource {
   }
 
   /** Picks the first codec variant the browser can decode, or null (no WebCodecs). */
-  static async open(variants: { indexUrl: string }[], options: FrameSourceOptions): Promise<FrameSource | null> {
+  static async open(variants: { indexUrl: string }[], options: FrameSourceOptions, renderer: Renderer): Promise<FrameSource | null> {
     if (typeof VideoDecoder === "undefined") return null;
     for (const v of variants) {
       try {
@@ -159,7 +162,7 @@ export class FrameSource {
         };
         const support = await VideoDecoder.isConfigSupported(config);
         const base = v.indexUrl.slice(0, v.indexUrl.lastIndexOf("/") + 1);
-        if (support.supported) return new FrameSource(base, index, config, options);
+        if (support.supported) return new FrameSource(base, index, config, options, renderer);
       } catch {
         // Try the next variant.
       }
@@ -169,7 +172,9 @@ export class FrameSource {
 
   /**
    * Decode speed of this device for this file (frames per second), measured on the
-   * first keyframe interval with a separate decoder. Downloads the first chunk if needed.
+   * first keyframe interval with a separate decoder, each frame copied to the renderer
+   * as in playback (the copy can cost more than the decoding). Downloads the first chunk
+   * if needed.
    */
   async benchmark(): Promise<number> {
     const first = this.chunks[0];
@@ -180,8 +185,12 @@ export class FrameSource {
     const times: number[] = [];
     const decoder = new VideoDecoder({
       output: (f) => {
-        times.push(performance.now());
+        const stored = this.renderer.storeFrame(f);
         f.close();
+        void Promise.resolve(stored).then((p) => {
+          times.push(performance.now());
+          this.renderer.release(p);
+        });
       },
       error: () => undefined,
     });
@@ -190,6 +199,7 @@ export class FrameSource {
     for (let i = 0; i < count; i++) decoder.decode(this.chunkFor(i));
     await decoder.flush().catch(() => undefined);
     decoder.close();
+    while (times.length < count && performance.now() - started < 5000) await new Promise((r) => setTimeout(r, 10));
     // From the first frame sent to the last one out: decoders return frames in bursts, so
     // timing only between outputs overstates the speed several times.
     return times.length > 2 ? (times.length * 1000) / (times[times.length - 1] - started) : 0;
@@ -210,16 +220,10 @@ export class FrameSource {
     };
   }
 
-  /**
-   * Sets the part of the frame the screen shows. Cached frames stay when only the size
-   * changes and are dropped when the shape does (they would be drawn distorted).
-   */
-  setView(view: FilmView) {
-    const old = this.view;
-    this.view = view;
-    if (old && Math.abs(old.sw / old.sh - view.sw / view.sh) < 0.01) return;
-    this.viewGeneration++;
-    for (const b of this.cache.values()) b.close();
+  /** Drops every decoded frame (the renderer lost its GPU context): they are decoded again. */
+  clear() {
+    this.generation++;
+    for (const p of this.cache.values()) this.renderer.release(p);
     this.cache.clear();
     this.runStart = -1; // decode again from the keyframe
   }
@@ -235,12 +239,12 @@ export class FrameSource {
   }
 
   /** The decoded frame, if it is in the cache. */
-  frame(i: number): ImageBitmap | undefined {
+  frame(i: number): Picture | undefined {
     return this.cache.get(i);
   }
 
   /** The cached frame closest to i, preferring frames the scroll has already passed. */
-  nearest(i: number): { index: number; frame: ImageBitmap } | undefined {
+  nearest(i: number): { index: number; frame: Picture } | undefined {
     let best = -1;
     let bestScore = Infinity;
     for (const k of this.cache.keys()) {
@@ -283,7 +287,7 @@ export class FrameSource {
     this.disposed = true;
     this.abort.abort();
     if (this.decoder && this.decoder.state !== "closed") this.decoder.close();
-    for (const b of this.cache.values()) b.close();
+    for (const p of this.cache.values()) this.renderer.release(p);
     this.cache.clear();
     for (const c of this.chunks) c.data = null;
   }
@@ -441,20 +445,22 @@ export class FrameSource {
       frame.close();
       return;
     }
-    const v = this.view ?? { sx: 0, sy: 0, sw: frame.displayWidth, sh: frame.displayHeight, width: frame.displayWidth, height: frame.displayHeight };
-    const generation = this.viewGeneration;
-    // Crop only, unless the screen needs fewer pixels than the frame has.
-    const resize = v.width !== v.sw || v.height !== v.sh;
-    const options: ImageBitmapOptions = resize ? { resizeWidth: v.width, resizeHeight: v.height, resizeQuality: "medium" } : {};
+    const stored = this.renderer.storeFrame(frame);
+    if (!(stored instanceof Promise)) {
+      frame.close(); // the texture holds its own copy: give the decoder its buffer back now
+      this.cache.set(i, stored);
+      return;
+    }
+    const generation = this.generation;
     this.converting.add(i);
-    createImageBitmap(frame, v.sx, v.sy, v.sw, v.sh, options)
-      .then((bitmap) => {
-        if (this.disposed || generation !== this.viewGeneration || this.cache.has(i)) bitmap.close();
-        else this.cache.set(i, bitmap);
+    stored
+      .then((p) => {
+        if (this.disposed || generation !== this.generation || this.cache.has(i)) this.renderer.release(p);
+        else this.cache.set(i, p);
       })
       .catch(() => undefined)
       .finally(() => this.converting.delete(i));
-    frame.close(); // the bitmap holds its own copy: give the decoder its buffer back now
+    frame.close(); // the bitmap snapshot is taken when it is requested
   }
 
   private has(i: number) {
@@ -532,7 +538,7 @@ export class FrameSource {
     };
     const keys = [...this.cache.keys()].sort((a, b) => score(b) - score(a));
     for (const k of keys.slice(0, over)) {
-      this.cache.get(k)!.close();
+      this.renderer.release(this.cache.get(k)!);
       this.cache.delete(k);
     }
   }
