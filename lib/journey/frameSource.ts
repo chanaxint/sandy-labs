@@ -26,6 +26,8 @@ export type FilmIndex = {
   offsets: number[];
   sizes: number[];
   keyframes: number[];
+  /** Files holding the bytes [start, end) of the encode (one, or parts under 100 MB). */
+  parts: { url: string; start: number; end: number }[];
 };
 
 export type FrameSourceStats = {
@@ -36,11 +38,19 @@ export type FrameSourceStats = {
   decoded: number;
 };
 
-type Chunk = { first: number; last: number; start: number; end: number; state: "idle" | "loading" | "done" };
+type Chunk = {
+  first: number;
+  last: number;
+  start: number;
+  end: number;
+  /** File holding the chunk, and where that file starts in the whole encode. */
+  url: string;
+  fileStart: number;
+  state: "idle" | "loading" | "done";
+};
 
 export class FrameSource {
   readonly index: FilmIndex;
-  private readonly url: string;
   private readonly data: Uint8Array;
   private readonly chunks: Chunk[];
   private readonly chunkOf: Int32Array;
@@ -69,8 +79,7 @@ export class FrameSource {
   private disposed = false;
   private readonly abort = new AbortController();
 
-  constructor(url: string, index: FilmIndex, config: VideoDecoderConfig, cacheLimit: number) {
-    this.url = url;
+  constructor(base: string, index: FilmIndex, config: VideoDecoderConfig, cacheLimit: number) {
     this.index = index;
     this.config = config;
     this.cacheLimit = cacheLimit;
@@ -86,22 +95,29 @@ export class FrameSource {
       this.keyBefore[i] = k;
     }
 
-    // Chunks of whole keyframe intervals, so a chunk is decodable on its own.
+    // Chunks of whole keyframe intervals (decodable on their own), never across files.
     const per = journeyConfig.decode.gopsPerChunk;
+    const partOf = (frame: number) => index.parts.findIndex((p) => index.offsets[frame] < p.end);
     this.chunks = [];
     this.chunkOf = new Int32Array(n);
-    for (let g = 0; g < index.keyframes.length; g += per) {
+    let g = 0;
+    while (g < index.keyframes.length) {
       const first = index.keyframes[g];
-      const last = (index.keyframes[g + per] ?? n) - 1;
+      const part = partOf(first);
+      let take = 1;
+      while (take < per && g + take < index.keyframes.length && partOf(index.keyframes[g + take]) === part) take++;
+      const last = (index.keyframes[g + take] ?? n) - 1;
+      const file = index.parts[part];
       const start = index.offsets[first];
       const end = index.offsets[last] + index.sizes[last];
       for (let i = first; i <= last; i++) this.chunkOf[i] = this.chunks.length;
-      this.chunks.push({ first, last, start, end, state: "idle" });
+      this.chunks.push({ first, last, start, end, url: base + file.url, fileStart: file.start, state: "idle" });
+      g += take;
     }
   }
 
   /** Picks the first codec variant the browser can decode, or null (no WebCodecs). */
-  static async open(variants: { url: string; indexUrl: string }[], cacheLimit: number): Promise<FrameSource | null> {
+  static async open(variants: { indexUrl: string }[], cacheLimit: number): Promise<FrameSource | null> {
     if (typeof VideoDecoder === "undefined") return null;
     for (const v of variants) {
       try {
@@ -114,7 +130,8 @@ export class FrameSource {
           ...(index.description ? { description: base64(index.description) } : {}),
         };
         const support = await VideoDecoder.isConfigSupported(config);
-        if (support.supported) return new FrameSource(v.url, index, config, cacheLimit);
+        const base = v.indexUrl.slice(0, v.indexUrl.lastIndexOf("/") + 1);
+        if (support.supported) return new FrameSource(base, index, config, cacheLimit);
       } catch {
         // Try the next variant.
       }
@@ -254,13 +271,13 @@ export class FrameSource {
     chunk.state = "loading";
     this.loading++;
     try {
-      const res = await fetch(this.url, {
-        headers: { Range: `bytes=${chunk.start}-${chunk.end - 1}` },
+      const res = await fetch(chunk.url, {
+        headers: { Range: `bytes=${chunk.start - chunk.fileStart}-${chunk.end - 1 - chunk.fileStart}` },
         signal: this.abort.signal,
       });
       if (res.status === 200) {
         // No range support: take the whole file in one stream.
-        await this.loadWhole(res);
+        await this.loadWhole(res, chunk.fileStart);
         return;
       }
       if (res.status !== 206) throw new Error(`HTTP ${res.status}`);
@@ -275,17 +292,18 @@ export class FrameSource {
     }
   }
 
-  private async loadWhole(res: Response) {
-    this.wholeFile = true;
+  /** A whole file arrived (server without range support): every chunk in it is done as its bytes land. */
+  private async loadWhole(res: Response, fileStart: number) {
+    if (this.index.parts.length === 1) this.wholeFile = true;
     const reader = res.body!.getReader();
-    let at = 0;
+    let at = fileStart;
     for (;;) {
       const { done, value } = await reader.read();
       if (done) break;
       this.data.set(value, at);
       at += value.byteLength;
-      this.loadedBytes = at;
-      for (const c of this.chunks) if (c.end <= at) c.state = "done";
+      this.loadedBytes += value.byteLength;
+      for (const c of this.chunks) if (c.fileStart === fileStart && c.end <= at) c.state = "done";
     }
   }
 

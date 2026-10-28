@@ -24,7 +24,8 @@ export const journeyConfig = {
   /**
    * Cross-fade between neighbouring source frames for the fraction of a frame the
    * scroll is between them, so slow scrolling glides instead of stepping at 30 fps.
-   * Uses only real frames (no synthesised in-betweens). Off with reduced motion.
+   * Only while scrolling slowly (faster, it would double moving parts); uses only real
+   * frames (no synthesised in-betweens). Off with reduced motion.
    */
   blendFrames: true,
 
@@ -36,9 +37,13 @@ export const journeyConfig = {
     thumbs: "/media/journey/journey-thumbs.jpg",
     thumbEvery: 10,
     thumbColumns: 16,
-    /** Sizes, largest first; a size is used when the screen needs at least `minWidth` device pixels. */
+    /**
+     * Sizes, largest first; a size is used when the screen needs at least `minWidth` device
+     * pixels (so 1920-wide screens get 1440p "2K") and the device decodes it fast enough.
+     */
     tiers: [
-      { height: 1080, minWidth: 1400 },
+      { height: 1440, minWidth: 1700 },
+      { height: 1080, minWidth: 1200 },
       { height: 720, minWidth: 0 },
     ],
     /** Codecs in order of preference; the first one the browser can decode is used. */
@@ -48,13 +53,13 @@ export const journeyConfig = {
   /** Decoding and memory. */
   decode: {
     /**
-     * Decoded frames kept around the current position (≈3 MB each at 1080p). Kept small:
+     * Decoded frames kept around the current position (≈5.5 MB each at 1440p). Kept small:
      * hardware decoders have a limited pool of output frames.
      */
-    cacheFrames: 32,
-    cacheFramesMobile: 16,
+    cacheFrames: 40,
+    cacheFramesMobile: 20,
     /** Frames decoded ahead of the scroll in the direction it is moving. */
-    lookahead: 14,
+    lookahead: 24,
     /** Frames queued in the decoder at most. */
     queue: 12,
     /** While decoding catches up, show the closest decoded frame up to this many frames away. */

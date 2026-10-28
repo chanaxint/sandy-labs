@@ -59,6 +59,7 @@ export function createFilm(stage: HTMLElement): SceneMedia {
   let direction: 1 | -1 = 1;
   let lastKey = "";
   let lastTick = 0;
+  let lastTarget = 0;
   let fpsAvg = 60;
 
   // Thumbnails: one sheet, decoded once, for instant (blurred) frames anywhere.
@@ -99,11 +100,11 @@ export function createFilm(stage: HTMLElement): SceneMedia {
     for (let t = first; t < media.tiers.length && !disposed; t++) {
       tierIndex = t;
       const name = `${media.base}/journey-${media.tiers[t].height}`;
-      const variants = media.codecs.map((c) => ({ url: `${name}.${c}.mp4`, indexUrl: `${name}.${c}.json` }));
+      const variants = media.codecs.map((c) => ({ indexUrl: `${name}.${c}.json` }));
       const s = await FrameSource.open(variants, cacheLimit);
       if (!s) {
-        if (!chosen && !disposed) video = fallbackVideo(name);
-        break;
+        if (typeof VideoDecoder === "undefined") break;
+        continue; // this size isn't decodable here (e.g. no 1440p support): try the next one
       }
       const fps = await s.benchmark();
       measured += `${measured ? ", " : ""}${s.index.height}p start ${Math.round(fps)} fps`;
@@ -115,6 +116,7 @@ export function createFilm(stage: HTMLElement): SceneMedia {
       chosen?.dispose();
       return;
     }
+    if (!chosen) video = fallbackVideo(`${media.base}/journey-${media.tiers[media.tiers.length - 1].height}`);
     if (chosen) {
       source = chosen;
       filmStatus.frames = chosen.frameCount;
@@ -159,7 +161,12 @@ export function createFilm(stage: HTMLElement): SceneMedia {
     const a = Math.floor(target);
     const frac = target - a;
     const fa = source.frame(a);
-    const blend = journeyConfig.blendFrames && !reduce && frac > 0.02 && a + 1 < n;
+    // Cross-fade only while the scroll moves under a frame per display frame (slow), where
+    // 30 fps would otherwise step; faster, every display frame shows a new frame anyway
+    // and blending would only double the moving parts.
+    const step = Math.abs(target - lastTarget);
+    lastTarget = target;
+    const blend = journeyConfig.blendFrames && !reduce && step < 1 && frac > 0.02 && a + 1 < n;
     const fb = blend ? source.frame(a + 1) : undefined;
 
     if (fa && fb) {
@@ -211,7 +218,7 @@ export function createFilm(stage: HTMLElement): SceneMedia {
     const name = `${media.base}/journey-${media.tiers[tierIndex].height}`;
     filmStatus.variant += ` → sustained ${Math.round(fps)} fps, loading ${media.tiers[tierIndex].height}p`;
     void FrameSource.open(
-      media.codecs.map((c) => ({ url: `${name}.${c}.mp4`, indexUrl: `${name}.${c}.json` })),
+      media.codecs.map((c) => ({ indexUrl: `${name}.${c}.json` })),
       cacheLimit,
     ).then((s) => {
       if (disposed || !s) s?.dispose();

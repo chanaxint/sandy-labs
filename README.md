@@ -28,7 +28,7 @@ lib/journey/config.ts       the film's tuning: scroll pace, scrub, blending, siz
 lib/journey/frameSource.ts  WebCodecs decoder: ranged downloads, frame cache, decode-ahead
 lib/journey/film.ts         scroll progress → frame → full-screen canvas
 components/journey/         <JourneyFilm /> and the temporary <JourneyDebug /> panel
-public/media/journey/       encoded film (1080p/720p, H.264 + AV1), frame indexes, poster, thumbnails
+public/media/journey/       encoded film (1440p/1080p/720p, H.264 + AV1), frame indexes, poster, thumbnails
 scripts/journey/            build-journey.sh + index.py: encodes the film from the source video
 public/media/{hero,intro}/  media from the previous site, kept but not used
 scripts/intro/              pipeline that built the previous intro videos
@@ -53,21 +53,24 @@ scripts/intro/              pipeline that built the previous intro videos
 ## The journey film
 
 The source (3840×2160, 30 fps, 84 s, 2517 frames) is encoded by
-`scripts/journey/build-journey.sh <source.mp4>`: every source frame kept, 1080p and 720p,
-H.264 and AV1, no B-frames and a keyframe every second, plus a JSON index of each frame's
-byte range. The player decodes frames itself with WebCodecs and draws the one the scroll
+`scripts/journey/build-journey.sh <source.mp4>`: every source frame kept, 1440p ("2K"),
+1080p and 720p, H.264 and AV1, no B-frames and a keyframe every second, tuned against
+blocking and banding in flat sky and snow, plus a JSON index of each frame's byte range.
+Files over 45 MB are split into `.bin` parts at keyframes (GitHub's 100 MB file limit). The player decodes frames itself with WebCodecs and draws the one the scroll
 position asks for on a full-screen canvas:
 
 - Scroll down plays forward, up plays back, stopping the scroll stops the film; the film is
   a function of the scroll position (`scrub: true`), smoothed only once, by Lenis.
 - Pace: `vhPerSecond` (30 = one screen of scrolling per ~3.3 s of film, ~25 screens in all).
   Smoothing: `scrollSettings.lerp` in `lib/scroll/engine.ts`. Both in one place each.
-- Between two frames, the two real frames are cross-faded for the fraction of a frame the
-  scroll is between them, so slow scrolling glides instead of stepping at 30 fps.
+- While scrolling slowly, the two real frames around the position are cross-faded for the
+  fraction of a frame in between, so it glides instead of stepping at 30 fps (not when
+  scrolling faster, where it would double moving parts).
 - Bytes load in ranges around the current position first; frames decode ahead in the scroll
   direction; a small cache of decoded frames (hardware decoders have limited buffers).
-- The size is chosen per screen and device: 1080p when the screen needs it and the device
-  decodes it fast enough (tested at start-up and again while scrolling), else 720p.
+- The size is chosen per screen and device: 1440p on screens 1920+ device pixels wide,
+  1080p from 1200, else 720p; each only if the device decodes it fast enough (tested at
+  start-up and again while scrolling), otherwise the next size down.
 - Never black: poster behind the canvas, then the nearest decoded frame or a thumbnail.
 - Reloading keeps the position. Without WebCodecs it falls back to seeking a `<video>`.
 - Debug panel: shown in development, or with `?debug` in production.
