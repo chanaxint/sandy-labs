@@ -7,7 +7,7 @@
 export const journeyConfig = {
   /** The encoded film (must match public/media/journey/*.json; the player checks at runtime). */
   film: {
-    frames: 2517,
+    frames: 2529, // 2517 source frames + 12 eased into the camera turn (smooth_cuts.py)
     fps: 30,
   },
   /**

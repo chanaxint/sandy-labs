@@ -53,7 +53,9 @@ scripts/intro/              pipeline that built the previous intro videos
 ## The journey film
 
 The source (3840×2160, 30 fps, 84 s, 2517 frames) is encoded by
-`scripts/journey/build-journey.sh <source.mp4>`: every source frame kept, 1440p ("2K"),
+`scripts/journey/build-journey.sh <source.mp4>`, after `smooth_cuts.py` softens two rough spots
+(a light zoom blur and fade over the hard cut at 36.6 s; time eased through the abrupt camera
+turn at 54 s with optical-flow in-betweens, +12 frames → 2529): every source frame kept, 1440p ("2K"),
 1080p and 720p, H.264 and AV1, no B-frames and a keyframe every second, tuned against
 blocking and banding in flat sky and snow, plus a JSON index of each frame's byte range.
 Files over 45 MB are split into `.bin` parts at keyframes (GitHub's 100 MB file limit). The player decodes frames itself with WebCodecs and draws the one the scroll
