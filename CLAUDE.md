@@ -64,8 +64,7 @@ Rules:
 
 ## Current state
 
-- The previous frontend was reset (October 2026): the homepage is an empty white page. The
-  old design (island visual identity, Fraunces/Manrope, intro film, questionnaire, sections)
+- The previous frontend was reset (October 2026). The old design (island visual identity, Fraunces/Manrope, intro film, questionnaire, sections)
   lives on the `backup/pre-frontend-reset` branch; don't reintroduce parts of it unless asked.
 - `public/media/` still holds the previous site's media (hero art, intro videos); it is not
   used. Never delete the user's media without asking, and never reference asset paths that
@@ -73,8 +72,10 @@ Rules:
 - `scripts/intro/` is the pipeline that built the old intro videos. Playwright's Chromium
   cannot play H.264, so browser tests exercise AV1 files.
 - No backend exists yet (no API routes, database, auth or env vars). Never fake them.
-- `/scroll-test` is a temporary, development-only test bed for the scroll engine (404 in
-  production). It is not the design; delete it once the first real scene exists.
+- The homepage is the journey film (`components/journey/`, `lib/journey/`): a WebCodecs
+  frame player driven by a pinned `ScrollScene`. Tune it in `lib/journey/config.ts`; rebuild the
+  media with `scripts/journey/build-journey.sh` (source video: GitHub release `sandy`).
+  `JourneyDebug` is a temporary tuning panel (development, or `?debug`).
 
 ## Code conventions
 

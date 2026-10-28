@@ -1,9 +1,8 @@
 # Sandy Labs
 
-Starting point for the new Sandy Labs cinematic scroll website. The previous homepage
-(hero, intro film, questionnaire, examples, sections, header/footer) was removed in a
-frontend reset; the homepage is now an empty white page. The full previous version is kept
-on the `backup/pre-frontend-reset` branch.
+Sandy Labs — The Journey: a cinematic website the visitor moves through by scrolling. The
+homepage is currently one full-screen film driven by the scroll (no text or interface yet).
+The previous site is kept on the `backup/pre-frontend-reset` branch.
 
 Built with Next.js (App Router), React, TypeScript and Tailwind CSS v4, with Lenis smooth
 scrolling and GSAP ScrollTrigger as the scroll engine.
@@ -20,14 +19,19 @@ npm run typecheck  # TypeScript
 
 ```
 app/layout.tsx              root layout (metadata, global styles, starts the scroll engine)
-app/page.tsx                homepage (empty)
+app/page.tsx                homepage: the journey film (+ debug panel)
 app/globals.css             Tailwind import and a white page background
-app/scroll-test/            TEMPORARY development-only test bed for the scroll engine
 lib/scroll/engine.ts        Lenis + GSAP ScrollTrigger, one shared ticker, one instance
 lib/scroll/scene.ts         createScene(): scroll-scrubbed scenes with progress, pinning, media
 components/scroll/          <SmoothScroll /> (engine starter) and <ScrollScene /> (React scene)
-public/media/      media from the previous site, kept but not used (hero art, intro videos)
-scripts/intro/     pipeline that built the previous intro videos from the source footage
+lib/journey/config.ts       the film's tuning: scroll pace, scrub, blending, sizes, caching
+lib/journey/frameSource.ts  WebCodecs decoder: ranged downloads, frame cache, decode-ahead
+lib/journey/film.ts         scroll progress → frame → full-screen canvas
+components/journey/         <JourneyFilm /> and the temporary <JourneyDebug /> panel
+public/media/journey/       encoded film (1080p/720p, H.264 + AV1), frame indexes, poster, thumbnails
+scripts/journey/            build-journey.sh + index.py: encodes the film from the source video
+public/media/{hero,intro}/  media from the previous site, kept but not used
+scripts/intro/              pipeline that built the previous intro videos
 ```
 
 ## Scroll engine
@@ -46,7 +50,27 @@ scripts/intro/     pipeline that built the previous intro videos from the source
 - Media (image sequences, video seekers, timelines) plugs in through `SceneMedia.render()`.
 - Ambient loops (CSS keyframes or free-running GSAP tweens) keep playing when scrolling stops.
 
-Try it with `npm run dev` at http://localhost:3000/scroll-test (development only).
+## The journey film
+
+The source (3840×2160, 30 fps, 84 s, 2517 frames) is encoded by
+`scripts/journey/build-journey.sh <source.mp4>`: every source frame kept, 1080p and 720p,
+H.264 and AV1, no B-frames and a keyframe every second, plus a JSON index of each frame's
+byte range. The player decodes frames itself with WebCodecs and draws the one the scroll
+position asks for on a full-screen canvas:
+
+- Scroll down plays forward, up plays back, stopping the scroll stops the film; the film is
+  a function of the scroll position (`scrub: true`), smoothed only once, by Lenis.
+- Pace: `vhPerSecond` (16 = one screen of scrolling per ~6 s of film, 13.4 screens in all).
+  Smoothing: `scrollSettings.lerp` in `lib/scroll/engine.ts`. Both in one place each.
+- Between two frames, the two real frames are cross-faded for the fraction of a frame the
+  scroll is between them, so slow scrolling glides instead of stepping at 30 fps.
+- Bytes load in ranges around the current position first; frames decode ahead in the scroll
+  direction; a small cache of decoded frames (hardware decoders have limited buffers).
+- The size is chosen per screen and device: 1080p when the screen needs it and the device
+  decodes it fast enough (tested at start-up and again while scrolling), else 720p.
+- Never black: poster behind the canvas, then the nearest decoded frame or a thumbnail.
+- Reloading keeps the position. Without WebCodecs it falls back to seeking a `<video>`.
+- Debug panel: shown in development, or with `?debug` in production.
 
 ## What is (and isn't) connected
 

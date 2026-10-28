@@ -60,7 +60,7 @@ export function ScrollScene({ length, pin = true, scrub = true, id, className, c
   );
 
   return (
-    <section ref={stage} data-scene={id} className={`relative h-svh w-full overflow-hidden ${className ?? ""}`}>
+    <section ref={stage} data-scene={id} className={`relative h-dvh w-full overflow-hidden ${className ?? ""}`}>
       {children}
     </section>
   );

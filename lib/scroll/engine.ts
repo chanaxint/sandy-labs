@@ -20,9 +20,15 @@ gsap.registerPlugin(ScrollTrigger);
 /** Feel of the smooth scroll: responsive, with a short natural glide (no long drift). */
 export const scrollSettings = {
   /** Fraction of the remaining distance covered each frame (60 Hz basis); higher is snappier. */
-  lerp: 0.11,
+  lerp: 0.12,
   wheelMultiplier: 1,
   touchMultiplier: 1,
+  /**
+   * Largest step (px) a single wheel event may move: a mouse notch (~100px) and trackpad
+   * gestures pass untouched, while huge deltas from some mice or fast flicks can't throw
+   * scroll-linked scenes several seconds forward at once.
+   */
+  maxWheelStep: 160,
 } as const;
 
 type Engine = { lenis: Lenis; users: number; stop: () => void };
@@ -42,11 +48,19 @@ export function startScrollEngine(): () => void {
       syncTouch: false,
       anchors: true,
       respectReducedMotion: true,
+      virtualScroll: (data) => {
+        if (data.event.type === "wheel") {
+          const max = scrollSettings.maxWheelStep;
+          data.deltaY = Math.max(-max, Math.min(max, data.deltaY));
+        }
+        return true;
+      },
     });
     const onScroll = () => ScrollTrigger.update();
     const tick = (time: number) => lenis.raf(time * 1000);
     lenis.on("scroll", onScroll);
     gsap.ticker.add(tick);
+    const stopRestoring = restoreScroll(lenis);
     // Keep scroll-linked animation in step with the scroll position after a slow frame
     // instead of letting GSAP's lag smoothing hold it back.
     gsap.ticker.lagSmoothing(0);
@@ -57,6 +71,7 @@ export function startScrollEngine(): () => void {
       lenis,
       users: 0,
       stop: () => {
+        stopRestoring();
         gsap.ticker.remove(tick);
         lenis.off("scroll", onScroll);
         lenis.destroy();
@@ -76,6 +91,40 @@ export function startScrollEngine(): () => void {
       current.stop();
       store.__sandyScrollEngine = undefined;
     }
+  };
+}
+
+/**
+ * Keeps the scroll position across reloads. The browser's own restoration runs before
+ * ScrollTrigger has added the pinned scenes' scroll distance, when the page is still
+ * short, so it would land at the top: the position is saved on leaving and put back
+ * after the first ScrollTrigger refresh instead.
+ */
+function restoreScroll(lenis: Lenis): () => void {
+  const key = `scroll:${location.pathname}`;
+  history.scrollRestoration = "manual";
+  const save = () => {
+    try {
+      sessionStorage.setItem(key, String(Math.round(window.scrollY)));
+    } catch {
+      // Storage unavailable (private mode): reloads start at the top.
+    }
+  };
+  let saved = 0;
+  try {
+    saved = Number(sessionStorage.getItem(key)) || 0;
+  } catch {
+    saved = 0;
+  }
+  const onRefresh = () => {
+    ScrollTrigger.removeEventListener("refresh", onRefresh);
+    if (saved > 0 && !location.hash) lenis.scrollTo(saved, { immediate: true, force: true });
+  };
+  if (saved > 0) ScrollTrigger.addEventListener("refresh", onRefresh);
+  window.addEventListener("pagehide", save);
+  return () => {
+    ScrollTrigger.removeEventListener("refresh", onRefresh);
+    window.removeEventListener("pagehide", save);
   };
 }
 
