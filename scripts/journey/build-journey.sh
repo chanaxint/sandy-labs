@@ -10,8 +10,8 @@
 # (decoded in hardware almost everywhere) with a frame index (index.py; files over
 # 45 MB are split into parts at keyframes): 2160p for 4K screens, 1440p ("2K") for
 # large ones, 1080p, and 720p, which plays first everywhere while the sharp size
-# loads. 1080p and 720p also get an AV1 file (used where H.264 decoding isn't
-# available; such browsers rarely decode the larger sizes fast enough). Plus a
+# loads. 720p also gets an AV1 file (used where H.264 decoding isn't available;
+# such browsers then play 720p). Plus a
 # poster of the first frame and a sheet of small frames (every 10th, 192x108,
 # 16 per row) shown blurred wherever the real frame isn't decoded yet.
 #
@@ -37,9 +37,10 @@ SRC="$WORK/journey-source.mp4"
 [ -f "$SRC" ] || "$PY" "$HERE/smooth_cuts.py" "$DEDUP" "$SRC"
 
 encode() { # height h264-crf [av1-crf]
-  local vf="scale=-2:$1:flags=lanczos" name="journey-$1"
+  local vf="scale=-2:$1:flags=lanczos" name="journey-$1" preset=slow
+  [ "$1" -lt 2160 ] || preset=medium # 4K: several times the work; the difference doesn't show
   rm -f "$OUT/$name".*
-  ffmpeg -v error -y -i "$SRC" -an -vf "$vf" -c:v libx264 -preset slow -tune film -crf "$2" -profile:v high \
+  ffmpeg -v error -y -i "$SRC" -an -vf "$vf" -c:v libx264 -preset $preset -tune film -crf "$2" -profile:v high \
     -x264-params aq-mode=3:deblock=-1,-1 \
     -bf 0 -g $GOP -keyint_min $GOP -sc_threshold 0 -pix_fmt yuv420p -movflags +faststart "$OUT/$name.h264.mp4"
   "$PY" "$HERE/index.py" "$OUT/$name.h264.mp4" "$OUT/$name.h264.json" --max-part 45
@@ -51,7 +52,7 @@ encode() { # height h264-crf [av1-crf]
 
 encode 2160 24
 encode 1440 23
-encode 1080 23 34
+encode 1080 23
 encode 720 24 36
 ffmpeg -v error -y -i "$SRC" -vf "scale=1920:-2:flags=lanczos" -frames:v 1 -q:v 3 "$OUT/journey-poster.jpg"
 ffmpeg -v error -y -i "$SRC" -vf "select='not(mod(n\,10))',scale=192:108:flags=area,tile=16x16" -frames:v 1 -q:v 5 \

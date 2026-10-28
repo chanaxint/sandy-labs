@@ -28,7 +28,7 @@ lib/journey/config.ts       the film's tuning: scroll pace, scrub, blending, siz
 lib/journey/frameSource.ts  WebCodecs decoder: ranged downloads, frame cache, decode-ahead
 lib/journey/film.ts         scroll progress → frame → full-screen canvas
 components/journey/         <JourneyFilm /> and the temporary <JourneyDebug /> panel
-public/media/journey/       encoded film (1440p/1080p/720p, H.264 + AV1), frame indexes, poster, thumbnails
+public/media/journey/       encoded film (2160p/1440p/1080p/720p H.264, 720p AV1), frame indexes, poster, thumbnails
 scripts/journey/            build-journey.sh + index.py: encodes the film from the source video
 public/media/{hero,intro}/  media from the previous site, kept but not used
 scripts/intro/              pipeline that built the previous intro videos
@@ -58,7 +58,7 @@ in-between frames that the 60 fps conversion had copied from a neighbour (a stop
 times a second) from the optical flow, then `smooth_cuts.py` softens two rough spots (a light
 zoom blur and fade over the hard cut at 36.6 s; time eased through the abrupt camera turn at
 54 s with optical-flow in-betweens, +24 frames → 5058). Every frame is kept at 2160p (4K),
-1440p ("2K"), 1080p and 720p in H.264 (1080p and 720p also in AV1), no B-frames and a keyframe
+1440p ("2K"), 1080p and 720p in H.264 (720p also in AV1), no B-frames and a keyframe
 every second, tuned against blocking and banding in flat sky and snow, plus a JSON index of
 each frame's byte range. Files over 45 MB are split into `.bin` parts at keyframes (GitHub's
 100 MB file limit). The player decodes frames itself with WebCodecs and draws the one the

@@ -48,7 +48,7 @@ export const journeyConfig = {
     tiers: [
       { height: 2160, minWidth: 3000, codecs: ["h264"], touch: false },
       { height: 1440, minWidth: 1700, codecs: ["h264"] },
-      { height: 1080, minWidth: 1200, codecs: ["h264", "av1"] },
+      { height: 1080, minWidth: 1200, codecs: ["h264"] },
       { height: 720, minWidth: 0, codecs: ["h264", "av1"] },
     ] as { height: number; minWidth: number; codecs: JourneyCodec[]; touch?: boolean }[],
   },
