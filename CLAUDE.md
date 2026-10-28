@@ -1,7 +1,7 @@
 # Sandy Labs
 
-Premium, island-themed website creation studio. This repo is the marketing homepage
-(Next.js 16 App Router, React 19, TypeScript, Tailwind CSS v4, Lucide, Motion). The AI
+Premium website creation studio. This repo is the marketing site (Next.js 16 App Router,
+React 19, TypeScript, Tailwind CSS v4; Lucide and Motion are installed but currently unused). The AI
 generation backend, auth, payments, database and publishing are later stages: never fake them.
 
 ## Communication
@@ -54,25 +54,21 @@ Rules:
   explain why, and keep them out of the initial bundle (dynamic import where possible).
 - No smooth-scroll hijacking library unless a feature truly requires it; native scrolling stays.
 - Every animation has a reduced-motion path. Animate `transform`/`opacity`.
-- Motion runs under `LazyMotion features={domMax} strict`: use `m.*`, not `motion.*`.
+- If Motion is used, wrap it in `LazyMotion features={domMax} strict` and use `m.*`, not `motion.*`.
 
-## Visual identity (keep consistent)
+## Current state
 
-- Island concept: aerial ocean, reef, sand, canopy. Colours are tokens in `app/globals.css`
-  (`ink`, `sand-*`, `lagoon-*`, `palm-*`, `coral`).
-- Type: Fraunces (display, light weights, italics) + Manrope (UI/body).
-- Avoid: generic SaaS card grids, neon, space backgrounds, glowing orbs, needless glassmorphism.
-- Examples are design concepts, never presented as client work. No invented testimonials,
-  contact details or claims.
-- Hero media: `lib/media.ts`. Never reference asset paths that don't exist.
-- Hero art is pre-rendered to `public/media/hero/*.webp` (live SVG filters stuttered); regenerate
-  with `scripts/hero/render-hero.mjs` after editing `IslandIllustration.tsx`.
-- Intro film (scroll-driven video before the homepage): `lib/intro.ts`, `components/intro/`,
-  rebuild videos with `scripts/intro/build-intro.sh`. Playwright's Chromium cannot play H.264,
-  so browser tests exercise the AV1 files.
+- The previous frontend was reset (October 2026): the homepage is an empty white page. The
+  old design (island visual identity, Fraunces/Manrope, intro film, questionnaire, sections)
+  lives on the `backup/pre-frontend-reset` branch; don't reintroduce parts of it unless asked.
+- `public/media/` still holds the previous site's media (hero art, intro videos); it is not
+  used. Never delete the user's media without asking, and never reference asset paths that
+  don't exist.
+- `scripts/intro/` is the pipeline that built the old intro videos. Playwright's Chromium
+  cannot play H.264, so browser tests exercise AV1 files.
+- No backend exists yet (no API routes, database, auth or env vars). Never fake them.
 
 ## Code conventions
 
-- Data and copy for repeatable sections live in `lib/` (`questionnaire.ts`, `examples.ts`).
-- Shared questionnaire state: `components/questionnaire/BriefProvider.tsx`.
-- Keep components small and typed; match the existing Tailwind style.
+- Data and copy for repeatable sections live in `lib/`.
+- Keep components small and typed; use Tailwind.
