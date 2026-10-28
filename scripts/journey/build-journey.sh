@@ -12,7 +12,7 @@
 # large ones, 1080p, and 720p, which plays first everywhere while the sharp size
 # loads. 720p also gets an AV1 file (used where H.264 decoding isn't available;
 # such browsers then play 720p). Plus a
-# poster of the first frame and a sheet of small frames (every 10th, 192x108,
+# poster of the first frame and a sheet of small frames (every 20th, 192x108,
 # 16 per row) shown blurred wherever the real frame isn't decoded yet.
 #
 # - No B-frames / reordering (H.264 -bf 0, AV1 low-delay), so frame i is packet i.
@@ -55,7 +55,7 @@ encode 1440 23
 encode 1080 23
 encode 720 24 36
 ffmpeg -v error -y -i "$SRC" -vf "scale=1920:-2:flags=lanczos" -frames:v 1 -q:v 3 "$OUT/journey-poster.jpg"
-ffmpeg -v error -y -i "$SRC" -vf "select='not(mod(n\,10))',scale=192:108:flags=area,tile=16x16" -frames:v 1 -q:v 5 \
+ffmpeg -v error -y -i "$SRC" -vf "select='not(mod(n\,20))',scale=192:108:flags=area,tile=16x16" -frames:v 1 -q:v 5 \
   "$OUT/journey-thumbs.jpg"
 
 ls -la "$OUT"

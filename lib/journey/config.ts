@@ -7,8 +7,8 @@
 export const journeyConfig = {
   /** The encoded film (must match public/media/journey/*.json; the player checks at runtime). */
   film: {
-    frames: 2529, // the 30 fps encode now in public/media/journey (60 fps rebuild pending)
-    fps: 30,
+    frames: 5058, // 5034 source frames + 24 eased into the camera turn (smooth_cuts.py)
+    fps: 60,
   },
   /**
    * Scroll distance per second of film, in % of the viewport height. 30 means one
@@ -35,7 +35,7 @@ export const journeyConfig = {
     poster: "/media/journey/journey-poster.jpg",
     /** Small frames (every `thumbEvery` frames) shown blurred until the real frame is decoded. */
     thumbs: "/media/journey/journey-thumbs.jpg",
-    thumbEvery: 10,
+    thumbEvery: 20,
     thumbColumns: 16,
     /**
      * Sizes, largest first, each with its codecs in order of preference (the first one the
