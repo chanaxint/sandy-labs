@@ -60,7 +60,7 @@ position asks for on a full-screen canvas:
 
 - Scroll down plays forward, up plays back, stopping the scroll stops the film; the film is
   a function of the scroll position (`scrub: true`), smoothed only once, by Lenis.
-- Pace: `vhPerSecond` (16 = one screen of scrolling per ~6 s of film, 13.4 screens in all).
+- Pace: `vhPerSecond` (30 = one screen of scrolling per ~3.3 s of film, ~25 screens in all).
   Smoothing: `scrollSettings.lerp` in `lib/scroll/engine.ts`. Both in one place each.
 - Between two frames, the two real frames are cross-faded for the fraction of a frame the
   scroll is between them, so slow scrolling glides instead of stepping at 30 fps.

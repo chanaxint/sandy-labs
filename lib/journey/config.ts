@@ -11,11 +11,11 @@ export const journeyConfig = {
     fps: 30,
   },
   /**
-   * Scroll distance per second of film, in % of the viewport height. 16 means one
-   * screen of scrolling plays ~6 s of film; a 100px mouse-wheel notch on a 900px
-   * screen plays ~0.7 s. Lower = faster journey, higher = slower.
+   * Scroll distance per second of film, in % of the viewport height. 30 means one
+   * screen of scrolling plays ~3.3 s of film; a 100px mouse-wheel notch on a 900px
+   * screen plays ~0.37 s (~11 frames). Lower = faster journey, higher = slower.
    */
-  vhPerSecond: 16,
+  vhPerSecond: 30,
   /**
    * ScrollTrigger scrub. `true` maps scroll to film time exactly; Lenis already
    * smooths the scroll, so a number here adds lag on top. Keep `true` or ≤ 0.15.
@@ -66,9 +66,9 @@ export const journeyConfig = {
     /**
      * Decode speed (frames/s) a size needs on this device, measured at start-up; below it
      * the next smaller size is used. Brisk scrolling (one screen per second) plays
-     * 100 / vhPerSecond film seconds per second, i.e. ~190 frames/s at 16vh and 30 fps.
+     * 100 / vhPerSecond film seconds per second, i.e. ~100 frames/s at 30vh and 30 fps.
      */
-    minDecodeFps: 200,
+    minDecodeFps: 110,
     /**
      * The start-up test decodes one second of film on an idle decoder, which reads about
      * twice the speed sustained while scrolling and drawing; it must clear this multiple.
