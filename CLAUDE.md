@@ -78,8 +78,10 @@ Rules:
   4K 60 fps; the 30 fps original is release `sandy`). A 720p 30 fps fill-in plays at once, the sharp size
   takes over as it loads; there is no blocking preload.
   Story lines over the film (EN/TR copy, frame timing, desktop/phone placement) live in
-  `lib/journey/story.ts`, on the film scene's scrubbed timeline (`storyTimeline.ts`); the
-  closing CTA isn't wired to anything yet.
+  `lib/journey/story.ts`, on a timeline following the film's progress (`storyTimeline.ts`).
+  At the jump the rider's matted cut-out (`lib/journey/rider.ts`, made by
+  `scripts/journey/matte_rider.py`) is drawn over the giant line. The closing CTA isn't
+  wired to anything yet.
   `JourneyDebug` is a temporary tuning panel (development, or `?debug`).
 
 ## Code conventions

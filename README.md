@@ -101,20 +101,28 @@ scroll position asks for on a full-screen canvas:
 
 Short lines over the film tell what Sandy Labs does, one at a time, each tied to a moment in
 the footage rather than to a time: the island clearing from the clouds, the first plane's
-take-off, the swap of planes in the fog, the fjord, the snowboarder riding in, Miami through
+take-off, the swap of planes in the fog, the fjord, the snowboarder's jump, Miami through
 the clouds, the jet climbing into frame, night, and the closing line with its button.
 
 - Copy (English and Turkish), timing and placement: `lib/journey/story.ts`. Each line has
   four film frames, `in` → `shown` → `out` → `gone`, and its own desktop and phone position
   (portrait phones see only the middle of the frame, so lines sit in the top or bottom band
   there), text tone (light or dark, for the footage behind it) and motion (`haze`, `mask`,
-  `drift`). The comments say which visual event each one follows.
-- `lib/journey/storyTimeline.ts` puts them on the film scene's GSAP timeline, which
-  ScrollTrigger scrubs with the same progress as the film: they play backwards when
-  scrolling up and stop when the scroll stops. No timers. Reduced motion: fades only.
+  `drift`), played word by word. The comments say which visual event each one follows.
+- `lib/journey/storyTimeline.ts` puts them on a GSAP timeline in film frames, driven by the
+  film scene's scroll progress with a short glide (`follow`, ~1 s), so words settle in
+  softly even after a quick flick: they play backwards when scrolling up and stop when the
+  scroll stops. No timers. Reduced motion: fades only, no glide.
+- The jump: "Feel the motion." runs across the whole sky and the snowboarder passes in front
+  of it. His cut-out (`public/media/journey/rider/`, a transparent WebP per film frame, only
+  the part above the line's band, ~8 MB, fetched as the film nears the jump) is drawn on a
+  canvas over the text, on the frame the film shows (`lib/journey/rider.ts`). Made with
+  Robust Video Matting by `scripts/journey/matte_rider.py`; rerun it if the jump's timing or
+  the film changes.
 - Language: English or Turkish (`EN`/`TR` switch, top right; the browser's language on the
   first visit, then the visitor's choice). `lib/i18n/lang.tsx`.
-- Type: Instrument Sans (next/font). Readability comes from a soft text shadow, plus a faint
+- Type: Instrument Serif for the lines, Instrument Sans for the button and the language
+  switch (next/font). Readability comes from a soft text shadow, plus a faint
   local shade behind busy footage (`veil`); the film itself is never darkened.
 - The closing button ("Create Your Website") isn't connected to anything yet: website
   creation is a later stage.
