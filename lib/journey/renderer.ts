@@ -96,6 +96,7 @@ function createGL(canvas: HTMLCanvasElement, onLost: () => void): Renderer | nul
   if (!gl) return null;
 
   let ok = true;
+  let frameUploadFails = false;
   let program: WebGLProgram | null = null;
   let uRect: WebGLUniformLocation | null = null;
   let uAlpha: WebGLUniformLocation | null = null;
@@ -170,9 +171,21 @@ function createGL(canvas: HTMLCanvasElement, onLost: () => void): Renderer | nul
     },
     storeFrame(frame) {
       const p: GLPicture = { width: frame.displayWidth, height: frame.displayHeight, tex: null };
-      upload(p, frame);
       live.add(p);
-      return p;
+      if (!frameUploadFails) {
+        try {
+          upload(p, frame);
+          return p;
+        } catch {
+          // Some browsers can't upload a VideoFrame to WebGL: go through an ImageBitmap.
+          frameUploadFails = true;
+        }
+      }
+      return createImageBitmap(frame).then((bitmap) => {
+        upload(p, bitmap);
+        bitmap.close();
+        return p;
+      });
     },
     wrap(source, width, height) {
       const p: GLPicture = { width, height, tex: null, source };

@@ -90,6 +90,12 @@ scroll position asks for on a full-screen canvas:
 - Never black: poster behind the canvas, then the nearest decoded frame or a thumbnail.
 - Reloading keeps the position. Without WebCodecs it falls back to seeking a `<video>`.
 - Debug panel: shown in development, or with `?debug` in production.
+- Phones and tablets get at most 1080p and a smaller frame cache (mobile browsers close
+  tabs that use too much memory); touch keeps native scrolling.
+- Testing on a phone: WebCodecs only runs on HTTPS (or localhost), so a phone opening
+  `http://<computer-ip>:3000` gets the plain-video fallback. Serve the local build over
+  HTTPS instead, e.g. `npx cloudflared tunnel --url http://localhost:3000`, and open the
+  `https://….trycloudflare.com` address it prints (add `?debug` for the panel).
 
 ## What is (and isn't) connected
 

@@ -54,7 +54,7 @@ export function JourneyDebug() {
       ref={out}
       hidden
       data-journey-debug
-      className="pointer-events-none fixed top-3 left-3 z-50 rounded-md bg-black/60 px-3 py-2 font-mono text-[11px] leading-[1.45] text-white"
+      className="pointer-events-none fixed top-3 left-3 z-50 max-w-[calc(100vw-1.5rem)] rounded-md bg-black/60 px-3 py-2 font-mono text-[11px] leading-[1.45] break-words whitespace-pre-wrap text-white max-sm:text-[9px]"
     />
   );
 }

@@ -44,12 +44,13 @@ export const journeyConfig = {
      * frame ready; the size this
      * screen needs (at least `minWidth` device pixels: 1920-wide screens get 1440p "2K",
      * 4K screens 2160p) loads alongside and takes over wherever its frames are ready, if
-     * the device decodes it fast enough. `touch: false` keeps a size off phones and tablets
-     * (4K decoding costs them battery and data for little visible gain).
+     * the device decodes it fast enough. `touch: false` keeps a size off phones and tablets:
+     * on their small screens 1080p already looks sharp, and larger frames would cost them
+     * memory (mobile browsers close tabs that use too much), battery and data.
      */
     tiers: [
       { height: 2160, minWidth: 3000, codecs: ["h264"], touch: false },
-      { height: 1440, minWidth: 1700, codecs: ["h264"] },
+      { height: 1440, minWidth: 1700, codecs: ["h264"], touch: false },
       { height: 1080, minWidth: 1200, codecs: ["h264"] },
       { height: 720, minWidth: 0, codecs: ["h264", "av1"] },
     ] as { height: number; minWidth: number; codecs: JourneyCodec[]; touch?: boolean }[],
@@ -58,12 +59,13 @@ export const journeyConfig = {
   /** Decoding and memory. */
   decode: {
     /**
-     * Memory for decoded frames around the position (bitmaps the size of the screen:
-     * ≈8 MB at 1920×1080, ≈33 MB at 3840×2160), per size; the frame count follows from
-     * it, between `minFrames` and `maxFrames`.
+     * Memory for decoded frames around the position (one frame: ≈3.7 MB at 720p, ≈8 MB at
+     * 1080p, ≈33 MB at 2160p), per size; the frame count follows from it, between
+     * `minFrames` and `maxFrames`. Phones and tablets get less (both sizes together stay
+     * near 200 MB).
      */
     cacheMB: 400,
-    cacheMBMobile: 150,
+    cacheMBMobile: 100,
     minFrames: 12,
     maxFrames: 40,
     /** Encoded bytes kept in memory per size; beyond it, the parts farthest away are let go. */
