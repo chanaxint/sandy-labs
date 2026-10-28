@@ -12,7 +12,7 @@
 import { getLenis, gsap, prefersReducedMotion } from "@/lib/scroll/engine";
 import type { SceneMedia, SceneUpdate } from "@/lib/scroll/scene";
 import { journeyConfig } from "./config";
-import { FrameSource, type FrameSourceStats } from "./frameSource";
+import { FrameSource, type FilmView, type FrameSourceStats } from "./frameSource";
 
 export type FilmStatus = {
   progress: number;
@@ -83,6 +83,25 @@ export function createFilm(stage: HTMLElement): SceneMedia {
   const first = Math.max(0, media.tiers.findIndex((t) => needWidth >= t.minWidth));
   const cacheLimit = coarse ? decode.cacheFramesMobile : decode.cacheFrames;
 
+  /** The part of a frame the canvas shows ("cover"), stored no larger than the screen needs. */
+  const viewFor = (s: FrameSource): FilmView => {
+    const fw = s.index.width;
+    const fh = s.index.height;
+    const scale = Math.max(canvas.width / fw, canvas.height / fh);
+    const sw = Math.min(fw, canvas.width / scale);
+    const sh = Math.min(fh, canvas.height / scale);
+    const keep = Math.min(1, scale);
+    return {
+      sx: Math.round((fw - sw) / 2),
+      sy: Math.round((fh - sh) / 2),
+      sw: Math.round(sw),
+      sh: Math.round(sh),
+      width: Math.max(1, Math.round(sw * keep)),
+      height: Math.max(1, Math.round(sh * keep)),
+    };
+  };
+  const applyView = (s: FrameSource) => s.setView(viewFor(s));
+
   // Canvas backing store follows its CSS size × pixel ratio (capped).
   const resize = () => {
     const ratio = Math.min(window.devicePixelRatio || 1, journeyConfig.canvas.maxPixelRatio);
@@ -92,6 +111,8 @@ export function createFilm(stage: HTMLElement): SceneMedia {
       canvas.width = w;
       canvas.height = h;
       lastKey = "";
+      if (source) applyView(source);
+      if (next) applyView(next);
     }
   };
   const observer = new ResizeObserver(resize);
@@ -110,6 +131,7 @@ export function createFilm(stage: HTMLElement): SceneMedia {
         if (typeof VideoDecoder === "undefined") break;
         continue; // this size isn't decodable here (e.g. no 1440p support): try the next one
       }
+      applyView(s);
       const fps = await s.benchmark();
       measured += `${measured ? ", " : ""}${s.index.height}p start ${Math.round(fps)} fps`;
       chosen?.dispose();
@@ -149,7 +171,8 @@ export function createFilm(stage: HTMLElement): SceneMedia {
     ctx.drawImage(src, sx + (sw - w) / 2, sy + (sh - h) / 2, w, h, 0, 0, cw, ch);
   };
 
-  const fill = (f: VideoFrame) => cover(f, f.displayWidth, f.displayHeight);
+  /** Decoded frames are already cropped to the screen's shape: they just fill the canvas. */
+  const fill = (bitmap: ImageBitmap) => ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
 
   const frameCount = () => source?.frameCount ?? journeyConfig.film.frames;
 
@@ -238,7 +261,10 @@ export function createFilm(stage: HTMLElement): SceneMedia {
       cacheLimit,
     ).then((s) => {
       if (disposed || !s) s?.dispose();
-      else next = s;
+      else {
+        applyView(s);
+        next = s;
+      }
     });
   };
 

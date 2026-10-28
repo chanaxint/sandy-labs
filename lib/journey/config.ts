@@ -60,15 +60,17 @@ export const journeyConfig = {
   /** Decoding and memory. */
   decode: {
     /**
-     * Decoded frames kept around the current position (≈5.5 MB each at 1440p). Kept small:
-     * hardware decoders have a limited pool of output frames.
+     * Decoded frames kept around the current position, as bitmaps the size of the screen
+     * (≈8 MB each at 1920×1080).
      */
-    cacheFrames: 40,
+    cacheFrames: 30,
     cacheFramesMobile: 20,
     /** Frames decoded ahead of the scroll in the direction it is moving. */
     lookahead: 24,
     /** Frames queued in the decoder at most. */
     queue: 12,
+    /** Extra frames sent past those needed: hardware decoders may hold the last few back. */
+    latencyPad: 6,
     /** While decoding catches up, show the closest decoded frame up to this many frames away. */
     nearestWithin: 45,
     /** Byte-range requests are grouped into chunks of this many keyframe intervals. */

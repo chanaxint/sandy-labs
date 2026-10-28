@@ -7,10 +7,12 @@
  *   encode has no B-frames, so frame i is packet i); the decoder runs ahead in the
  *   scroll direction and, when scrolling back, decodes the previous keyframe interval
  *   before it is needed.
- * - Decoded frames are kept as VideoFrames (no copy; colour conversion happens only for
- *   the frame drawn) in a small cache around the current position. Decoders, hardware
- *   ones especially, have a limited pool of output frames, so the cache is small and,
- *   if the decoder stops returning frames while holding many, the farthest are released.
+ * - Each decoded frame is copied straight into an ImageBitmap of the part the screen
+ *   shows (`setView`) and the decoder's frame is released at once: hardware decoders
+ *   have a small pool of output frames (often ~16) and stop decoding when it is held.
+ *   The bitmaps are kept in a small cache around the current position.
+ * - Hardware decoders can also keep the last few frames until more input arrives, so
+ *   input runs a few frames past what is needed, and the end of the film is flushed.
  * - Nothing here touches the DOM; `createFilm` draws what `frame()` returns.
  */
 import { journeyConfig } from "./config";
@@ -38,6 +40,9 @@ export type FrameSourceStats = {
   decoded: number;
 };
 
+/** Source rectangle (frame pixels) and the size it is stored at. */
+export type FilmView = { sx: number; sy: number; sw: number; sh: number; width: number; height: number };
+
 type Chunk = {
   first: number;
   last: number;
@@ -61,8 +66,16 @@ export class FrameSource {
   private readonly config: VideoDecoderConfig;
   private readonly cacheLimit: number;
   private decoder: VideoDecoder | null = null;
-  private readonly cache = new Map<number, VideoFrame>();
+  private readonly cache = new Map<number, ImageBitmap>();
+  /** Frames out of the decoder whose bitmap is still being made. */
+  private readonly converting = new Set<number>();
+  /** Region of the frame the screen shows, and the size to keep it at. */
+  private view: FilmView | null = null;
+  private viewGeneration = 0;
   private lastOutputAt = 0;
+  /** A frame the scroll needs isn't decoded yet (the decoder is working for the visitor). */
+  private waiting = false;
+  private flushing = false;
   /** Decoding run: frames from `runStart` (a keyframe) have been sent up to `runNext - 1`. */
   private runStart = -1;
   private runNext = -1;
@@ -193,18 +206,32 @@ export class FrameSource {
     };
   }
 
-  /** Frames per second the decoder sustains while it has work, once measured for long enough. */
+  /**
+   * Sets the part of the frame the screen shows. Cached frames stay when only the size
+   * changes and are dropped when the shape does (they would be drawn distorted).
+   */
+  setView(view: FilmView) {
+    const old = this.view;
+    this.view = view;
+    if (old && Math.abs(old.sw / old.sh - view.sw / view.sh) < 0.01) return;
+    this.viewGeneration++;
+    for (const b of this.cache.values()) b.close();
+    this.cache.clear();
+    this.runStart = -1; // decode again from the keyframe
+  }
+
+  /** Frames per second the decoder sustains while the visitor waits on it, once measured long enough. */
   sustainedFps(minSeconds = 1): number | undefined {
     return this.busySeconds >= minSeconds ? this.busyOutputs / this.busySeconds : undefined;
   }
 
   /** The decoded frame, if it is in the cache. */
-  frame(i: number): VideoFrame | undefined {
+  frame(i: number): ImageBitmap | undefined {
     return this.cache.get(i);
   }
 
   /** The cached frame closest to i, preferring frames the scroll has already passed. */
-  nearest(i: number): { index: number; frame: VideoFrame } | undefined {
+  nearest(i: number): { index: number; frame: ImageBitmap } | undefined {
     let best = -1;
     let bestScore = Infinity;
     for (const k of this.cache.keys()) {
@@ -257,23 +284,25 @@ export class FrameSource {
   update(target: number, direction: 1 | -1) {
     if (this.disposed) return;
     const now = performance.now();
-    if (this.lastUpdate && (this.decoder?.decodeQueueSize ?? 0) > 0) this.busySeconds += Math.min(0.1, (now - this.lastUpdate) / 1000);
+    if (this.lastUpdate && this.waiting) this.busySeconds += Math.min(0.1, (now - this.lastUpdate) / 1000);
     this.lastUpdate = now;
     this.target = Math.max(0, Math.min(this.index.frames - 1, target));
     this.direction = direction;
     this.pumpDownloads();
     this.pumpDecoder();
     this.evict(this.cacheLimit);
-    // Stalled with work queued while holding frames: the decoder may be out of output
-    // buffers, so keep only the frames around the position.
-    if ((this.decoder?.decodeQueueSize ?? 0) > 0 && this.cache.size > 6 && now - this.lastOutputAt > 150) this.evict(6);
+    // Safety net: frames were sent and one is needed, but nothing has come out for a while.
+    if (this.waiting && this.runNext - 1 > this.lastOutput && now - this.lastOutputAt > 500) {
+      this.lastOutputAt = now;
+      this.runStart = -1; // restart from the keyframe on the next update
+    }
   }
 
   dispose() {
     this.disposed = true;
     this.abort.abort();
     if (this.decoder && this.decoder.state !== "closed") this.decoder.close();
-    for (const f of this.cache.values()) f.close();
+    for (const b of this.cache.values()) b.close();
     this.cache.clear();
   }
 
@@ -380,18 +409,33 @@ export class FrameSource {
   private onFrame(frame: VideoFrame) {
     const i = Math.round(frame.timestamp);
     this.decodedCount++;
-    this.busyOutputs++;
+    if (this.waiting) this.busyOutputs++;
     this.lastOutput = Math.max(this.lastOutput, i);
     this.lastOutputAt = performance.now();
-    if (this.disposed || this.cache.has(i)) {
+    // Frames only decoded on the way to others (far from the position) aren't kept.
+    const far = Math.abs(i - this.target) > this.cacheLimit;
+    if (this.disposed || far || this.cache.has(i) || this.converting.has(i)) {
       frame.close();
       return;
     }
-    this.cache.set(i, frame);
+    const v = this.view ?? { sx: 0, sy: 0, sw: frame.displayWidth, sh: frame.displayHeight, width: frame.displayWidth, height: frame.displayHeight };
+    const generation = this.viewGeneration;
+    // Crop only, unless the screen needs fewer pixels than the frame has.
+    const resize = v.width !== v.sw || v.height !== v.sh;
+    const options: ImageBitmapOptions = resize ? { resizeWidth: v.width, resizeHeight: v.height, resizeQuality: "medium" } : {};
+    this.converting.add(i);
+    createImageBitmap(frame, v.sx, v.sy, v.sw, v.sh, options)
+      .then((bitmap) => {
+        if (this.disposed || generation !== this.viewGeneration || this.cache.has(i)) bitmap.close();
+        else this.cache.set(i, bitmap);
+      })
+      .catch(() => undefined)
+      .finally(() => this.converting.delete(i));
+    frame.close(); // the bitmap holds its own copy: give the decoder its buffer back now
   }
 
   private has(i: number) {
-    return this.cache.has(i);
+    return this.cache.has(i) || this.converting.has(i);
   }
 
   /** Frames that should be decoded now: the position and a stretch ahead in the scroll direction. */
@@ -403,6 +447,7 @@ export class FrameSource {
   }
 
   private pumpDecoder() {
+    const n = this.index.frames;
     const { from, to } = this.wanted();
     // The first missing frame, starting at the position and going the way the scroll goes.
     let need = -1;
@@ -411,7 +456,8 @@ export class FrameSource {
     } else {
       for (let i = to; i >= from; i--) if (!this.has(i)) { need = i; break; }
     }
-    if (need < 0) return;
+    this.waiting = need >= 0;
+    if (need < 0 || this.flushing) return;
 
     const decoder = this.ensureDecoder();
     const key = this.keyBefore[need];
@@ -426,8 +472,9 @@ export class FrameSource {
       this.lastOutput = key - 1;
     }
 
-    // Forward: run ahead to the end of the window. Back: decode up to the missing frame.
-    const end = this.direction > 0 ? to : need;
+    // Forward: run ahead to the end of the window; back: up to the missing frame. A few
+    // frames more, because hardware decoders may hold the last ones until more input comes.
+    const end = Math.min(n - 1, (this.direction > 0 ? to : need) + journeyConfig.decode.latencyPad);
     let budget = journeyConfig.decode.queue - decoder.decodeQueueSize;
     while (budget > 0 && this.runNext <= end) {
       const i = this.runNext;
@@ -441,6 +488,19 @@ export class FrameSource {
       );
       this.runNext++;
       budget--;
+    }
+
+    // Nothing left to send at the end of the film: flush out what the decoder still holds.
+    // (After a flush the next input must be a keyframe, so the run starts over.)
+    if (this.runNext >= n && this.lastOutput < n - 1 && decoder.decodeQueueSize === 0) {
+      this.flushing = true;
+      decoder
+        .flush()
+        .catch(() => undefined)
+        .finally(() => {
+          this.flushing = false;
+          this.runStart = -1;
+        });
     }
   }
 
