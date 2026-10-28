@@ -3,6 +3,8 @@
 import { ScrollScene } from "@/components/scroll/ScrollScene";
 import { journeyConfig } from "@/lib/journey/config";
 import { createFilm } from "@/lib/journey/film";
+import { buildStory } from "@/lib/journey/storyTimeline";
+import { StoryOverlays } from "./StoryOverlays";
 
 const { film, media, vhPerSecond, scrub } = journeyConfig;
 /** Scene length in viewport heights, from the film's duration and the scroll pace. */
@@ -21,9 +23,11 @@ export function JourneyFilm() {
       length={length}
       scrub={scrub}
       media={createFilm}
+      timeline={buildStory}
     >
       <div aria-hidden className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${media.poster})` }} />
       <canvas aria-hidden className="absolute inset-0 block size-full" />
+      <StoryOverlays />
     </ScrollScene>
   );
 }

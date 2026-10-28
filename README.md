@@ -97,6 +97,28 @@ scroll position asks for on a full-screen canvas:
   HTTPS instead, e.g. `npx cloudflared tunnel --url http://localhost:3000`, and open the
   `https://….trycloudflare.com` address it prints (add `?debug` for the panel).
 
+## Story lines
+
+Short lines over the film tell what Sandy Labs does, one at a time, each tied to a moment in
+the footage rather than to a time: the island clearing from the clouds, the first plane's
+take-off, the swap of planes in the fog, the fjord, the snowboarder riding in, Miami through
+the clouds, the jet climbing into frame, night, and the closing line with its button.
+
+- Copy (English and Turkish), timing and placement: `lib/journey/story.ts`. Each line has
+  four film frames, `in` → `shown` → `out` → `gone`, and its own desktop and phone position
+  (portrait phones see only the middle of the frame, so lines sit in the top or bottom band
+  there), text tone (light or dark, for the footage behind it) and motion (`haze`, `mask`,
+  `drift`). The comments say which visual event each one follows.
+- `lib/journey/storyTimeline.ts` puts them on the film scene's GSAP timeline, which
+  ScrollTrigger scrubs with the same progress as the film: they play backwards when
+  scrolling up and stop when the scroll stops. No timers. Reduced motion: fades only.
+- Language: English or Turkish (`EN`/`TR` switch, top right; the browser's language on the
+  first visit, then the visitor's choice). `lib/i18n/lang.tsx`.
+- Type: Instrument Sans (next/font). Readability comes from a soft text shadow, plus a faint
+  local shade behind busy footage (`veil`); the film itself is never darkened.
+- The closing button ("Create Your Website") isn't connected to anything yet: website
+  creation is a later stage.
+
 ## What is (and isn't) connected
 
 There is no backend yet: no API routes, database, authentication or environment variables.

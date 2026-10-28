@@ -77,6 +77,9 @@ Rules:
   media with `scripts/journey/build-journey.sh` (source video: GitHub release `journey-60fps`,
   4K 60 fps; the 30 fps original is release `sandy`). A 720p 30 fps fill-in plays at once, the sharp size
   takes over as it loads; there is no blocking preload.
+  Story lines over the film (EN/TR copy, frame timing, desktop/phone placement) live in
+  `lib/journey/story.ts`, on the film scene's scrubbed timeline (`storyTimeline.ts`); the
+  closing CTA isn't wired to anything yet.
   `JourneyDebug` is a temporary tuning panel (development, or `?debug`).
 
 ## Code conventions

@@ -1,9 +1,127 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans: var(--font-instrument), ui-sans-serif, system-ui, sans-serif;
+  --color-ink: #0f1e2c;
+  --color-snow: #f6f7f4;
+}
+
 html,
 body {
   margin: 0;
   min-height: 100%;
   background: #ffffff;
   color-scheme: light;
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ---------------------------------------------------------------- story lines */
+
+.story {
+  position: relative;
+  will-change: opacity;
+}
+.story[data-tone="light"] {
+  color: var(--color-snow);
+  text-shadow:
+    0 1px 2px rgb(8 20 32 / 0.22),
+    0 0 36px rgb(8 20 32 / 0.32);
+}
+.story[data-tone="dark"] {
+  color: var(--color-ink);
+  text-shadow: 0 0 30px rgb(255 255 255 / 0.6);
+}
+/* A faint shade behind the words only, for busy footage. */
+.story[data-veil]::before {
+  content: "";
+  position: absolute;
+  inset: -45% -30%;
+  z-index: -1;
+  background: radial-gradient(closest-side, rgb(8 20 32 / 0.3), transparent);
+  pointer-events: none;
+}
+
+.story-text {
+  margin: 0;
+  font-size: clamp(1.75rem, 1rem + 2.6vw, 3.5rem);
+  font-weight: 400;
+  line-height: 1.06;
+  letter-spacing: -0.028em;
+  font-feature-settings: "ss01", "kern";
+}
+.story-text > [data-line],
+.story-mask > [data-line] {
+  will-change: transform, opacity;
+}
+.story-text-final {
+  font-size: clamp(2.25rem, 1.2rem + 4vw, 5.25rem);
+  letter-spacing: -0.034em;
+}
+@media (min-width: 48rem) {
+  .story-text > *,
+  .story-mask {
+    white-space: nowrap;
+  }
+}
+
+/* Mask reveal: each line slides up from behind its own edge (room for descenders). */
+.story-mask {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.14em;
+  margin-bottom: -0.14em;
+}
+
+.story-cta {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 1.05rem 1.9rem;
+  background: var(--color-snow);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 1.0625rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  text-shadow: none;
+  cursor: pointer;
+  border: 0;
+  transition:
+    background-color 200ms ease,
+    box-shadow 200ms ease;
+}
+.story-cta:hover {
+  background: #ffffff;
+  box-shadow: 0 10px 40px rgb(246 247 244 / 0.18);
+}
+.story-cta:focus-visible {
+  outline: 2px solid var(--color-snow);
+  outline-offset: 4px;
+}
+
+/* The first line enters on page load (later lines enter with the scroll). */
+@keyframes story-intro {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+    filter: blur(8px);
+  }
+}
+.story-intro {
+  animation: story-intro 1.4s cubic-bezier(0.22, 0.61, 0.36, 1) 0.5s both;
+}
+@media (prefers-reduced-motion: reduce) {
+  @keyframes story-intro-reduced {
+    from {
+      opacity: 0;
+    }
+  }
+  .story-intro {
+    animation: story-intro-reduced 0.8s ease 0.3s both;
+  }
 }
