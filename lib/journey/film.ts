@@ -223,10 +223,14 @@ export function createFilm(stage: HTMLElement): SceneMedia {
     const a = Math.floor(at);
     const frac = at - a;
     const fa = s.frame(a);
-    // Cross-fade only while the scroll moves under a frame per display frame (slow), where
-    // the film would otherwise step; faster, every display frame shows a new frame anyway
-    // and blending would only double the moving parts.
-    const blend = journeyConfig.blendFrames && !reduce && frameOf(s, step) < 1 && frac > 0.02 && a + 1 < s.frameCount;
+    // Cross-fade only while the scroll is moving, and slowly (under a frame per display
+    // frame), where the film would otherwise step; faster, every display frame shows a new
+    // frame anyway. Never at rest: a scroll stopped between two frames would hold a double
+    // image of anything moving fast (arms, a propeller). Never for the 30 fps fill-in: its
+    // frames are too far apart to cross-fade without ghosting.
+    const moving = step > 0.001;
+    const blend =
+      journeyConfig.blendFrames && !reduce && moving && s.index.fps >= 50 && frameOf(s, step) < 1 && frac > 0.02 && a + 1 < s.frameCount;
     const fb = blend ? s.frame(a + 1) : undefined;
     if (fa && fb) {
       const key = `b${s.index.height}:${a}:${Math.round(frac * 50)}:${canvas.width}`;
@@ -240,7 +244,8 @@ export function createFilm(stage: HTMLElement): SceneMedia {
       filmStatus.size = s.index.height;
       return true;
     }
-    const i = fa ? a : frac > 0.5 && s.frame(a + 1) ? a + 1 : -1;
+    // The nearest whole frame (the next one past the halfway point, if it is decoded).
+    const i = frac > 0.5 && s.frame(a + 1) ? a + 1 : fa ? a : -1;
     if (i < 0) return false;
     show(s, i, s.frame(i)!, "exact");
     return true;

@@ -119,19 +119,23 @@ function restoreScroll(lenis: Lenis): () => void {
   const events = ["wheel", "touchstart", "keydown", "pointerdown"] as const;
   const done = () => {
     ScrollTrigger.removeEventListener("refresh", onRefresh);
+    window.removeEventListener("load", onRefresh);
     for (const e of events) window.removeEventListener(e, done);
   };
   // A refresh can run before every scene has added its length (the page still too short
-  // to reach the saved position): wait for one where it fits. The visitor scrolling
-  // first cancels it.
+  // to reach the saved position), and a later one (fonts, images loaded) briefly removes
+  // the pin spacing, which can drop the browser back to the top: put the position back
+  // after every refresh until the visitor scrolls or presses anything.
   const onRefresh = () => {
     if (document.documentElement.scrollHeight - window.innerHeight < saved) return;
-    done();
-    lenis.scrollTo(saved, { immediate: true, force: true });
+    if (Math.abs(window.scrollY - saved) > 1) lenis.scrollTo(saved, { immediate: true, force: true });
   };
   if (saved > 0 && !location.hash) {
     ScrollTrigger.addEventListener("refresh", onRefresh);
+    window.addEventListener("load", onRefresh);
     for (const e of events) window.addEventListener(e, done, { passive: true });
+    // The scenes may have been measured already, before the engine started listening.
+    onRefresh();
   }
   window.addEventListener("pagehide", save);
   return () => {

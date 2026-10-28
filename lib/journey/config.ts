@@ -24,8 +24,9 @@ export const journeyConfig = {
   /**
    * Cross-fade between neighbouring source frames for the fraction of a frame the
    * scroll is between them, so very slow scrolling glides instead of stepping.
-   * Only while scrolling slowly (faster, it would double moving parts); uses only real
-   * frames (no synthesised in-betweens). Off with reduced motion.
+   * Only while the scroll is moving slowly (faster, it would double moving parts), never
+   * once it stops (the frame settles on a whole frame) and never for the 30 fps fill-in;
+   * uses only real frames (no synthesised in-betweens). Off with reduced motion.
    */
   blendFrames: true,
 
