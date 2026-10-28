@@ -9,7 +9,7 @@
  *   before anything is ready the poster behind the canvas, so it is never black.
  * Without WebCodecs it falls back to seeking a <video> element.
  */
-import { gsap, prefersReducedMotion } from "@/lib/scroll/engine";
+import { getLenis, gsap, prefersReducedMotion } from "@/lib/scroll/engine";
 import type { SceneMedia, SceneUpdate } from "@/lib/scroll/scene";
 import { journeyConfig } from "./config";
 import { FrameSource, type FrameSourceStats } from "./frameSource";
@@ -61,6 +61,10 @@ export function createFilm(stage: HTMLElement): SceneMedia {
   let lastTick = 0;
   let lastTarget = 0;
   let fpsAvg = 60;
+
+  const loader = loaderFor(stage);
+  /** The scroll is held until the opening load is done (checked every frame: the engine may start after us). */
+  let loading = true;
 
   // Thumbnails: one sheet, decoded once, for instant (blurred) frames anywhere.
   const thumbs = new Image();
@@ -118,13 +122,21 @@ export function createFilm(stage: HTMLElement): SceneMedia {
     }
     if (!chosen) video = fallbackVideo(`${media.base}/journey-${media.tiers[media.tiers.length - 1].height}`);
     if (chosen) {
-      source = chosen;
       filmStatus.frames = chosen.frameCount;
       filmStatus.fps = chosen.index.fps;
       filmStatus.variant = `${chosen.index.codec} ${chosen.index.width}x${chosen.index.height} (WebCodecs; ${measured})`;
+      // Opening load: a share of the film from where the visitor is (the top, or the
+      // restored position after a reload) downloads while the scroll is held.
+      const from = Math.floor(progress * (chosen.frameCount - 1));
+      await chosen.preload(from, Math.round(chosen.frameCount * journeyConfig.preloadFraction), loader.set);
+      if (disposed) return;
+      source = chosen;
     } else if (video) {
       filmStatus.variant = `${video.currentSrc || video.src} (video seek fallback)`;
     }
+    loading = false;
+    getLenis()?.start();
+    loader.done();
   })();
 
   /** Draws src (or a w×h region at sx,sy of it) to cover the canvas. */
@@ -146,6 +158,10 @@ export function createFilm(stage: HTMLElement): SceneMedia {
     lastTick = time;
     if (dt > 0 && dt < 1) fpsAvg += (1 / dt - fpsAvg) * 0.05;
     filmStatus.renderFps = fpsAvg;
+    if (loading) {
+      const lenis = getLenis();
+      if (lenis && !lenis.isStopped) lenis.stop();
+    }
 
     const n = frameCount();
     const target = progress * (n - 1);
@@ -262,6 +278,7 @@ export function createFilm(stage: HTMLElement): SceneMedia {
     },
     dispose() {
       disposed = true;
+      getLenis()?.start();
       gsap.ticker.remove(tick);
       observer.disconnect();
       source?.dispose();
@@ -270,6 +287,26 @@ export function createFilm(stage: HTMLElement): SceneMedia {
         video.removeAttribute("src");
         video.load();
       }
+    },
+  };
+}
+
+/** Drives the opening progress indicator (`[data-loader]` in the stage) straight in the DOM. */
+function loaderFor(stage: HTMLElement) {
+  const root = stage.querySelector<HTMLElement>("[data-loader]");
+  const bar = root?.querySelector<HTMLElement>("[data-loader-bar]");
+  const label = root?.querySelector<HTMLElement>("[data-loader-label]");
+  return {
+    set: (p: number) => {
+      const pct = Math.round(p * 100);
+      if (bar) bar.style.transform = `scaleX(${p})`;
+      if (label) label.textContent = `Loading ${pct}%`;
+      root?.setAttribute("aria-valuenow", String(pct));
+    },
+    done: () => {
+      if (!root) return;
+      root.dataset.state = "done";
+      setTimeout(() => (root.hidden = true), 700);
     },
   };
 }

@@ -29,6 +29,13 @@ export const journeyConfig = {
    */
   blendFrames: true,
 
+  /**
+   * Opening load: this share of the film (from where the visitor is) downloads behind a
+   * progress indicator before scrolling starts; the rest follows in the background,
+   * ahead of the scroll.
+   */
+  preloadFraction: 0.5,
+
   /** Encodes in public/media/journey (see scripts/journey/build-journey.sh). */
   media: {
     base: "/media/journey",

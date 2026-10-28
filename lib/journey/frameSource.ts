@@ -46,6 +46,8 @@ type Chunk = {
   /** File holding the chunk, and where that file starts in the whole encode. */
   url: string;
   fileStart: number;
+  /** Bytes of the chunk received so far (for progress). */
+  received: number;
   state: "idle" | "loading" | "done";
 };
 
@@ -76,6 +78,8 @@ export class FrameSource {
   private busyOutputs = 0;
   private lastUpdate = 0;
   private wholeFile = false;
+  /** While the opening preload runs, downloads follow its order only. */
+  private preloading = false;
   private disposed = false;
   private readonly abort = new AbortController();
 
@@ -111,7 +115,7 @@ export class FrameSource {
       const start = index.offsets[first];
       const end = index.offsets[last] + index.sizes[last];
       for (let i = first; i <= last; i++) this.chunkOf[i] = this.chunks.length;
-      this.chunks.push({ first, last, start, end, url: base + file.url, fileStart: file.start, state: "idle" });
+      this.chunks.push({ first, last, start, end, url: base + file.url, fileStart: file.start, received: 0, state: "idle" });
       g += take;
     }
   }
@@ -214,6 +218,41 @@ export class FrameSource {
     return best < 0 ? undefined : { index: best, frame: this.cache.get(best)! };
   }
 
+  /**
+   * Downloads the chunks holding `count` frames from `from` on, in order, a few at a
+   * time, reporting progress (0..1) as bytes arrive. The rest loads later, nearest the
+   * scroll position first, as `update` runs.
+   */
+  async preload(from: number, count: number, onProgress: (p: number) => void): Promise<void> {
+    const last = Math.min(this.index.frames - 1, from + count);
+    const first = this.chunkOf[Math.max(0, from)];
+    const wanted = this.chunks.filter((c, i) => i >= first && c.first <= last);
+    const total = wanted.reduce((sum, c) => sum + c.end - c.start, 0);
+    const report = () => {
+      const done = wanted.reduce((sum, c) => sum + (c.state === "done" ? c.end - c.start : c.received), 0);
+      onProgress(Math.min(1, done / total));
+    };
+    this.preloading = true;
+    const timer = setInterval(report, 100);
+    try {
+      for (let attempt = 0; attempt < 3 && !this.disposed; attempt++) {
+        const queue = wanted.filter((c) => c.state !== "done");
+        if (!queue.length) break;
+        const worker = async () => {
+          for (let c = queue.shift(); c && !this.disposed; c = queue.shift()) {
+            if (c.state === "idle") await this.load(c);
+            while (c.state === "loading") await new Promise((r) => setTimeout(r, 30));
+          }
+        };
+        await Promise.all(Array.from({ length: journeyConfig.decode.connections }, worker));
+      }
+    } finally {
+      clearInterval(timer);
+      this.preloading = false;
+      report();
+    }
+  }
+
   /** Where the scroll is now; call every frame. Schedules downloads and decoding. */
   update(target: number, direction: 1 | -1) {
     if (this.disposed) return;
@@ -241,7 +280,7 @@ export class FrameSource {
   // ---------------------------------------------------------------- downloads
 
   private pumpDownloads() {
-    if (this.wholeFile) return;
+    if (this.wholeFile || this.preloading) return;
     const max = journeyConfig.decode.connections;
     while (this.loading < max) {
       const chunk = this.nextChunk();
@@ -281,11 +320,21 @@ export class FrameSource {
         return;
       }
       if (res.status !== 206) throw new Error(`HTTP ${res.status}`);
-      const buf = new Uint8Array(await res.arrayBuffer());
-      this.data.set(buf, chunk.start);
-      this.loadedBytes += buf.byteLength;
+      // Read as it arrives, so progress moves smoothly.
+      const reader = res.body!.getReader();
+      let at = chunk.start;
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        this.data.set(value, at);
+        at += value.byteLength;
+        chunk.received = at - chunk.start;
+      }
+      if (at !== chunk.end) throw new Error("short read");
+      this.loadedBytes += chunk.end - chunk.start;
       chunk.state = "done";
     } catch {
+      chunk.received = 0;
       if (!this.disposed && chunk.state === "loading") chunk.state = "idle"; // retried on a later frame
     } finally {
       this.loading--;

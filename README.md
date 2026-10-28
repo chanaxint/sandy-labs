@@ -66,6 +66,9 @@ position asks for on a full-screen canvas:
 - While scrolling slowly, the two real frames around the position are cross-faded for the
   fraction of a frame in between, so it glides instead of stepping at 30 fps (not when
   scrolling faster, where it would double moving parts).
+- Opening load: the first half of the film (`preloadFraction`, from where the visitor is)
+  downloads behind a slim "Loading %" indicator while the scroll is held; the rest follows
+  in the background, ahead of the scroll.
 - Bytes load in ranges around the current position first; frames decode ahead in the scroll
   direction; a small cache of decoded frames (hardware decoders have limited buffers).
 - The size is chosen per screen and device: 1440p on screens 1920+ device pixels wide,
