@@ -20,7 +20,7 @@ gsap.registerPlugin(ScrollTrigger);
 /** Feel of the smooth scroll: responsive, with a short natural glide (no long drift). */
 export const scrollSettings = {
   /** Fraction of the remaining distance covered each frame (60 Hz basis); higher is snappier. */
-  lerp: 0.12,
+  lerp: 0.09,
   wheelMultiplier: 1,
   touchMultiplier: 1,
   /**

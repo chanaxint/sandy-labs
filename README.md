@@ -41,7 +41,7 @@ scripts/intro/              pipeline that built the previous intro videos
   scenes and all GSAP animation share one requestAnimationFrame loop.
 - `startScrollEngine()` is reference-counted, so Strict Mode, Fast Refresh or a second caller
   never create a second instance.
-- Mouse wheel and trackpad are smoothed (`lerp` 0.11, a short natural glide); touch keeps the
+- Mouse wheel and trackpad are smoothed (`lerp` 0.09, a smooth glide of about half a second); touch keeps the
   device's native scrolling and momentum. With `prefers-reduced-motion`, smoothing is off and
   scenes follow the scroll directly.
 - A scene's progress (0 → 1) is a function of the scroll position: it moves forward when
