@@ -7,3 +7,20 @@ body {
   background: #ffffff;
   color-scheme: light;
 }
+
+/* Ambient loops run on their own clock, independent of scrolling (used by the scroll test). */
+@keyframes ambient-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.ambient-spin {
+  animation: ambient-spin 4s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient-spin {
+    animation: none;
+  }
+}

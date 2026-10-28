@@ -1,7 +1,8 @@
 # Sandy Labs
 
 Premium website creation studio. This repo is the marketing site (Next.js 16 App Router,
-React 19, TypeScript, Tailwind CSS v4; Lucide and Motion are installed but currently unused). The AI
+React 19, TypeScript, Tailwind CSS v4, Lenis + GSAP ScrollTrigger; Lucide and Motion are
+installed but currently unused). The AI
 generation backend, auth, payments, database and publishing are later stages: never fake them.
 
 ## Communication
@@ -44,15 +45,20 @@ Use them in this order, and only the ones the task needs:
 | --- | --- |
 | Hover/focus/colour changes, simple reveals, ambient loops | CSS transitions/keyframes (`app/globals.css`) |
 | React state: enter/exit, steps, dialogs, list add/remove, layout, gestures | Motion (`motion-react` skill) |
-| Multi-element timelines, pinned/scrubbed scroll storytelling, cinematic sequences | GSAP + ScrollTrigger (`gsap-*` skills) |
+| Multi-element timelines, pinned/scrubbed scroll storytelling, cinematic sequences | GSAP + ScrollTrigger via the scroll engine (`gsap-*` skills) |
 | Real-time 3D that the user steers or inspects | React Three Fiber (`threejs-r3f` skill) |
 
 Rules:
 - One owner per element and property: never animate the same property of one element from two systems.
 - One scroll owner per page section (CSS, Motion `useScroll` or ScrollTrigger, not several).
-- GSAP and three/R3F are **not installed**. Add them only when a concrete feature needs them,
-  explain why, and keep them out of the initial bundle (dynamic import where possible).
-- No smooth-scroll hijacking library unless a feature truly requires it; native scrolling stays.
+- three/R3F is **not installed**. Add it only when a concrete feature needs it, explain why, and
+  keep it out of the initial bundle (dynamic import where possible).
+- Scrolling is owned by the scroll engine (`lib/scroll/engine.ts`): one Lenis instance driven by
+  `gsap.ticker` (`autoRaf: false`), ScrollTrigger updated from Lenis. Never create another Lenis
+  instance or a separate requestAnimationFrame loop; add per-frame work with `gsap.ticker.add`.
+- Scroll-linked scenes use `createScene` / `<ScrollScene>` (`lib/scroll/scene.ts`,
+  `components/scroll/`): progress 0→1 follows the scroll (scrub), long scenes pin. Media hooks
+  in through `SceneMedia.render(update)`. Update the DOM in scene callbacks, never React state.
 - Every animation has a reduced-motion path. Animate `transform`/`opacity`.
 - If Motion is used, wrap it in `LazyMotion features={domMax} strict` and use `m.*`, not `motion.*`.
 
@@ -67,6 +73,8 @@ Rules:
 - `scripts/intro/` is the pipeline that built the old intro videos. Playwright's Chromium
   cannot play H.264, so browser tests exercise AV1 files.
 - No backend exists yet (no API routes, database, auth or env vars). Never fake them.
+- `/scroll-test` is a temporary, development-only test bed for the scroll engine (404 in
+  production). It is not the design; delete it once the first real scene exists.
 
 ## Code conventions
 
