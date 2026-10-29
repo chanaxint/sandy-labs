@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { SandyMark, SandyWordmark } from "@/components/brand/SandyLogo";
 import { useLang } from "@/lib/i18n/lang";
 import { goToFrame } from "@/lib/journey/navigate";
@@ -11,8 +11,8 @@ import { getLenis, gsap, prefersReducedMotion } from "@/lib/scroll/engine";
 
 /** The film plays by itself up to this phrase (the first of the story), then the scroll takes over. */
 const firstPhrase = "island-1";
-/** How long that opening run lasts (s): about the film's own speed. */
-const runSeconds = 6.5;
+/** How long that opening run lasts (s): quick, straight into the story. */
+const runSeconds = 2.4;
 /** Scrolled this far (px) from where the run stopped: the scroll hint goes. */
 const hintGone = 24;
 
@@ -23,14 +23,12 @@ function runTo() {
   const out = Number.isFinite(p.out) ? p.out : p.shown + 60;
   return Math.round(p.shown + (out - p.shown) * 0.4);
 }
-/** Keys that would scroll: they start the journey too. */
-const scrollKeys = new Set(["ArrowDown", "PageDown", " ", "End", "Spacebar"]);
 
 /**
- * The opening: the full logo over the clouds and the start button. Starting (the button,
- * or a first scroll) fades the wordmark and the button, carries the mark up to its place
- * at the top of the page (SiteHeader's), then plays the film by itself up to the first
- * phrase and hands the scroll over, with a small scroll hint until the visitor scrolls.
+ * The opening: the full logo over the clouds and the start button; scrolling does nothing
+ * until it is pressed. Starting fades the wordmark and the button, carries the mark up to its place
+ * at the top of the page (SiteHeader's) while the film plays by itself up to the first
+ * phrase, then hands the scroll over, with a small scroll hint until the visitor scrolls.
  * Skipped when the page opens mid-film (a reload) or in the Studio.
  */
 export function IntroGate() {
@@ -42,25 +40,39 @@ export function IntroGate() {
   const rootRef = useRef<HTMLDivElement>(null);
   const [hint, setHint] = useState(false);
 
-  const start = useRef(() => {});
   const startJourney = () => {
     if (introStore.get() !== "intro") return;
     introStore.set("leaving");
     const reduce = prefersReducedMotion();
     const slot = document.querySelector<HTMLElement>("[data-header-mark]");
     const mark = markRef.current;
-    // The scroll stays held while the film plays to the first phrase (Lenis' `force`).
+    // The film runs to the first phrase while the mark travels; the scroll stays held
+    // (Lenis' `force`) until both are over.
+    let ran = false;
     const handOver = () => {
-      if (introStore.get() !== "done") return;
+      if (!ran || introStore.get() !== "done") return;
       releaseScroll();
       setHint(true);
     };
+    const run = () =>
+      goToFrame(runTo(), reduce ? undefined : runSeconds, () => {
+        ran = true;
+        handOver();
+      });
     const finish = () => {
       introStore.set("done");
-      goToFrame(runTo(), reduce ? undefined : runSeconds, handOver);
+      handOver();
     };
     if (!slot || !mark || reduce) {
-      gsap.to(rootRef.current, { autoAlpha: 0, duration: 0.5, ease: "power1.inOut", onComplete: finish });
+      gsap.to(rootRef.current, {
+        autoAlpha: 0,
+        duration: 0.5,
+        ease: "power1.inOut",
+        onComplete: () => {
+          finish();
+          run();
+        },
+      });
       return;
     }
     // Carry the mark onto the header's: same centre, same height.
@@ -80,13 +92,10 @@ export function IntroGate() {
       },
       0.15,
     );
+    tl.call(run, undefined, 0.35);
     // The header's mark takes over as this one arrives.
     tl.to(mark, { autoAlpha: 0, duration: 0.25, ease: "none" }, 1.3);
   };
-
-  useLayoutEffect(() => {
-    start.current = startJourney;
-  });
 
   useEffect(() => {
     // Opened mid-film (a restored position, a link to a place) or in the Studio: no opening.
@@ -110,23 +119,7 @@ export function IntroGate() {
     };
     gsap.ticker.add(hold);
 
-    // A first scroll starts it too.
-    const onWheel = (e: WheelEvent) => e.deltaY > 0 && start.current();
-    const onTouch = () => start.current();
-    const onKey = (e: KeyboardEvent) => {
-      if (!scrollKeys.has(e.key) || (e.target as HTMLElement).closest("button, a, input, textarea")) return;
-      e.preventDefault();
-      start.current();
-    };
-    window.addEventListener("wheel", onWheel, { passive: true });
-    window.addEventListener("touchmove", onTouch, { passive: true });
-    window.addEventListener("keydown", onKey);
-    return () => {
-      gsap.ticker.remove(hold);
-      window.removeEventListener("wheel", onWheel);
-      window.removeEventListener("touchmove", onTouch);
-      window.removeEventListener("keydown", onKey);
-    };
+    return () => gsap.ticker.remove(hold);
   }, []);
 
   // The hint goes once the visitor scrolls on (or anything else moves the page: the menu).
@@ -151,7 +144,7 @@ export function IntroGate() {
         </div>
       </div>
       <div className="absolute bottom-[max(10vh,4.5rem)] left-1/2 -translate-x-1/2">
-        <button ref={buttonRef} type="button" onClick={() => start.current()} className="intro-start pointer-events-auto whitespace-nowrap">
+        <button ref={buttonRef} type="button" onClick={startJourney} className="intro-start pointer-events-auto whitespace-nowrap">
           {copy.start[lang]}
         </button>
       </div>

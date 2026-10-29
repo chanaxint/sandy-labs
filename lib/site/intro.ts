@@ -24,8 +24,8 @@ export const introStore = {
 };
 
 /**
- * Holds the scroll (the opening, the open menu). `scroll-held` keeps the scrollbar in
- * place with a mouse, so the page doesn't shift (app/globals.css).
+ * Holds the scroll (the opening, the open menu). `scroll-held` marks why Lenis is stopped
+ * (the jump's beat sets it too).
  */
 export function holdScroll() {
   document.documentElement.classList.add("scroll-held");

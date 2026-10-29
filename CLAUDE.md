@@ -87,8 +87,9 @@ Rules:
   its saved `lib/journey/story-layout.json` is applied over `story.ts` (`storyStore.ts`);
   when the user sends one, commit it as that file.
   The opening (`components/site/IntroGate.tsx`: logo + start button, scroll held until
-  start, then the film plays itself to the first phrase and a "Scroll" hint shows) hands over to the header (`SiteHeader.tsx`: mark top centre, two-line menu with
-  chapters, language, CTA). Logo paths: `lib/brand/logo.ts` (traced from
+  start, scroll before it does nothing; the film runs quickly to the first phrase, then a "Scroll"
+  hint shows) hands over to the header (`SiteHeader.tsx`: mark top centre, two-line menu with
+  chapters, language, CTA) and the progress line that replaces the scrollbar (`ScrollProgress.tsx`). Logo paths: `lib/brand/logo.ts` (traced from
   `design/brand/sandy-labs-logo.jpg`).
   `JourneyDebug` is a temporary tuning panel (development, or `?debug`).
 
