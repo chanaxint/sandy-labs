@@ -11,6 +11,8 @@ const serif = Instrument_Serif({ subsets: ["latin", "latin-ext"], weight: "400",
 
 export const metadata: Metadata = {
   title: "Sandy Labs",
+  // Chrome's own signal not to offer a translation (with translate="no" below).
+  other: { google: "notranslate" },
 };
 
 export const viewport: Viewport = {
@@ -19,7 +21,9 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`${instrument.variable} ${serif.variable}`}>
+    // translate="no": the site has its own Turkish (the menu's language switch); a browser's
+    // machine translation would put the story's lines out of order.
+    <html lang="en" translate="no" className={`${instrument.variable} ${serif.variable}`}>
       <body>
         <SmoothScroll />
         <LangProvider>{children}</LangProvider>
