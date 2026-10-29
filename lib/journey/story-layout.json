@@ -45,10 +45,10 @@
           "Çünkü her yolculuk…"
         ]
       },
-      "in": 335,
-      "shown": 367,
-      "out": 398,
-      "gone": 430,
+      "in": 323,
+      "shown": 357,
+      "out": 406,
+      "gone": 426,
       "enter": "rise",
       "exit": "rise",
       "tone": "dark",
@@ -76,10 +76,10 @@
           "fikirle başlar."
         ]
       },
-      "in": 456,
-      "shown": 472,
-      "out": 500,
-      "gone": 548,
+      "in": 435,
+      "shown": 459,
+      "out": 514,
+      "gone": 555,
       "enter": "mask",
       "exit": "rise",
       "tone": "light",
@@ -105,10 +105,10 @@
           "Ve doğru başlangıç…"
         ]
       },
-      "in": 688,
-      "shown": 708,
-      "out": 747,
-      "gone": 767,
+      "in": 656,
+      "shown": 695,
+      "out": 759,
+      "gone": 795,
       "enter": "rise",
       "exit": "rise",
       "tone": "light",
@@ -137,10 +137,10 @@
           "yerlere taşır."
         ]
       },
-      "in": 927,
-      "shown": 966,
-      "out": 1006,
-      "gone": 1025,
+      "in": 907,
+      "shown": 946,
+      "out": 1026,
+      "gone": 1064,
       "enter": "mask",
       "exit": "rise",
       "tone": "light",
@@ -197,10 +197,10 @@
           "hep devam eder."
         ]
       },
-      "in": 1750,
-      "shown": 1787,
-      "out": 1824,
-      "gone": 1843,
+      "in": 1733,
+      "shown": 1770,
+      "out": 1840,
+      "gone": 1872,
       "enter": "rise",
       "exit": "fade",
       "tone": "dark",
@@ -227,7 +227,7 @@
           "birlikte…"
         ]
       },
-      "in": 1880,
+      "in": 1882,
       "shown": 1935,
       "out": 2017,
       "gone": 2054,
@@ -261,7 +261,7 @@
       "in": 2141,
       "shown": 2178,
       "out": 2334,
-      "gone": 2357,
+      "gone": 2376,
       "enter": "mask",
       "exit": "rise",
       "tone": "dark",
@@ -291,7 +291,7 @@
       "in": 2478,
       "shown": 2515,
       "out": 2570,
-      "gone": 2589,
+      "gone": 2604,
       "enter": "rise",
       "exit": "rise",
       "tone": "dark",
@@ -300,6 +300,37 @@
         "align": "left",
         "top": "78.7%",
         "left": "40.9%"
+      },
+      "mobile": {
+        "top": "20vh",
+        "left": "1.5rem",
+        "right": "1.5rem",
+        "align": "left"
+      }
+    },
+    "snowboard-a2": {
+      "text": {
+        "en": [
+          "you want to do more",
+          "than watch…"
+        ],
+        "tr": [
+          "sadece izlemek",
+          "değil…"
+        ]
+      },
+      "in": 2660,
+      "shown": 2702,
+      "out": 2840,
+      "gone": 2882,
+      "enter": "rise",
+      "exit": "rise",
+      "tone": "dark",
+      "veil": false,
+      "desktop": {
+        "top": "44%",
+        "right": "57.5%",
+        "align": "right"
       },
       "mobile": {
         "top": "20vh",
@@ -351,10 +382,10 @@
           "Biz Sandy Labs'ta…"
         ]
       },
-      "in": 3745,
+      "in": 3751,
       "shown": 3797,
       "out": 3842,
-      "gone": 3857,
+      "gone": 3868,
       "enter": "rise",
       "exit": "rise",
       "tone": "dark",
@@ -384,8 +415,8 @@
       },
       "in": 3878,
       "shown": 3908,
-      "out": 3969,
-      "gone": 3984,
+      "out": 3968,
+      "gone": 3986,
       "enter": "mask",
       "exit": "fade",
       "tone": "light",
@@ -411,10 +442,10 @@
           "Sen fikrini anlatırsın…"
         ]
       },
-      "in": 3988,
+      "in": 3996,
       "shown": 4026,
       "out": 4076,
-      "gone": 4100,
+      "gone": 4094,
       "enter": "rise",
       "exit": "rise",
       "tone": "dark",
@@ -442,10 +473,10 @@
           "bir deneyime dönüştürürüz."
         ]
       },
-      "in": 4111,
-      "shown": 4144,
-      "out": 4177,
-      "gone": 4194,
+      "in": 4104,
+      "shown": 4132,
+      "out": 4188,
+      "gone": 4205,
       "enter": "mask",
       "exit": "rise",
       "tone": "dark",
@@ -473,10 +504,10 @@
           "scroll animasyonlarıyla."
         ]
       },
-      "in": 4249,
-      "shown": 4266,
-      "out": 4299,
-      "gone": 4316,
+      "in": 4226,
+      "shown": 4252,
+      "out": 4312,
+      "gone": 4329,
       "enter": "rise",
       "exit": "rise",
       "tone": "light",
@@ -504,8 +535,8 @@
       },
       "in": 4354,
       "shown": 4387,
-      "out": 4437,
-      "gone": 4471,
+      "out": 4420,
+      "gone": 4436,
       "enter": "rise",
       "exit": "fade",
       "tone": "light",
@@ -533,10 +564,10 @@
           "5 dakikada."
         ]
       },
-      "in": 4463,
-      "shown": 4487,
-      "out": 4503,
-      "gone": 4553,
+      "in": 4445,
+      "shown": 4465,
+      "out": 4526,
+      "gone": 4559,
       "enter": "statement",
       "exit": "rise",
       "tone": "light",
@@ -563,10 +594,10 @@
           "Çünkü her markanın…"
         ]
       },
-      "in": 4614,
-      "shown": 4647,
-      "out": 4680,
-      "gone": 4714,
+      "in": 4605,
+      "shown": 4638,
+      "out": 4688,
+      "gone": 4722,
       "enter": "rise",
       "exit": "rise",
       "tone": "light",
@@ -594,10 +625,10 @@
           "bir hikâyesi vardır."
         ]
       },
-      "in": 4756,
-      "shown": 4788,
-      "out": 4826,
-      "gone": 4852,
+      "in": 4741,
+      "shown": 4773,
+      "out": 4841,
+      "gone": 4870,
       "enter": "mask",
       "exit": "fade",
       "tone": "light",
@@ -625,7 +656,7 @@
           "senin hikâyende."
         ]
       },
-      "in": 4866,
+      "in": 4911,
       "shown": 4966,
       "out": null,
       "enter": "mask",

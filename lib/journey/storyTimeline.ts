@@ -21,7 +21,7 @@ import { storyStore } from "./storyStore";
 type Vars = gsap.TweenVars;
 
 /** Seconds the phrases take to catch up with the scroll. */
-const follow = 0.5;
+const follow = 0.65;
 
 function enterVars(p: Phrase): { from: Vars; to: Vars; ease: string } {
   switch (p.enter) {

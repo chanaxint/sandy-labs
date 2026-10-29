@@ -73,26 +73,6 @@ export const jumpResume = 3156;
 
 export const scenes: Scene[] = [
   {
-    id: "cloud-intro",
-    phrases: [
-      {
-        // Above the cloud sea (0–300), before the dive into the clouds (~320).
-        // Visible from the first moment: its entrance plays on page load.
-        id: "intro",
-        text: { en: ["Come along.", "Let's take a journey."], tr: ["Haydi, bir gezintiye", "çıkalım."] },
-        in: 0,
-        shown: 0,
-        out: 205,
-        gone: 290,
-        enter: "rise",
-        exit: "rise",
-        tone: "light",
-        desktop: topLeft,
-        mobile: phoneTop,
-      },
-    ],
-  },
-  {
     id: "island-reveal",
     phrases: [
       {

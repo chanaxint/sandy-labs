@@ -68,7 +68,7 @@ export function createJumpBeat(stage: HTMLElement, sceneId: string): SceneMedia 
     if (!lenis || at === null || to === null) return;
     setState("holding");
     jumpStatus.plays++;
-    document.documentElement.classList.add("story-beat");
+    document.documentElement.classList.add("scroll-held");
     lenis.stop();
     // Back onto the take-off frame within this same tick, before the film draws.
     lenis.scrollTo(at, { immediate: true, force: true });
@@ -113,7 +113,7 @@ export function createJumpBeat(stage: HTMLElement, sceneId: string): SceneMedia 
   const finish = () => {
     if (state !== "running") return;
     setState("done");
-    document.documentElement.classList.remove("story-beat");
+    document.documentElement.classList.remove("scroll-held");
     getLenis()?.start();
   };
 
@@ -123,7 +123,7 @@ export function createJumpBeat(stage: HTMLElement, sceneId: string): SceneMedia 
     beat?.kill();
     beat = null;
     gsap.set(root, { autoAlpha: 0 });
-    document.documentElement.classList.remove("story-beat");
+    document.documentElement.classList.remove("scroll-held");
   };
 
   return {
