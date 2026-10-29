@@ -91,7 +91,7 @@ Rules:
   A white loading screen (`LoadingScreen.tsx`, the mark's lines running) comes first.
   The opening (`components/site/IntroGate.tsx`: logo + start button, scroll held until
   start, scroll before it does nothing; the film runs quickly to the first phrase, then a "Scroll"
-  hint shows) hands over to the header (`SiteHeader.tsx`: mark top centre, two-line menu with
+  hint shows) hands over to the header (`SiteHeader.tsx`: "Contact us" top left (unwired), mark top centre, two-line menu with
   chapters, language, CTA) and the progress line that replaces the scrollbar (`ScrollProgress.tsx`). Logo paths: `lib/brand/logo.ts` (traced from
   `design/brand/sandy-labs-logo.jpg`).
   `JourneyDebug` is a tuning panel, shown only with `?debug` in the URL.

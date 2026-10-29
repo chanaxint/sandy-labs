@@ -118,7 +118,8 @@ scroll position asks for on a full-screen canvas:
 - No scrollbar: a thin progress line at the right edge stands in for it
   (`components/site/ScrollProgress.tsx`), from the island mark at the top to a moon (the
   night) at the bottom, filling with the scroll; shown once the journey has started.
-- Header (`components/site/SiteHeader.tsx`): the mark at the top centre (back to the start)
+- Header (`components/site/SiteHeader.tsx`): "Contact us" at the top left (not connected
+  yet: there is no contact page or address), the mark at the top centre (back to the start)
   and a two-line menu button at the top right. The menu (Motion) lists the film's chapters
   (`lib/site/copy.ts`; each jumps there), the language switch and the call to action.
 - Logo: traced from the brand artwork (`design/brand/sandy-labs-logo.jpg`) into SVG paths

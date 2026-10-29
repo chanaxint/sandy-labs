@@ -5,6 +5,7 @@ export const copy = {
   start: { en: "Let's take a journey", tr: "Haydi, bir gezintiye çıkalım" },
   scroll: { en: "Scroll", tr: "Kaydır" },
   home: { en: "Sandy Labs, back to the start", tr: "Sandy Labs, başa dön" },
+  contact: { en: "Contact us", tr: "Bize ulaşın" },
   menu: { en: "Menu", tr: "Menü" },
   close: { en: "Close menu", tr: "Menüyü kapat" },
   chaptersTitle: { en: "The journey", tr: "Yolculuk" },

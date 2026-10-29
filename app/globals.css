@@ -289,6 +289,7 @@ html::-webkit-scrollbar {
 }
 .intro-start:focus-visible,
 .menu-toggle:focus-visible,
+.header-link:focus-visible,
 .header-mark:focus-visible {
   outline: 2px solid var(--color-snow);
   outline-offset: 5px;
@@ -363,6 +364,16 @@ html::-webkit-scrollbar {
   }
 }
 
+/* "Contact us" at the top left: a line draws under it on hover. */
+.header-link {
+  background: linear-gradient(currentColor, currentColor) no-repeat left calc(50% + 0.75em) / 0 1px;
+  background-origin: content-box;
+  transition: background-size 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.header-link:hover {
+  background-size: 100% 1px;
+}
+
 /* Two lines; they cross into an X while the menu is open. */
 .menu-toggle span {
   display: block;
@@ -381,6 +392,9 @@ html::-webkit-scrollbar {
   transform: translateY(-4.25px) rotate(-45deg);
 }
 @media (prefers-reduced-motion: reduce) {
+  .header-link {
+    transition: none;
+  }
   .loading-run {
     animation: none;
     stroke-dasharray: none;

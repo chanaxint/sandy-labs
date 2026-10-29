@@ -13,8 +13,8 @@ import { holdScroll, introStore, releaseScroll } from "@/lib/site/intro";
 const ease = [0.22, 1, 0.36, 1] as const;
 
 /**
- * The page's chrome: the logo's mark at the top centre (back to the start) once the
- * journey has started, and the menu button at the top right.
+ * The page's chrome: "Contact us" at the top left, the logo's mark at the top centre (back
+ * to the start) once the journey has started, and the menu button at the top right.
  */
 export function SiteHeader() {
   const { lang } = useLang();
@@ -47,6 +47,13 @@ export function SiteHeader() {
   return (
     <>
       <header className="pointer-events-none fixed inset-x-0 top-0 z-[60] text-snow">
+        {/* Not connected yet: there is no contact page or address in this project. */}
+        <button
+          type="button"
+          className="header-link brand-shadow pointer-events-auto absolute top-[18px] left-4 flex h-[26px] items-center px-2 text-[0.82rem] tracking-[0.04em] md:top-[22px] md:left-7 md:text-[0.9rem]"
+        >
+          {copy.contact[lang]}
+        </button>
         <button
           type="button"
           data-header-mark
