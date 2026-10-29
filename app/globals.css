@@ -323,6 +323,33 @@ html::-webkit-scrollbar {
   }
 }
 
+/* The opening's clouds drifting left over the film's first frame (IntroClouds): framed
+   like the film, faded in below the horizon so the sky stays still. */
+.intro-clouds {
+  position: absolute;
+  inset-inline: 0;
+  top: var(--ct, 0);
+  height: var(--ch, 0);
+  overflow: hidden;
+  mask-image: linear-gradient(to bottom, transparent 12%, #000 42%);
+}
+.intro-clouds > div {
+  position: absolute;
+  top: 0;
+  left: var(--cl, 0);
+  width: calc(var(--cw, 0px) * 2);
+  height: 100%;
+  background-repeat: repeat-x;
+  background-size: var(--cw, 0px) 100%;
+  animation: intro-clouds-drift var(--cd, 384s) linear infinite;
+  will-change: transform;
+}
+@keyframes intro-clouds-drift {
+  to {
+    transform: translateX(calc(-1 * var(--cw, 0px)));
+  }
+}
+
 /* The scroll hint after the opening run: fades in, a dot runs down its line. */
 .scroll-hint {
   display: flex;
@@ -392,6 +419,9 @@ html::-webkit-scrollbar {
   transform: translateY(-4.25px) rotate(-45deg);
 }
 @media (prefers-reduced-motion: reduce) {
+  .intro-clouds {
+    display: none;
+  }
   .header-link {
     transition: none;
   }

@@ -107,6 +107,10 @@ scroll position asks for on a full-screen canvas:
   8 s); not in the Studio. Reduced motion: the mark stands still.
 - The opening (`components/site/IntroGate.tsx`): the full logo over the clouds and a "Let's
   take a journey" button at the bottom centre; scrolling does nothing until it is pressed.
+  While it waits the clouds drift slowly to the left (`components/site/IntroClouds.tsx`:
+  the poster's cloud band beside its mirror image, `intro-clouds.webp`, framed exactly like
+  the film's first frame and faded in below the horizon; CSS keyframes; none with reduced
+  motion); they give way to the film as the journey starts.
   Pressing it fades the wordmark and the button and carries the mark up to the top centre
   while the film runs by itself (2.4 s, scroll still held) to the first phrase ("Because
   every journey…"), then hands the scroll over with a small "Scroll" hint at the bottom

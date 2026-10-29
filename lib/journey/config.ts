@@ -52,6 +52,8 @@ export const journeyConfig = {
   media: {
     base: "/media/journey",
     poster: "/media/journey/journey-poster.jpg",
+    /** The opening's drifting cloud band: the poster below `top` (share of its height), beside its mirror image. */
+    introClouds: { src: "/media/journey/intro-clouds.webp", top: 0.42, width: 1920, height: 1080 },
     /** Small frames (every `thumbEvery` frames) shown blurred until the real frame is decoded. */
     thumbs: "/media/journey/journey-thumbs.jpg",
     thumbEvery: 20,

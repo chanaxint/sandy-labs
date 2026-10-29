@@ -2,6 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { SandyMark, SandyWordmark } from "@/components/brand/SandyLogo";
+import { IntroClouds } from "@/components/site/IntroClouds";
 import { useLang } from "@/lib/i18n/lang";
 import { goToFrame } from "@/lib/journey/navigate";
 import { storyStore } from "@/lib/journey/storyStore";
@@ -31,7 +32,8 @@ function runTo() {
 }
 
 /**
- * The opening: the full logo over the clouds and the start button; scrolling does nothing
+ * The opening: the full logo over the clouds (drifting slowly left, IntroClouds) and the
+ * start button; scrolling does nothing
  * until it is pressed. Starting fades the wordmark and the button, carries the mark up to its place
  * at the top of the page (SiteHeader's) while the film plays by itself up to the first
  * phrase, then hands the scroll over, with a small scroll hint until the visitor scrolls.
@@ -46,6 +48,7 @@ export function IntroGate() {
   const wordRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
+  const cloudsRef = useRef<HTMLDivElement>(null);
   const [hint, setHint] = useState(false);
   /** The opening is coming back (scrolled up past the start): it animates in. */
   const returning = useRef(false);
@@ -90,6 +93,8 @@ export function IntroGate() {
     const to = slot.getBoundingClientRect();
     const tl = gsap.timeline({ onComplete: finish });
     tl.to(buttonRef.current, { autoAlpha: 0, y: 14, duration: 0.45, ease: "power2.in" }, 0);
+    // The drifting clouds give way to the film as it starts moving.
+    tl.to(cloudsRef.current, { autoAlpha: 0, duration: 0.6, ease: "power1.inOut" }, 0.1);
     tl.to(wordRef.current, { autoAlpha: 0, y: -10, filter: "blur(6px)", duration: 0.6, ease: "power2.in" }, 0.05);
     tl.to(
       mark,
@@ -234,6 +239,7 @@ export function IntroGate() {
 
   return (
     <div ref={rootRef} className="pointer-events-none fixed inset-0 z-20 text-snow [--mh:clamp(92px,15vh,150px)]">
+      <IntroClouds ref={cloudsRef} />
       <div className="absolute top-[33vh] left-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center">
         <div ref={markRef} className="brand-shadow">
           <SandyMark className="block h-(--mh) w-auto" />

@@ -58,6 +58,11 @@ encode 1440 23
 encode 1080 23
 encode 720 24 36
 ffmpeg -v error -y -i "$SRC" -vf "scale=1920:-2:flags=lanczos" -frames:v 1 -q:v 3 "$OUT/journey-poster.jpg"
+# The opening's drifting clouds: the poster's cloud band (below 42%) beside its mirror
+# image, so it repeats sideways without a seam (components/site/IntroClouds.tsx).
+ffmpeg -v error -y -i "$OUT/journey-poster.jpg" \
+  -filter_complex "[0]crop=iw:ih*0.58:0:ih*0.42,split[a][b];[b]hflip[c];[a][c]hstack" \
+  -c:v libwebp -quality 78 "$OUT/intro-clouds.webp"
 ffmpeg -v error -y -i "$SRC" -vf "select='not(mod(n\,20))',scale=192:108:flags=area,tile=16x16" -frames:v 1 -q:v 5 \
   "$OUT/journey-thumbs.jpg"
 
