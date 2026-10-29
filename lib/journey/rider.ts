@@ -34,8 +34,8 @@ export function createRider(stage: HTMLElement): SceneMedia {
   if (!canvas || !ctx || !phrase) return { render() {} };
   /** The jump's phrase is showing (set visible by its beat or, with reduced motion, the timeline). */
   const phraseShown = () => {
-    const v = phrase.style.visibility;
-    return v !== "" && v !== "hidden" && Number(gsap.getProperty(phrase, "opacity")) > 0;
+    const cs = getComputedStyle(phrase);
+    return cs.visibility !== "hidden" && Number(cs.opacity) > 0;
   };
 
   let meta: Meta | null = null;

@@ -15,7 +15,8 @@ import { gsap, prefersReducedMotion } from "@/lib/scroll/engine";
 import type { SceneMedia, SceneUpdate } from "@/lib/scroll/scene";
 import { journeyConfig } from "./config";
 import { frameAt } from "./pace";
-import { phrases, type Phrase } from "./story";
+import type { Phrase } from "./story";
+import { storyStore } from "./storyStore";
 
 type Vars = gsap.TweenVars;
 
@@ -39,6 +40,9 @@ function exitVars(p: Phrase): Vars {
 
 function build(stage: HTMLElement, reduce: boolean) {
   const tl = gsap.timeline({ paused: true });
+  const { phrases, studio } = storyStore.get();
+  // Studio editing: no timeline, the selected phrase is simply shown (CSS).
+  if (studio.mode === "edit") return tl;
   for (const p of phrases) {
     if (p.interaction === "jump-freeze" && !reduce) continue;
     const root = stage.querySelector<HTMLElement>(`[data-story="${p.id}"]`);
@@ -79,7 +83,7 @@ export function createStory(stage: HTMLElement): SceneMedia {
   let tl = build(stage, reduce);
   let placed = false;
 
-  // New lines (language switch): rebuild on them, at the current point.
+  // New lines (language switch, Studio edits): rebuild on them, at the current point.
   const rebuild = () => {
     gsap.killTweensOf(tl);
     const at = tl.time();

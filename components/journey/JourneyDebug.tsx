@@ -15,7 +15,8 @@ export function JourneyDebug() {
   const out = useRef<HTMLPreElement>(null);
 
   useEffect(() => {
-    const enabled = process.env.NODE_ENV !== "production" || new URLSearchParams(location.search).has("debug");
+    const params = new URLSearchParams(location.search);
+    const enabled = (process.env.NODE_ENV !== "production" || params.has("debug")) && !params.has("studio");
     if (!enabled || !out.current) return;
     out.current.hidden = false;
     // For browser tests.

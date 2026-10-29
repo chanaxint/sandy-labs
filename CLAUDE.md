@@ -83,7 +83,9 @@ Rules:
   The snowboard jump has its own beat (`jumpBeat.ts`: hold, phrase cuts in, the film carries
   on by itself, scroll handed back) with the rider's matted cut-out in front of the phrase
   (`rider.ts`, `scripts/journey/matte_rider.py`). The closing CTA isn't wired: there is no
-  website-creation route yet.
+  website-creation route yet. `/studio` is the Story Studio (layout editor, not linked):
+  its saved `lib/journey/story-layout.json` is applied over `story.ts` (`storyStore.ts`);
+  when the user sends one, commit it as that file.
   `JourneyDebug` is a temporary tuning panel (development, or `?debug`).
 
 ## Code conventions

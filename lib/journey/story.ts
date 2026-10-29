@@ -22,10 +22,14 @@ export type Place = {
   align: "left" | "right" | "center";
   /** Centre the block on `top`. */
   centerY?: boolean;
+  /** Text size, relative to the phrase's size (1 = as designed). */
+  scale?: number;
 };
 
 export type Phrase = {
   id: string;
+  /** The scene the phrase belongs to (filled in from `scenes`). */
+  scene?: string;
   /** Lines of the phrase (each language breaks its own lines). */
   text: Record<Lang, string[]>;
   in: number;
@@ -458,7 +462,10 @@ export const scenes: Scene[] = [
   },
 ];
 
-/** Every phrase, in film order. */
-export const phrases: Phrase[] = scenes.flatMap((s) => s.phrases);
+/**
+ * Every phrase, in film order, as designed here. What the site shows is these with the
+ * Studio's saved layout on top (story-layout.json, see storyStore.ts).
+ */
+export const designedPhrases: Phrase[] = scenes.flatMap((s) => s.phrases.map((p) => ({ ...p, scene: s.id })));
 
-export const cta: Record<Lang, string> = { en: "Create My Website", tr: "Web Sitemi Oluştur" };
+export const designedCta: Record<Lang, string> = { en: "Create My Website", tr: "Web Sitemi Oluştur" };

@@ -21,6 +21,7 @@ import type { SceneMedia, SceneUpdate } from "@/lib/scroll/scene";
 import { filmStatus } from "./film";
 import { frameAt, progressAt } from "./pace";
 import { jumpFrame, jumpResume } from "./story";
+import { storyStore } from "./storyStore";
 
 /** Seconds the film holds on the take-off frame. */
 const hold = 0.8;
@@ -128,6 +129,10 @@ export function createJumpBeat(stage: HTMLElement, sceneId: string): SceneMedia 
   return {
     render(update: SceneUpdate) {
       const frame = frameAt(update.progress);
+      if (storyStore.get().studio.mode === "edit") {
+        last = frame;
+        return;
+      }
       if (state === "armed") {
         // Crossing onto the take-off frame going forward, landing not yet passed.
         if (update.direction > 0 && last >= 0 && last < jumpFrame && frame >= jumpFrame && frame < jumpResume) {
