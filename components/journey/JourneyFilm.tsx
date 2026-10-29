@@ -9,6 +9,7 @@ import { createRider } from "@/lib/journey/rider";
 import { createStory } from "@/lib/journey/storyTimeline";
 import type { SceneMedia } from "@/lib/scroll/scene";
 import { StoryOverlays } from "./CinematicTextOverlay";
+import { ShootingStars } from "./ShootingStars";
 
 const { media, scrub } = journeyConfig;
 /** Scene length in viewport heights, from the film's duration and the scroll pace. */
@@ -41,6 +42,8 @@ export function JourneyFilm() {
     >
       <div aria-hidden className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${media.poster})` }} />
       <canvas aria-hidden className="absolute inset-0 block size-full" />
+      {/* Now and then over the night at the end, behind the story's lines. */}
+      <ShootingStars />
       <StoryOverlays />
       {/* The snowboarder's cut-out, over the jump's line (lib/journey/rider.ts). */}
       <canvas aria-hidden data-rider className="pointer-events-none absolute inset-0 z-20 block size-full" />

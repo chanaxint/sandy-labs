@@ -332,6 +332,7 @@ html::-webkit-scrollbar {
   height: var(--ch, 0);
   overflow: hidden;
   mask-image: linear-gradient(to bottom, transparent 12%, #000 42%);
+  transform-origin: 50% 0;
 }
 .intro-clouds > div {
   position: absolute;
@@ -347,6 +348,39 @@ html::-webkit-scrollbar {
 @keyframes intro-clouds-drift {
   to {
     transform: translateX(calc(-1 * var(--cw, 0px)));
+  }
+}
+
+/* A shooting star over the night (ShootingStars): a faint streak, its bright head in
+   front, growing from the head as it slides down the sky, then gone. */
+.shooting-star {
+  position: absolute;
+  width: var(--len);
+  height: 1px;
+  border-radius: 1px;
+  background: linear-gradient(to right, rgb(214 228 255 / 0), rgb(214 228 255 / 0.5) 72%, rgb(255 255 255 / 0.95));
+  filter: drop-shadow(0 0 3px rgb(190 210 255 / 0.55));
+  transform-origin: 100% 50%;
+  rotate: var(--a);
+  opacity: 0;
+  animation: shooting-star var(--t, 1s) cubic-bezier(0.3, 0.6, 0.4, 1) forwards;
+}
+@keyframes shooting-star {
+  0% {
+    opacity: 0;
+    translate: 0 0;
+    scale: 0.15 1;
+  }
+  14% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+    translate: var(--dx) var(--dy);
+    scale: 1 1;
   }
 }
 

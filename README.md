@@ -110,7 +110,9 @@ scroll position asks for on a full-screen canvas:
   While it waits the clouds drift slowly to the left (`components/site/IntroClouds.tsx`:
   the poster's cloud band beside its mirror image, `intro-clouds.webp`, framed exactly like
   the film's first frame and faded in below the horizon; CSS keyframes; none with reduced
-  motion); they give way to the film as the journey starts.
+  motion). Once started they keep drifting and go down with the camera: as the film tips
+  into the clouds (frames 230–315) the band rises and grows with it and fades as the screen
+  fills with cloud, so nothing jumps back to the first frame.
   Pressing it fades the wordmark and the button and carries the mark up to the top centre
   while the film runs by itself (2.4 s, scroll still held) to the first phrase ("Because
   every journey…"), then hands the scroll over with a small "Scroll" hint at the bottom
@@ -152,6 +154,10 @@ to action. Each phrase is tied to a moment in the footage, not to a time.
 - Every phrase stays on screen (`lib/journey/fit.ts`): text that would run past an edge
   (a longer Turkish line, a narrow window) gets smaller until it fits, then moves in from
   that edge; phrases that fit stay exactly as laid out.
+- Shooting stars (`components/journey/ShootingStars.tsx`): over the night at the end
+  (from frame 4860), one every 5–6.5 s from a random place in the upper sky, faint and
+  quick, behind the story's lines; CSS keyframes, scheduled with `gsap.delayedCall`; none
+  with reduced motion.
 - The jump (`lib/journey/jumpBeat.ts`): scrolling forward onto the approach to the lip
   (3062), the scroll is held and the film plays by itself, a little faster than its own
   speed, and stops dead on the frame where the board is side-on in the air (3116); it holds
