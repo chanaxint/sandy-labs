@@ -42,7 +42,7 @@ export function ScrollProgress() {
 
   return (
     <div ref={ref} aria-hidden className={`scroll-progress text-snow ${intro === "done" ? "is-shown" : ""}`}>
-      <SandyMark className="block h-[15px] w-auto md:h-[18px]" weight={5.5} />
+      <SandyMark className="block h-[15px] w-auto md:h-[18px]" line={12} />
       <div className="scroll-progress-track">
         <i />
         <b />

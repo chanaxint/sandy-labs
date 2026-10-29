@@ -86,6 +86,7 @@ Rules:
   website-creation route yet. `/studio` is the Story Studio (layout editor, not linked):
   its saved `lib/journey/story-layout.json` is applied over `story.ts` (`storyStore.ts`);
   when the user sends one, commit it as that file.
+  A white loading screen (`LoadingScreen.tsx`, the mark's lines running) comes first.
   The opening (`components/site/IntroGate.tsx`: logo + start button, scroll held until
   start, scroll before it does nothing; the film runs quickly to the first phrase, then a "Scroll"
   hint shows) hands over to the header (`SiteHeader.tsx`: mark top centre, two-line menu with

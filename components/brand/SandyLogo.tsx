@@ -2,9 +2,20 @@ import { mark, wordmark } from "@/lib/brand/logo";
 
 /**
  * The island mark (stroked, so it stays crisp at any size). Decorative unless titled.
- * `weight` thickens the lines for small sizes, where the artwork's hairlines would vanish.
+ * `weight` thickens the lines for small sizes, where the artwork's hairlines would vanish;
+ * `line` instead draws every loop at one width (in the artwork's units).
  */
-export function SandyMark({ className, title, weight = 1 }: { className?: string; title?: string; weight?: number }) {
+export function SandyMark({
+  className,
+  title,
+  weight = 1,
+  line,
+}: {
+  className?: string;
+  title?: string;
+  weight?: number;
+  line?: number;
+}) {
   return (
     <svg
       viewBox={`0 0 ${mark.width} ${mark.height}`}
@@ -17,7 +28,7 @@ export function SandyMark({ className, title, weight = 1 }: { className?: string
       strokeLinejoin="round"
     >
       {mark.loops.map((l, i) => (
-        <path key={i} d={l.d} strokeWidth={l.stroke * weight} />
+        <path key={i} d={l.d} strokeWidth={line ?? l.stroke * weight} />
       ))}
     </svg>
   );

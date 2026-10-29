@@ -293,6 +293,34 @@ html::-webkit-scrollbar {
   outline-offset: 5px;
 }
 
+/* The loading screen: white, the island mark's lines running round, chasing each other. */
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  background: #fff;
+  color: var(--color-ink);
+  transition: opacity 800ms ease, visibility 0s linear 800ms;
+}
+.loading-screen.is-leaving {
+  opacity: 0;
+  visibility: hidden;
+}
+.loading-base {
+  opacity: 0.12;
+}
+.loading-run {
+  stroke-dasharray: 0.2 0.3;
+  animation: loading-run 2.2s linear infinite;
+}
+@keyframes loading-run {
+  to {
+    stroke-dashoffset: -1;
+  }
+}
+
 /* The scroll hint after the opening run: fades in, a dot runs down its line. */
 .scroll-hint {
   display: flex;
@@ -352,6 +380,11 @@ html::-webkit-scrollbar {
   transform: translateY(-4.25px) rotate(-45deg);
 }
 @media (prefers-reduced-motion: reduce) {
+  .loading-run {
+    animation: none;
+    stroke-dasharray: none;
+    opacity: 0.85;
+  }
   .scroll-progress {
     transition: none;
   }

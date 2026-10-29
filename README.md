@@ -101,6 +101,10 @@ scroll position asks for on a full-screen canvas:
 
 ## Opening, header and menu
 
+- Loading screen (`components/site/LoadingScreen.tsx`): white, with the island mark small
+  and thin at the centre, its lines running round and chasing each other (CSS). Rendered
+  on the server, it fades once the film has drawn its first frame (at least 1.4 s, at most
+  8 s); not in the Studio. Reduced motion: the mark stands still.
 - The opening (`components/site/IntroGate.tsx`): the full logo over the clouds and a "Let's
   take a journey" button at the bottom centre; scrolling does nothing until it is pressed.
   Pressing it fades the wordmark and the button and carries the mark up to the top centre
