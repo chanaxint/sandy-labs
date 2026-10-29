@@ -130,7 +130,8 @@ to action. Each phrase is tied to a moment in the footage, not to a time.
   film nears the jump; `lib/journey/rider.ts`), made with Robust Video Matting by
   `scripts/journey/matte_rider.py`; rerun it if the jump's frames change.
 - Story Studio, `/studio` (not linked anywhere): the site in an iframe at desktop or phone
-  size; pick a phrase and the film goes to it; drag it into place, set its size, text (EN/TR),
+  size; pick a phrase and the film goes to it; drag it into place (it snaps to the centre and
+  thirds guides; arrow keys nudge it, buttons centre it), set its size, text (EN/TR),
   colour, shade, entrance/exit and frames; "Play" previews it with the real scroll animation.
   Desktop and phone layouts are separate. A draft is kept in the browser. "Save…" writes
   `story-layout.json` (Chrome can write it straight into `lib/journey/`), or Download / Copy

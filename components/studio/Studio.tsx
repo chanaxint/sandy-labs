@@ -32,6 +32,7 @@ export function Studio() {
   const [dirty, setDirty] = useState(false);
   const [toast, setToast] = useState("");
   const [hasDraft, setHasDraft] = useState(false);
+  const [guides, setGuides] = useState(true);
   const frameRef = useRef<HTMLIFrameElement>(null);
   const handle = useRef<FileHandle | null>(null);
 
@@ -60,8 +61,22 @@ export function Studio() {
 
   // Every change goes to the site and to the draft.
   useEffect(() => {
-    post({ type: "state", phrases, cta, mode, selected, lang });
-  }, [post, phrases, cta, mode, selected, lang]);
+    post({ type: "state", phrases, cta, mode, selected, lang, guides });
+  }, [post, phrases, cta, mode, selected, lang, guides]);
+
+  // Arrow keys nudge the selected phrase (1px, 10px with Shift), outside text fields.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const field = (e.target as HTMLElement).closest("input, textarea, select");
+      const step = e.shiftKey ? 10 : 1;
+      const d = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }[e.key];
+      if (!d || field || !selected || mode !== "edit") return;
+      e.preventDefault();
+      post({ type: "nudge", id: selected, dx: d[0], dy: d[1] });
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [post, selected, mode]);
   useEffect(() => {
     if (!dirty) return;
     try {
@@ -76,7 +91,7 @@ export function Studio() {
       if (!isMessage<ToStudio>(e)) return;
       const m = e.data;
       if (m.type === "ready") {
-        post({ type: "state", phrases, cta, mode, selected, lang });
+        post({ type: "state", phrases, cta, mode, selected, lang, guides });
         post({ type: "frame", frame });
       } else if (m.type === "frame") setFrame(m.frame);
       else if (m.type === "move") {
@@ -86,7 +101,7 @@ export function Studio() {
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
-  }, [post, phrases, cta, mode, selected, lang, frame]);
+  }, [post, phrases, cta, mode, selected, lang, frame, guides]);
 
   const current = phrases.find((p) => p.id === selected) ?? null;
 
@@ -179,6 +194,10 @@ export function Studio() {
         <Segmented value={device} onChange={setDevice} options={[["desktop", "Desktop"], ["mobile", "Phone"]]} label="Device" />
         <Segmented value={lang} onChange={setLang} options={[["en", "EN"], ["tr", "TR"]]} label="Language" />
         <Segmented value={mode} onChange={setMode} options={[["edit", "Edit"], ["preview", "Play"]]} label="Mode" />
+        <label className="flex items-center gap-1.5 rounded bg-white/8 px-2.5 py-1">
+          <input type="checkbox" checked={guides} onChange={(e) => setGuides(e.target.checked)} className="accent-orange-400" />
+          Guides
+        </label>
         <label className="ml-2 flex min-w-64 flex-1 items-center gap-2">
           <span className="text-neutral-400">Frame</span>
           <input
@@ -251,6 +270,7 @@ export function Studio() {
               onChange={change}
               onPlace={changePlace}
               onAlign={(align) => post({ type: "align", id: current.id, align })}
+              onCenter={(axis) => post({ type: "center", id: current.id, axis })}
               onGo={goTo}
               onPlay={play}
               onReset={resetPhrase}
@@ -285,7 +305,7 @@ function Stage({ device, frameRef }: { device: Device; frameRef: React.RefObject
   return (
     <div ref={box} className="relative flex min-w-0 flex-1 flex-col items-center justify-center overflow-hidden bg-[#0d0e10]">
       <p className="mb-3 text-[11px] text-neutral-500">
-        {label} · drag the outlined phrase to move it ({device === "desktop" ? "desktop" : "phone"} layout)
+        {label} · {device === "desktop" ? "desktop" : "phone"} layout
       </p>
       <div style={{ width: w * scale, height: h * scale }} className="relative overflow-hidden rounded-md ring-1 ring-white/10">
         <iframe
@@ -311,6 +331,7 @@ function PhraseEditor({
   onChange,
   onPlace,
   onAlign,
+  onCenter,
   onGo,
   onPlay,
   onReset,
@@ -323,6 +344,7 @@ function PhraseEditor({
   onChange: (patch: Partial<Phrase>) => void;
   onPlace: (patch: Partial<Place>) => void;
   onAlign: (align: Place["align"]) => void;
+  onCenter: (axis: "x" | "y") => void;
   onGo: (f: number) => void;
   onPlay: () => void;
   onReset: () => void;
@@ -383,7 +405,7 @@ function PhraseEditor({
         ) : null}
       </Section>
 
-      <Section title={`Place and size · ${device === "desktop" ? "desktop" : "phone"} (drag it on the preview)`}>
+      <Section title={`Place and size · ${device === "desktop" ? "desktop" : "phone"}`}>
         <label className="flex items-center gap-3">
           <span className="w-16 text-neutral-400">Size</span>
           <input
@@ -406,6 +428,15 @@ function PhraseEditor({
             label="Align"
           />
         </div>
+        <div className="flex items-center gap-3">
+          <span className="w-16 text-neutral-400">Centre</span>
+          <Button onClick={() => onCenter("x")}>Across</Button>
+          <Button onClick={() => onCenter("y")}>Up and down</Button>
+        </div>
+        <p className="text-neutral-500">
+          Drag it on the preview: it snaps to the centre and thirds lines (hold Alt to place it freely). Arrow keys move it
+          1px, with Shift 10px.
+        </p>
         <div className="grid grid-cols-2 gap-2">
           {(["top", "bottom", "left", "right"] as const).map((k) => (
             <label key={k} className="flex items-center gap-2">

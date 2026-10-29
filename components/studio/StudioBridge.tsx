@@ -10,6 +10,77 @@ import { isMessage, type Device, type ToSite, type ToStudio } from "@/lib/journe
 import { getLenis, gsap, ScrollTrigger } from "@/lib/scroll/engine";
 
 const round = (n: number) => Math.round(n * 10) / 10;
+/** Snap distance (site pixels) to a guide while dragging. */
+const SNAP = 10;
+/** Guides: the centre lines (strong) and the thirds (faint), as fractions of the screen. */
+const GUIDES = [
+  { at: 0.5, strong: true },
+  { at: 1 / 3, strong: false },
+  { at: 2 / 3, strong: false },
+];
+
+/** Lines over the site showing the guides; the one being snapped to lights up. */
+function guideLayer() {
+  const root = document.createElement("div");
+  root.setAttribute("aria-hidden", "true");
+  root.style.cssText = "position:fixed;inset:0;z-index:60;pointer-events:none;display:none";
+  const lines = new Map<string, HTMLElement>();
+  for (const axis of ["x", "y"] as const) {
+    for (const g of GUIDES) {
+      const el = document.createElement("div");
+      const pos = `${g.at * 100}%`;
+      el.style.cssText =
+        axis === "x"
+          ? `position:absolute;top:0;bottom:0;left:${pos};width:0;border-left:1px dashed`
+          : `position:absolute;left:0;right:0;top:${pos};height:0;border-top:1px dashed`;
+      el.dataset.strong = String(g.strong);
+      root.append(el);
+      lines.set(`${axis}${g.at}`, el);
+    }
+  }
+  document.body.append(root);
+  const paint = (lit: Set<string>) => {
+    for (const [key, el] of lines) {
+      const on = lit.has(key);
+      el.style.borderStyle = on ? "solid" : "dashed";
+      el.style.borderColor = on ? "rgb(255 140 60)" : el.dataset.strong === "true" ? "rgb(255 255 255 / 0.55)" : "rgb(255 255 255 / 0.35)";
+      el.style.boxShadow = on ? "0 0 0 0.5px rgb(255 140 60)" : el.dataset.strong === "true" ? "0 0 0 0.5px rgb(0 0 0 / 0.25)" : "0 0 0 0.5px rgb(0 0 0 / 0.14)";
+    }
+  };
+  paint(new Set());
+  return {
+    show: (on: boolean) => (root.style.display = on ? "block" : "none"),
+    paint,
+    remove: () => root.remove(),
+  };
+}
+
+/** Moves a box (left/top/width/height) so its centre sits on a guide within SNAP px; says which. */
+function snap(box: { left: number; top: number; width: number; height: number }) {
+  const lit = new Set<string>();
+  /** The guide nearest the box's centre on one axis, if within SNAP px. */
+  const nearest = (centre: number, size: number) => {
+    let found: number | null = null;
+    let best = SNAP;
+    for (const g of GUIDES) {
+      const d = Math.abs(centre - g.at * size);
+      if (d < best) [best, found] = [d, g.at];
+    }
+    return found;
+  };
+  let { left, top } = box;
+  const gx = nearest(left + box.width / 2, window.innerWidth);
+  if (gx !== null) {
+    left = gx * window.innerWidth - box.width / 2;
+    lit.add(`x${gx}`);
+  }
+  const gy = nearest(top + box.height / 2, window.innerHeight);
+  if (gy !== null) {
+    top = gy * window.innerHeight - box.height / 2;
+    lit.add(`y${gy}`);
+  }
+  return { left, top, lit };
+}
 const pct = (n: number) => `${round(n)}%`;
 
 /** Scrolls the film to frame f (at once, or over `seconds`). */
@@ -65,13 +136,35 @@ export function StudioBridge() {
       post({ type: "move", id, device: d, place });
     };
 
+    const guides = guideLayer();
+    let guidesOn = true;
+
+    /** The selected phrase's box moved by (dx, dy), or set to (left, top). */
+    const moveBox = (id: string, to: (r: DOMRect) => { left: number; top: number }) => {
+      const el = document.querySelector<HTMLElement>(`[data-phrase-place="${id}"]`);
+      const old = placeOf(id);
+      if (!el || !old) return;
+      const r = el.getBoundingClientRect();
+      const { left, top } = to(r);
+      update(id, placeFor(old, { left, top, right: left + r.width, height: r.height }));
+    };
+
     const onMessage = (e: MessageEvent) => {
       if (!isMessage<ToSite>(e)) return;
       const m = e.data;
       if (m.type === "state") {
         storyStore.set({ phrases: m.phrases, cta: m.cta, studio: { mode: m.mode, selected: m.selected } });
         setLang(m.lang);
-      } else if (m.type === "frame") scrollToFrame(m.frame);
+        guidesOn = m.guides;
+        guides.show(m.guides && m.mode === "edit");
+      } else if (m.type === "nudge") moveBox(m.id, (r) => ({ left: r.left + m.dx, top: r.top + m.dy }));
+      else if (m.type === "center")
+        moveBox(m.id, (r) =>
+          m.axis === "x"
+            ? { left: (window.innerWidth - r.width) / 2, top: r.top }
+            : { left: r.left, top: (window.innerHeight - r.height) / 2 },
+        );
+      else if (m.type === "frame") scrollToFrame(m.frame);
       else if (m.type === "play") {
         scrollToFrame(m.from);
         gsap.delayedCall(0.15, () => scrollToFrame(m.to, m.seconds));
@@ -111,12 +204,21 @@ export function StudioBridge() {
     };
     const move = (e: PointerEvent) => {
       if (!drag) return;
-      const dx = e.clientX - drag.x;
-      const dy = e.clientY - drag.y;
       const r = drag.r;
-      update(drag.id, placeFor(drag.old, { left: r.left + dx, top: r.top + dy, right: r.right + dx, height: r.height }));
+      let left = r.left + e.clientX - drag.x;
+      let top = r.top + e.clientY - drag.y;
+      // Snap the phrase's centre to the guides (hold Alt to place it freely).
+      if (guidesOn && !e.altKey) {
+        const s = snap({ left, top, width: r.width, height: r.height });
+        ({ left, top } = s);
+        guides.paint(s.lit);
+      } else guides.paint(new Set());
+      update(drag.id, placeFor(drag.old, { left, top, right: left + r.width, height: r.height }));
     };
-    const up = () => (drag = null);
+    const up = () => {
+      drag = null;
+      guides.paint(new Set());
+    };
     window.addEventListener("pointerdown", down);
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);
@@ -141,6 +243,7 @@ export function StudioBridge() {
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
       gsap.ticker.remove(tick);
+      guides.remove();
     };
   }, [setLang]);
 

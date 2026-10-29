@@ -9,10 +9,23 @@ export type Device = "desktop" | "mobile";
 
 /** Studio → site. */
 export type ToSite =
-  | { type: "state"; phrases: Phrase[]; cta: Record<Lang, string>; mode: StudioMode; selected: string | null; lang: Lang }
+  | {
+      type: "state";
+      phrases: Phrase[];
+      cta: Record<Lang, string>;
+      mode: StudioMode;
+      selected: string | null;
+      lang: Lang;
+      /** Show the centre and thirds guides, and snap to them while dragging. */
+      guides: boolean;
+    }
   | { type: "frame"; frame: number }
   | { type: "play"; from: number; to: number; seconds: number }
-  | { type: "align"; id: string; align: Place["align"] };
+  | { type: "align"; id: string; align: Place["align"] }
+  /** Move the selected phrase by this many site pixels. */
+  | { type: "nudge"; id: string; dx: number; dy: number }
+  /** Centre the selected phrase on the screen, across or up and down. */
+  | { type: "center"; id: string; axis: "x" | "y" };
 
 /** Site → Studio. */
 export type ToStudio =
