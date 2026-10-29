@@ -151,7 +151,8 @@ to action. Each phrase is tied to a moment in the footage, not to a time.
   (3062), the scroll is held and the film plays by itself, a little faster than its own
   speed, and stops dead on the frame where the board is side-on in the air (3116); it holds
   0.8 s as "You want to feel it." cuts in, then breaks out at full speed through the landing
-  (3166), the phrase goes and the scroll is handed
+  and on until the rider has carved off the left of the frame (3224), easing out only at
+  the very end; the phrase goes and the scroll is handed
   back (the scroll position itself is animated, so film, ScrollTrigger and scroll stay in
   step). Once per pass: it re-arms after stepping back a little before the approach;
   scrolling back through it or jumping over it plays nothing. Reduced motion: no beat, the

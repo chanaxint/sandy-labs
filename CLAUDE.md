@@ -83,7 +83,7 @@ Rules:
   lives in `lib/journey/story.ts`, rendered by `CinematicTextOverlay`, on a timeline following
   the film (`storyTimeline.ts`). Scroll pace is set per stretch (`pace` in config, `pace.ts`).
   The snowboard jump has its own beat (`jumpBeat.ts`: from the approach the film plays itself,
-  holds with the board side-on as the phrase cuts in, runs through the landing, scroll handed back) with the rider's matted cut-out in front of the phrase
+  holds with the board side-on as the phrase cuts in, runs through the landing until the rider leaves the frame, scroll handed back) with the rider's matted cut-out in front of the phrase
   (`rider.ts`, `scripts/journey/matte_rider.py`). The closing CTA isn't wired: there is no
   website-creation route yet. `/studio` is the Story Studio (layout editor, not linked):
   its saved `lib/journey/story-layout.json` is applied over `story.ts` (`storyStore.ts`);

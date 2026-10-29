@@ -6,8 +6,9 @@
  *     where the board is side-on in the air (`jumpFrame`), fast, and stops dead on it (a
  *     fling that lands past it is set straight back onto it);
  *  2. "You want to feel it." cuts in at once (no fade), and the film holds `hold` seconds;
- *  3. the film then breaks out of it at full speed through the landing to `jumpResume`,
- *     and the phrase goes as the motion resumes;
+ *  3. the film then breaks out of it at full speed, through the landing and on until the
+ *     rider has left the frame (`jumpResume`), easing out only at the very end; the phrase
+ *     goes as the motion resumes;
  *  4. the scroll is handed back.
  * The scroll position itself is animated (Lenis scrollTo), so film, ScrollTrigger and
  * scroll stay one. It plays once per pass: it re-arms after a deliberate step back before
@@ -29,8 +30,20 @@ import { storyStore } from "./storyStore";
 const approachPace = 0.75 / 60;
 /** Seconds the film holds on the freeze frame. */
 const hold = 0.8;
-/** Seconds the film takes to carry on by itself, freeze frame to `jumpResume` (a little faster than its own speed). */
-const run = 0.7;
+/** Film frames per second of the run after the freeze (a little faster than its own 60). */
+const runSpeed = 71;
+/** Share of the run, at its end, that eases out into the visitor's scroll. */
+const runEaseOut = 0.2;
+/** Seconds of the run, freeze frame to `jumpResume`, at `runSpeed` until the ease-out. */
+const run = (jumpResume - jumpFrame) / runSpeed / (1 - runEaseOut / 2);
+/** At full speed from the first moment, easing out over the last `runEaseOut` (same speed where they meet). */
+const runEasing = (t: number) => {
+  const k = 1 / (1 - runEaseOut / 2);
+  const a = 1 - runEaseOut;
+  if (t <= a) return k * t;
+  const u = t - a;
+  return k * (a + u - (u * u) / (2 * runEaseOut));
+};
 /** Seconds the phrase takes to go once the motion resumes: a very short fade. */
 const fade = 0.12;
 /** Longest wait (s) for the take-off frame to be decoded before the hold starts anyway. */
@@ -119,7 +132,7 @@ export function createJumpBeat(stage: HTMLElement, sceneId: string): SceneMedia 
         lenis.scrollTo(to, {
           duration: run,
           // Straight back to full speed: the freeze breaks all at once.
-          easing: (t) => t,
+          easing: runEasing,
           force: true,
           lock: true,
           onComplete: finish,

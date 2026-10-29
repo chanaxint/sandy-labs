@@ -70,8 +70,8 @@ const phoneBottom: Place = { bottom: phone.bottom, left: phone.x, right: phone.x
 export const jumpApproach = 3062;
 /** In the air, the board seen exactly side-on (3112–3120): the freeze frame. */
 export const jumpFrame = 3116;
-/** Landed (3150) and settled: the beat's own run ends and the scroll takes over again. */
-export const jumpResume = 3166;
+/** Landed (3150), carved off to the left and gone from the frame (3222): the beat's own run ends and the scroll takes over again. */
+export const jumpResume = 3224;
 
 export const scenes: Scene[] = [
   {
