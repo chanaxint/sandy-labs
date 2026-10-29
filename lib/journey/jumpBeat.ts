@@ -31,8 +31,8 @@ const approachPace = 0.75 / 60;
 const hold = 0.8;
 /** Seconds the film takes to carry on by itself, freeze frame to `jumpResume` (a little faster than its own speed). */
 const run = 0.7;
-/** Seconds the phrase takes to go once the motion resumes. */
-const fade = 0.3;
+/** Seconds the phrase takes to go once the motion resumes: a very short fade. */
+const fade = 0.12;
 /** Longest wait (s) for the take-off frame to be decoded before the hold starts anyway. */
 const wait = 0.4;
 /** Scrolling back this many frames before the approach arms it again (a deliberate step back, not a wobble). */

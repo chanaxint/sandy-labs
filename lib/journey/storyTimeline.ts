@@ -41,8 +41,12 @@ function exitVars(p: Phrase): Vars {
 function build(stage: HTMLElement, reduce: boolean) {
   const tl = gsap.timeline({ paused: true });
   const { phrases, studio } = storyStore.get();
-  // Studio editing: no timeline, the selected phrase is simply shown (CSS).
-  if (studio.mode === "edit") return tl;
+  // Studio editing: no timeline, the selected phrase is simply shown (CSS), its lines in
+  // their plain look.
+  if (studio.mode === "edit") {
+    gsap.set(stage.querySelectorAll("[data-story] [data-line]"), { clearProps: "opacity,transform" });
+    return tl;
+  }
   for (const p of phrases) {
     if (p.interaction === "jump-freeze" && !reduce) continue;
     const root = stage.querySelector<HTMLElement>(`[data-story="${p.id}"]`);
@@ -55,6 +59,9 @@ function build(stage: HTMLElement, reduce: boolean) {
     if (enter > 0) {
       const m = reduce ? { from: { opacity: 0 }, to: { opacity: 1 }, ease: "none" } : enterVars(p);
       const each = gap > 0 ? (enter * 0.22) / gap : 0;
+      // Lines rest in their "before" state: a line whose turn hasn't come yet (the
+      // offset between lines) shows nothing, instead of its plain full look.
+      gsap.set(lines, m.from);
       tl.set(root, { autoAlpha: 1 }, p.in);
       tl.fromTo(
         lines,
