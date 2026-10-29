@@ -110,8 +110,11 @@ scroll position asks for on a full-screen canvas:
   Pressing it fades the wordmark and the button and carries the mark up to the top centre
   while the film runs by itself (2.4 s, scroll still held) to the first phrase ("Because
   every journey…"), then hands the scroll over with a small "Scroll" hint at the bottom
-  centre, gone once the visitor scrolls. Skipped when the page opens mid-film (a reload)
-  and in the Studio; reduced motion: a fade, then straight to the first phrase.
+  centre, gone once the visitor scrolls. Back at the very start of the film, a new scroll
+  up (wheel, swipe, ↑/PageUp/Home; not the momentum of the scroll that got there) brings
+  the opening back, the mark coming down from the header. Skipped when the page opens
+  mid-film (a reload) and in the Studio; reduced motion: a fade, then straight to the
+  first phrase.
 - No scrollbar: a thin progress line at the right edge stands in for it
   (`components/site/ScrollProgress.tsx`), from the island mark at the top to a moon (the
   night) at the bottom, filling with the scroll; shown once the journey has started.
@@ -137,9 +140,13 @@ to action. Each phrase is tied to a moment in the footage, not to a time.
   that follow each other; the comments say which visual event each one follows.
 - `components/journey/CinematicTextOverlay.tsx` renders a phrase; `lib/journey/storyTimeline.ts`
   puts them on a GSAP timeline in film frames, set from the film scene's scroll progress
-  (through the pace mapping) with a short glide (`follow`, 0.5 s): they play backwards when
+  (through the pace mapping) with a short glide (`follow`, 0.65 s): they play backwards when
   scrolling up and stop when the scroll stops. Lines move as whole lines (fade and ~16px,
-  or a mask), never word by word. No timers. Reduced motion: fades only, no glide.
+  or a mask), never word by word, a short offset apart; a line waiting its turn rests
+  hidden. No timers. Reduced motion: fades only, no glide.
+- Every phrase stays on screen (`lib/journey/fit.ts`): text that would run past an edge
+  (a longer Turkish line, a narrow window) gets smaller until it fits, then moves in from
+  that edge; phrases that fit stay exactly as laid out.
 - The jump (`lib/journey/jumpBeat.ts`): scrolling forward onto the approach to the lip
   (3062), the scroll is held and the film plays by itself, a little faster than its own
   speed, and stops dead on the frame where the board is side-on in the air (3116); it holds

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { SandyMark, SandyWordmark } from "@/components/brand/SandyLogo";
 import { useLang } from "@/lib/i18n/lang";
 import { goToFrame } from "@/lib/journey/navigate";
@@ -15,6 +15,12 @@ const firstPhrase = "island-1";
 const runSeconds = 2.4;
 /** Scrolled this far (px) from where the run stopped: the scroll hint goes. */
 const hintGone = 24;
+/** Back at the very top this long (ms) before scrolling further up returns to the opening. */
+const topRest = 400;
+/** A wheel event this long (ms) after the last one starts a new gesture (a trackpad's momentum streams without such gaps). */
+const wheelGap = 250;
+/** Keys that scroll up: at the top they return to the opening. */
+const upKeys = new Set(["ArrowUp", "PageUp", "Home"]);
 
 /** A frame where the first phrase is fully there (early in its hold). */
 function runTo() {
@@ -29,7 +35,9 @@ function runTo() {
  * until it is pressed. Starting fades the wordmark and the button, carries the mark up to its place
  * at the top of the page (SiteHeader's) while the film plays by itself up to the first
  * phrase, then hands the scroll over, with a small scroll hint until the visitor scrolls.
- * Skipped when the page opens mid-film (a reload) or in the Studio.
+ * Scrolling further up from the very start of the film brings the opening back (the mark
+ * comes down from the header). Skipped when the page opens mid-film (a reload) or in the
+ * Studio.
  */
 export function IntroGate() {
   const { lang } = useLang();
@@ -39,6 +47,8 @@ export function IntroGate() {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const [hint, setHint] = useState(false);
+  /** The opening is coming back (scrolled up past the start): it animates in. */
+  const returning = useRef(false);
 
   const startJourney = () => {
     if (introStore.get() !== "intro") return;
@@ -121,6 +131,95 @@ export function IntroGate() {
 
     return () => gsap.ticker.remove(hold);
   }, []);
+
+  // Back at the very top, scrolling further up returns to the opening.
+  useEffect(() => {
+    if (new URLSearchParams(location.search).has("studio")) return;
+    let topSince = 0;
+    let lastWheel = 0;
+    let touchY: number | null = null;
+    const atRest = () => {
+      const lenis = getLenis();
+      return (
+        !!lenis &&
+        introStore.get() === "done" &&
+        !document.documentElement.classList.contains("scroll-held") &&
+        lenis.scroll <= 1 &&
+        topSince > 0 &&
+        performance.now() - topSince > topRest
+      );
+    };
+    const back = () => {
+      returning.current = true;
+      setHint(false);
+      getLenis()?.scrollTo(0, { immediate: true, force: true });
+      holdScroll();
+      introStore.set("intro");
+    };
+    const track = () => {
+      const lenis = getLenis();
+      if (!lenis) return;
+      if (lenis.scroll > 1) topSince = 0;
+      else if (!topSince) topSince = performance.now();
+    };
+    gsap.ticker.add(track);
+    const inMenu = (e: Event) => !!(e.target as HTMLElement | null)?.closest?.("#site-menu");
+    // Only a new gesture made while resting at the top, never the momentum of the scroll
+    // that brought the page there.
+    const onWheel = (e: WheelEvent) => {
+      const now = performance.now();
+      const fresh = now - lastWheel > wheelGap;
+      lastWheel = now;
+      if (e.deltaY < 0 && fresh && !inMenu(e) && atRest()) back();
+    };
+    const onTouchStart = (e: TouchEvent) => (touchY = atRest() ? (e.touches[0]?.clientY ?? null) : null);
+    const onTouchMove = (e: TouchEvent) => {
+      const y = e.touches[0]?.clientY;
+      if (touchY === null || y === undefined || y - touchY < 40 || inMenu(e) || !atRest()) return;
+      touchY = null;
+      back();
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (!upKeys.has(e.key) || (e.target as HTMLElement).closest("input, textarea") || !atRest()) return;
+      back();
+    };
+    window.addEventListener("wheel", onWheel, { passive: true });
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: true });
+    window.addEventListener("keydown", onKey);
+    return () => {
+      gsap.ticker.remove(track);
+      window.removeEventListener("wheel", onWheel);
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, []);
+
+  // Coming back: the mark comes down from the header's place, then the wordmark and the button.
+  useLayoutEffect(() => {
+    if (state !== "intro" || !returning.current) return;
+    returning.current = false;
+    const mark = markRef.current;
+    const slot = document.querySelector<HTMLElement>("[data-header-mark]");
+    if (prefersReducedMotion() || !mark || !slot) {
+      gsap.from(rootRef.current, { autoAlpha: 0, duration: 0.5, ease: "power1.inOut" });
+      return;
+    }
+    const at = mark.getBoundingClientRect();
+    const from = slot.getBoundingClientRect();
+    const tl = gsap.timeline();
+    tl.from(mark, {
+      x: from.left + from.width / 2 - (at.left + at.width / 2),
+      y: from.top + from.height / 2 - (at.top + at.height / 2),
+      scale: from.height / at.height,
+      duration: 1.2,
+      ease: "power3.inOut",
+    });
+    tl.from(wordRef.current, { autoAlpha: 0, y: -10, filter: "blur(6px)", duration: 0.6, ease: "power2.out" }, 0.75);
+    tl.from(buttonRef.current, { autoAlpha: 0, y: 14, duration: 0.5, ease: "power2.out" }, 0.9);
+    return () => void tl.kill();
+  }, [state]);
 
   // The hint goes once the visitor scrolls on (or anything else moves the page: the menu).
   useEffect(() => {

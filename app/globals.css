@@ -60,6 +60,7 @@ body {
 .story-text {
   position: relative;
   left: var(--fit-x, 0px);
+  top: var(--fit-y, 0px);
   margin: 0;
   font-family: var(--font-serif);
   font-size: calc(clamp(2.1rem, 1.1rem + 3.1vw, 4.4rem) * var(--ts));
