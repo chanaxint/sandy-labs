@@ -9,6 +9,8 @@ generation backend, auth, payments, database and publishing are later stages: ne
 
 - Explain things to the user in **Turkish**.
 - Code, comments, commit messages, file names and UI copy stay in **English**.
+- Whenever the user needs to run or update the site, give the commands as one copy-paste
+  code block (`git pull origin <branch>`, `npm install` when needed, `npm run dev`), then the URL.
 
 ## Commands
 
