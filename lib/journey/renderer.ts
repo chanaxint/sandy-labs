@@ -33,10 +33,20 @@ export interface Renderer {
   dispose(): void;
 }
 
+/**
+ * The kind of context each canvas already has: a canvas keeps its first context for good
+ * (a WebGL canvas can't give a 2D one), and a film can be set up again on the same canvas
+ * (React's development double mount, Fast Refresh).
+ */
+const kinds = new WeakMap<HTMLCanvasElement, Renderer["kind"]>();
+
 export function createRenderer(canvas: HTMLCanvasElement, onLost: () => void, prefer?: "webgl" | "2d"): Renderer {
+  const known = kinds.get(canvas);
   // Tested on a spare canvas: once a canvas has a WebGL context it can't get a 2D one.
-  const useGL = prefer === "webgl" || (prefer !== "2d" && hardwareGL());
-  return (useGL && createGL(canvas, onLost)) || create2D(canvas);
+  const useGL = known ? known === "webgl" : prefer === "webgl" || (prefer !== "2d" && hardwareGL());
+  const r = (useGL && createGL(canvas, onLost)) || create2D(canvas);
+  kinds.set(canvas, r.kind);
+  return r;
 }
 
 /** WebGL 2 runs on a GPU here (not emulated on the CPU: SwiftShader, llvmpipe, basic renderer). */
@@ -129,17 +139,19 @@ function createGL(canvas: HTMLCanvasElement, onLost: () => void): Renderer | nul
   };
   if (!setup()) return null;
 
-  canvas.addEventListener("webglcontextlost", (e) => {
+  const onContextLost = (e: Event) => {
     e.preventDefault();
     ok = false;
     pool = new Map();
     for (const p of live) p.tex = null;
     onLost();
-  });
-  canvas.addEventListener("webglcontextrestored", () => {
+  };
+  const onContextRestored = () => {
     ok = setup();
     // Wrapped images are uploaded again on their next draw; frames are decoded again.
-  });
+  };
+  canvas.addEventListener("webglcontextlost", onContextLost);
+  canvas.addEventListener("webglcontextrestored", onContextRestored);
 
   const texture = (w: number, h: number) => {
     const reuse = pool.get(`${w}x${h}`)?.pop();
@@ -228,7 +240,10 @@ function createGL(canvas: HTMLCanvasElement, onLost: () => void): Renderer | nul
       for (const p of live) if (p.tex) gl.deleteTexture(p.tex);
       pool.clear();
       live.clear();
-      gl.getExtension("WEBGL_lose_context")?.loseContext();
+      canvas.removeEventListener("webglcontextlost", onContextLost);
+      canvas.removeEventListener("webglcontextrestored", onContextRestored);
+      // The context itself stays: the canvas can't get another one, and the film may be
+      // set up on it again.
     },
   };
 }
@@ -238,7 +253,8 @@ function createGL(canvas: HTMLCanvasElement, onLost: () => void): Renderer | nul
 type BitmapPicture = Picture & { image: CanvasImageSource | null };
 
 function create2D(canvas: HTMLCanvasElement): Renderer {
-  const ctx = canvas.getContext("2d")!;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return blank;
   return {
     kind: "2d",
     ok: true,
@@ -272,3 +288,16 @@ function create2D(canvas: HTMLCanvasElement): Renderer {
     dispose() {},
   };
 }
+
+/** Draws nothing: for a canvas that gives neither context (shouldn't happen; never crash). */
+const blank: Renderer = {
+  kind: "2d",
+  ok: false,
+  storeFrame: (frame) => ({ width: frame.displayWidth, height: frame.displayHeight }),
+  wrap: (_source, width, height) => ({ width, height }),
+  refresh() {},
+  release() {},
+  draw() {},
+  resized() {},
+  dispose() {},
+};
