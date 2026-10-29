@@ -11,11 +11,28 @@ export const journeyConfig = {
     fps: 60,
   },
   /**
-   * Scroll distance per second of film, in % of the viewport height. 30 means one
-   * screen of scrolling plays ~3.3 s of film; a 100px mouse-wheel notch on a 900px
-   * screen plays ~0.37 s (~22 frames). Lower = faster journey, higher = slower.
+   * Scroll pace: scroll distance per second of film, in % of the viewport height, from
+   * each `from` frame to the next. 30 means one screen of scrolling plays ~3.3 s of film.
+   * Slower (higher) where the story has lines to read in a short shot (the island, the
+   * plane swap, Miami, the jet), quicker over the long empty snowfield; on average ~18%
+   * slower than the original even 30. The story lines are timed in film frames, so they
+   * stay on their moments whatever the pace (lib/journey/pace.ts).
    */
-  vhPerSecond: 30,
+  pace: [
+    { from: 0, vhPerSecond: 35 }, // above the clouds: the opening line
+    { from: 330, vhPerSecond: 42 }, // the dive and the island: two lines in a short shot
+    { from: 600, vhPerSecond: 34 }, // runway and take-off
+    { from: 1040, vhPerSecond: 31 }, // over the sea, no line
+    { from: 1480, vhPerSecond: 42 }, // into the clouds: the plane swap
+    { from: 1740, vhPerSecond: 36 }, // the fjord
+    { from: 2200, vhPerSecond: 29 }, // mountains, no line
+    { from: 2440, vhPerSecond: 36 }, // the snowboarder rides in
+    { from: 2720, vhPerSecond: 33 }, // the ride and the jump
+    { from: 3240, vhPerSecond: 26 }, // the long snowfield and white-out, no line
+    { from: 3760, vhPerSecond: 44 }, // Miami through the clouds: two lines
+    { from: 4000, vhPerSecond: 40 }, // the jet, the value lines, day to night
+    { from: 4850, vhPerSecond: 35 }, // the night sky and the closing line
+  ],
   /**
    * ScrollTrigger scrub. `true` maps scroll to film time exactly; Lenis already
    * smooths the scroll, so a number here adds lag on top. Keep `true` or ≤ 0.15.

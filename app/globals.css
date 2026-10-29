@@ -59,12 +59,34 @@ body {
   font-size: clamp(2.8rem, 1.4rem + 4.8vw, 6.5rem);
   letter-spacing: -0.018em;
 }
-/* The jump: one line across the frame, the rider in front of it. */
+/* The key line ("In around 5 minutes."): larger, still calm. */
+.story-text-statement {
+  font-size: clamp(3.2rem, 1.4rem + 6.4vw, 9rem);
+  line-height: 0.94;
+  letter-spacing: -0.024em;
+}
+/* The jump: large, in the sky either side of the rider (who is drawn in front). */
 .story-text-giant {
-  font-size: clamp(3.6rem, 17vw, 20rem);
+  font-size: clamp(3.4rem, 8vw, 10rem);
   line-height: 0.9;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.025em;
   white-space: nowrap;
+}
+@media (min-width: 48rem) {
+  /* The two halves of the phrase left and right of the rider, centred on him (~48%). */
+  .story-text-giant {
+    display: grid;
+    grid-template-columns: 1fr 26vw 1fr;
+    margin-left: -5vw;
+  }
+  .story-text-giant > :first-child {
+    grid-column: 1;
+    text-align: right;
+  }
+  .story-text-giant > :last-child {
+    grid-column: 3;
+    text-align: left;
+  }
 }
 .story-line {
   display: block;
@@ -77,24 +99,27 @@ body {
 @media (max-width: 47.99rem) {
   /* Phones: the giant line breaks between its words, still filling the width. */
   .story-text-giant {
-    font-size: 23vw;
-    white-space: normal;
+    font-size: 17vw;
   }
 }
 
-/* Words: each its own inline box, so it can rise, blur and settle on its own. */
-.story-word,
-.story-mask {
-  display: inline-block;
+/* The jump's beat holds the scroll (Lenis stopped). With a mouse, without hiding the
+   scrollbar, which would shift the page on systems with classic scrollbars; on touch
+   screens Lenis' clip stays, since it is what stops a fling's momentum. */
+@media (pointer: fine) {
+  html.lenis.lenis-stopped.story-beat {
+    overflow: visible;
+  }
 }
-.story-word > [data-word],
-.story-mask > [data-word] {
-  will-change: transform, opacity, filter;
+
+/* Lines move as whole lines. */
+.story-line {
+  will-change: transform, opacity;
 }
-/* Mask reveal: each word slides up from behind its own edge (room for accents and descenders). */
+/* Mask reveal: each line slides up from behind its own edge (room for accents and descenders). */
 .story-mask {
+  display: block;
   overflow: hidden;
-  vertical-align: top;
   padding: 0.08em 0.04em 0.2em;
   margin: -0.08em -0.04em -0.2em;
 }

@@ -12,15 +12,15 @@ import { gsap } from "@/lib/scroll/engine";
 import type { SceneMedia } from "@/lib/scroll/scene";
 import { journeyConfig } from "./config";
 import { filmStatus } from "./film";
-import { story } from "./story";
+import { jumpFrame } from "./story";
 
 type Meta = { first: number; last: number; width: number; height: number; rect: { x: number; y: number; w: number; h: number } };
 
 const dir = `${journeyConfig.media.base}/rider`;
 /** Start fetching this many film frames before the cut-outs are needed. */
 const prefetch = 900;
-/** The story line the rider passes in front of. */
-const lineStart = story.find((l) => l.id === "rider")?.in ?? 0;
+/** The jump the rider passes in front of its phrase at. */
+const lineStart = jumpFrame - 80;
 /** Decoded cut-outs kept on each side of the current frame. */
 const around = 10;
 

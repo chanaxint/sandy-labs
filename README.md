@@ -66,7 +66,9 @@ scroll position asks for on a full-screen canvas:
 
 - Scroll down plays forward, up plays back, stopping the scroll stops the film; the film is
   a function of the scroll position (`scrub: true`), smoothed only once, by Lenis.
-- Pace: `vhPerSecond` (30 = one screen of scrolling per ~3.3 s of film, ~25 screens in all).
+- Pace: `pace` in `lib/journey/config.ts`, scroll distance per film second for each stretch
+  of the film (slower where phrases are read in a short shot, quicker over empty stretches;
+  ~30 screens in all, ~18% slower than an even 30vh per second). `lib/journey/pace.ts`.
   Smoothing: `scrollSettings.lerp` in `lib/scroll/engine.ts`. Both in one place each.
 - While scrolling slowly, the two real frames around the position are cross-faded for the
   fraction of a frame in between, so it glides instead of stepping (not when scrolling
@@ -97,35 +99,43 @@ scroll position asks for on a full-screen canvas:
   HTTPS instead, e.g. `npx cloudflared tunnel --url http://localhost:3000`, and open the
   `https://….trycloudflare.com` address it prints (add `?debug` for the panel).
 
-## Story lines
+## The story
 
-Short lines over the film tell what Sandy Labs does, one at a time, each tied to a moment in
-the footage rather than to a time: the island clearing from the clouds, the first plane's
-take-off, the swap of planes in the fog, the fjord, the snowboarder's jump, Miami through
-the clouds, the jet climbing into frame, night, and the closing line with its button.
+The film tells one story, scene by scene, in short phrases that follow each other: from
+the invitation above the clouds, through the island, the take-off, the plane swap in the
+fog, the fjord, the snowboarder's jump, Miami and the jet, to the night sky and the call
+to action. Each phrase is tied to a moment in the footage, not to a time.
 
-- Copy (English and Turkish), timing and placement: `lib/journey/story.ts`. Each line has
-  four film frames, `in` → `shown` → `out` → `gone`, and its own desktop and phone position
-  (portrait phones see only the middle of the frame, so lines sit in the top or bottom band
-  there), text tone (light or dark, for the footage behind it) and motion (`haze`, `mask`,
-  `drift`), played word by word. The comments say which visual event each one follows.
-- `lib/journey/storyTimeline.ts` puts them on a GSAP timeline in film frames, driven by the
-  film scene's scroll progress with a short glide (`follow`, ~1 s), so words settle in
-  softly even after a quick flick: they play backwards when scrolling up and stop when the
-  scroll stops. No timers. Reduced motion: fades only, no glide.
-- The jump: "Feel the motion." runs across the whole sky and the snowboarder passes in front
-  of it. His cut-out (`public/media/journey/rider/`, a transparent WebP per film frame, only
-  the part above the line's band, ~8 MB, fetched as the film nears the jump) is drawn on a
-  canvas over the text, on the frame the film shows (`lib/journey/rider.ts`). Made with
-  Robust Video Matting by `scripts/journey/matte_rider.py`; rerun it if the jump's timing or
-  the film changes.
+- Copy (English and Turkish), timing and placement: `lib/journey/story.ts`, as scenes of
+  phrases. Each phrase has four film frames, `in` → `shown` → `out` → `gone` (the gap to
+  the next `in` is the pause between phrases), its own desktop and phone position (portrait
+  phones see only the middle of the frame, so phrases sit in its top or bottom band there),
+  text tone (light or dark, for the footage behind it), entrance (`rise`, `mask`,
+  `statement`, `cut`) and exit (`rise`, `fade`). Long sentences are split into phrases
+  that follow each other; the comments say which visual event each one follows.
+- `components/journey/CinematicTextOverlay.tsx` renders a phrase; `lib/journey/storyTimeline.ts`
+  puts them on a GSAP timeline in film frames, set from the film scene's scroll progress
+  (through the pace mapping) with a short glide (`follow`, 0.5 s): they play backwards when
+  scrolling up and stop when the scroll stops. Lines move as whole lines (fade and ~16px,
+  or a mask), never word by word. No timers. Reduced motion: fades only, no glide.
+- The jump (`lib/journey/jumpBeat.ts`): scrolling forward onto the frame where the board
+  leaves the lip (3104), the scroll is held and set exactly to that frame, the film holds
+  0.8 s and "You want to feel it." cuts in, then the film carries on by itself to just
+  before the landing (the scroll position itself is animated, so film, ScrollTrigger and
+  scroll stay in step), the phrase fades and the scroll is handed back. Once per pass:
+  it re-arms after scrolling back well before the jump; scrolling back through it or
+  jumping over it plays nothing. Reduced motion: no hold, the phrase fades with the scroll.
+  The phrase sits either side of the rider, his cut-out drawn in front of it
+  (`public/media/journey/rider/`, a transparent WebP per film frame, ~8 MB, fetched as the
+  film nears the jump; `lib/journey/rider.ts`), made with Robust Video Matting by
+  `scripts/journey/matte_rider.py`; rerun it if the jump's frames change.
 - Language: English or Turkish (`EN`/`TR` switch, top right; the browser's language on the
   first visit, then the visitor's choice). `lib/i18n/lang.tsx`.
-- Type: Instrument Serif for the lines, Instrument Sans for the button and the language
-  switch (next/font). Readability comes from a soft text shadow, plus a faint
-  local shade behind busy footage (`veil`); the film itself is never darkened.
-- The closing button ("Create Your Website") isn't connected to anything yet: website
-  creation is a later stage.
+- Type: Instrument Serif for the phrases, Instrument Sans for the button and the language
+  switch (next/font). Readability comes from a soft text shadow, plus a faint local shade
+  behind busy footage (`veil`); the film itself is never darkened.
+- The closing button ("Create My Website") isn't connected to anything: the project has no
+  website-creation flow or route yet.
 
 ## What is (and isn't) connected
 

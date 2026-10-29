@@ -77,11 +77,13 @@ Rules:
   media with `scripts/journey/build-journey.sh` (source video: GitHub release `journey-60fps`,
   4K 60 fps; the 30 fps original is release `sandy`). A 720p 30 fps fill-in plays at once, the sharp size
   takes over as it loads; there is no blocking preload.
-  Story lines over the film (EN/TR copy, frame timing, desktop/phone placement) live in
-  `lib/journey/story.ts`, on a timeline following the film's progress (`storyTimeline.ts`).
-  At the jump the rider's matted cut-out (`lib/journey/rider.ts`, made by
-  `scripts/journey/matte_rider.py`) is drawn over the giant line. The closing CTA isn't
-  wired to anything yet.
+  The story over the film (scenes of EN/TR phrases, frame timing, desktop/phone placement)
+  lives in `lib/journey/story.ts`, rendered by `CinematicTextOverlay`, on a timeline following
+  the film (`storyTimeline.ts`). Scroll pace is set per stretch (`pace` in config, `pace.ts`).
+  The snowboard jump has its own beat (`jumpBeat.ts`: hold, phrase cuts in, the film carries
+  on by itself, scroll handed back) with the rider's matted cut-out in front of the phrase
+  (`rider.ts`, `scripts/journey/matte_rider.py`). The closing CTA isn't wired: there is no
+  website-creation route yet.
   `JourneyDebug` is a temporary tuning panel (development, or `?debug`).
 
 ## Code conventions

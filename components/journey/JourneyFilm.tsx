@@ -3,18 +3,22 @@
 import { ScrollScene } from "@/components/scroll/ScrollScene";
 import { journeyConfig } from "@/lib/journey/config";
 import { createFilm } from "@/lib/journey/film";
+import { filmLength } from "@/lib/journey/pace";
+import { createJumpBeat } from "@/lib/journey/jumpBeat";
 import { createRider } from "@/lib/journey/rider";
 import { createStory } from "@/lib/journey/storyTimeline";
 import type { SceneMedia } from "@/lib/scroll/scene";
-import { StoryOverlays } from "./StoryOverlays";
+import { StoryOverlays } from "./CinematicTextOverlay";
 
-const { film, media, vhPerSecond, scrub } = journeyConfig;
+const { media, scrub } = journeyConfig;
 /** Scene length in viewport heights, from the film's duration and the scroll pace. */
-const length = ((film.frames / film.fps) * vhPerSecond) / 100;
+const length = filmLength;
 
-/** The film, the story lines on it and the rider in front of the jump's line, in drawing order. */
+/** The film, the story on it, the rider in front of the jump's phrase, and the jump's beat. */
 function journeyMedia(stage: HTMLElement): SceneMedia {
-  const parts = [createFilm(stage), createStory(stage), createRider(stage)];
+  // The jump's beat goes last: it may set the scroll back onto the take-off frame, which
+  // runs every part again with that position before anything draws.
+  const parts = [createFilm(stage), createStory(stage), createRider(stage), createJumpBeat(stage, "journey")];
   return {
     render: (u) => parts.forEach((p) => p.render(u)),
     dispose: () => parts.forEach((p) => p.dispose?.()),

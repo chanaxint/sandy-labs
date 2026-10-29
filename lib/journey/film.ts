@@ -23,6 +23,7 @@ import { gsap, prefersReducedMotion } from "@/lib/scroll/engine";
 import type { SceneMedia, SceneUpdate } from "@/lib/scroll/scene";
 import { journeyConfig } from "./config";
 import { FrameSource, type FrameSourceOptions, type FrameSourceStats } from "./frameSource";
+import { frameAt } from "./pace";
 import { createRenderer, type Picture } from "./renderer";
 
 export type FilmStatus = {
@@ -265,7 +266,7 @@ export function createFilm(stage: HTMLElement): SceneMedia {
     filmStatus.renderFps = fpsAvg;
     if (!renderer.ok) return;
 
-    const target = progress * (film.frames - 1);
+    const target = frameAt(progress);
     const step = Math.abs(target - lastTarget);
     lastTarget = target;
     // Film frames per second the scroll asks for (rises at once, settles over ~0.2 s).

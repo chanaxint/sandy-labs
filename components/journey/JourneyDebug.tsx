@@ -3,6 +3,8 @@
 import { useEffect, useRef } from "react";
 import { journeyConfig } from "@/lib/journey/config";
 import { filmStatus } from "@/lib/journey/film";
+import { jumpStatus } from "@/lib/journey/jumpBeat";
+import { frameAt, paceAt, progressAt } from "@/lib/journey/pace";
 import { getLenis, gsap } from "@/lib/scroll/engine";
 
 /**
@@ -16,7 +18,8 @@ export function JourneyDebug() {
     const enabled = process.env.NODE_ENV !== "production" || new URLSearchParams(location.search).has("debug");
     if (!enabled || !out.current) return;
     out.current.hidden = false;
-    (window as Window & { __journey?: typeof filmStatus }).__journey = filmStatus; // for browser tests
+    // For browser tests.
+    Object.assign(window, { __journey: filmStatus, __jump: jumpStatus, __pace: { frameAt, progressAt } });
     let last = 0;
     const tick = (time: number) => {
       if (time - last < 0.1 || !out.current) return;
@@ -31,7 +34,7 @@ export function JourneyDebug() {
         `frame      ${s.target.toFixed(2)} → shown ${Math.round(s.shown)} (${s.mode})`,
         `render     ${s.renderFps.toFixed(0)} fps`,
         `scroll     ${Math.round(scrollY)} / ${maxScroll}px`,
-        `pace       ${journeyConfig.vhPerSecond}vh per film second`,
+        `pace       ${paceAt(s.target)}vh per film second here   jump ${jumpStatus.state} (${jumpStatus.plays})`,
         `scrub      ${journeyConfig.scrub}   lenis lerp ${lenis?.options.lerp ?? "off"}`,
         `velocity   ${lenis ? lenis.velocity.toFixed(1) : "–"}`,
         `media      ${s.variant}`,
