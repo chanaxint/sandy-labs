@@ -123,7 +123,7 @@ to action. Each phrase is tied to a moment in the footage, not to a time.
   0.8 s and "You want to feel it." cuts in, then the film carries on by itself to just
   before the landing (the scroll position itself is animated, so film, ScrollTrigger and
   scroll stay in step), the phrase fades and the scroll is handed back. Once per pass:
-  it re-arms after scrolling back well before the jump; scrolling back through it or
+  it re-arms after stepping back a little before the take-off; scrolling back through it or
   jumping over it plays nothing. Reduced motion: no hold, the phrase fades with the scroll.
   The phrase sits either side of the rider, his cut-out drawn in front of it
   (`public/media/journey/rider/`, a transparent WebP per film frame, ~8 MB, fetched as the

@@ -9,7 +9,7 @@
  *     `jumpResume` (Lenis scrollTo), so film, ScrollTrigger and scroll stay one, and the
  *     phrase fades as the motion resumes;
  *  4. the scroll is handed back.
- * It plays once per pass: it re-arms only after scrolling back well before the jump.
+ * It plays once per pass: it re-arms after a deliberate step back before the take-off.
  * Scrolling backwards through the jump, or jumping over it (scrollbar, a long fling past
  * the landing), plays nothing. With reduced motion there is no beat at all: the phrase
  * fades in and out with the scroll (storyTimeline.ts).
@@ -30,8 +30,8 @@ const run = 1.05;
 const fade = 0.55;
 /** Longest wait (s) for the take-off frame to be decoded before the hold starts anyway. */
 const wait = 0.4;
-/** Scrolling back this many frames before the jump arms it again. */
-const rearm = 120;
+/** Scrolling back this many frames before the take-off frame arms it again (a deliberate step back, not a wobble). */
+const rearm = 24;
 
 type State = "armed" | "holding" | "running" | "done";
 

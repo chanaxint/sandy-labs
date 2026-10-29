@@ -4,15 +4,18 @@
  * above the text, on the same film frame the film canvas shows and with the same "cover"
  * framing, so he passes in front of the words.
  *
- * The frames are fetched as the film nears the jump and decoded only around the current
- * frame. Drawn after the film each tick (same GSAP ticker), from what the film reports
- * it is showing (`filmStatus`).
+ * Drawn only while the jump's phrase is on screen (otherwise the film itself shows the
+ * rider), and only the cut-out of the very frame the film shows: if that one isn't
+ * decoded yet the layer is left empty for the moment, never showing an older pose.
+ * The frames are fetched as the film nears the jump; the first ones of the beat are
+ * decoded ahead of it. Drawn after the film each tick (same GSAP ticker), from what the
+ * film reports it is showing (`filmStatus`).
  */
 import { gsap } from "@/lib/scroll/engine";
 import type { SceneMedia } from "@/lib/scroll/scene";
 import { journeyConfig } from "./config";
 import { filmStatus } from "./film";
-import { jumpFrame } from "./story";
+import { jumpFrame, jumpResume } from "./story";
 
 type Meta = { first: number; last: number; width: number; height: number; rect: { x: number; y: number; w: number; h: number } };
 
@@ -27,7 +30,13 @@ const around = 10;
 export function createRider(stage: HTMLElement): SceneMedia {
   const canvas = stage.querySelector<HTMLCanvasElement>("canvas[data-rider]");
   const ctx = canvas?.getContext("2d");
-  if (!canvas || !ctx) return { render() {} };
+  const phrase = stage.querySelector<HTMLElement>('[data-story="snowboard-b"]');
+  if (!canvas || !ctx || !phrase) return { render() {} };
+  /** The jump's phrase is showing (set visible by its beat or, with reduced motion, the timeline). */
+  const phraseShown = () => {
+    const v = phrase.style.visibility;
+    return v !== "" && v !== "hidden" && Number(gsap.getProperty(phrase, "opacity")) > 0;
+  };
 
   let meta: Meta | null = null;
   let metaState: "idle" | "loading" | "done" = "idle";
@@ -125,8 +134,10 @@ export function createRider(stage: HTMLElement): SceneMedia {
     const mode = filmStatus.mode;
     const shown = filmStatus.shown;
     const real = mode === "exact" || mode === "blend" || mode === "nearest";
-    if (!real || shown < m.first || shown > m.last) {
-      drop((f) => Math.abs(f - shown) > around);
+    if (!phraseShown() || !real || shown < m.first || shown > m.last) {
+      // Approaching the jump: have the beat's first frames ready.
+      if (t > jumpFrame - 240 && t < jumpFrame + 4) for (let f = jumpFrame - 2; f <= jumpFrame + around; f++) decode(f);
+      else drop((f) => f < jumpFrame - 2 || f > jumpResume);
       return clear();
     }
     resize();
@@ -140,7 +151,7 @@ export function createRider(stage: HTMLElement): SceneMedia {
     const fb = frac > 0.02 ? bitmaps.get(a + 1) : undefined;
     const key = `${a}:${fb ? Math.round(frac * 50) : 0}:${canvas.width}`;
     if (key === lastKey) return;
-    if (!fa) return; // not decoded yet: keep what is there for a frame
+    if (!fa) return clear(); // not decoded yet: nothing rather than an older pose
     lastKey = key;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     place(m, fa, 1);
