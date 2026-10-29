@@ -47,16 +47,19 @@ body {
   pointer-events: none;
 }
 
-/* Text size multiplier per device (the Studio's size setting). */
+/* Text size multiplier per device (the Studio's size setting), times the fit that keeps
+   the phrase on screen (lib/journey/fit.ts). */
 [data-phrase-place] {
-  --ts: var(--ts-m, 1);
+  --ts: calc(var(--ts-m, 1) * var(--fit, 1));
 }
 @media (min-width: 48rem) {
   [data-phrase-place] {
-    --ts: var(--ts-d, 1);
+    --ts: calc(var(--ts-d, 1) * var(--fit, 1));
   }
 }
 .story-text {
+  position: relative;
+  left: var(--fit-x, 0px);
   margin: 0;
   font-family: var(--font-serif);
   font-size: calc(clamp(2.1rem, 1.1rem + 3.1vw, 4.4rem) * var(--ts));

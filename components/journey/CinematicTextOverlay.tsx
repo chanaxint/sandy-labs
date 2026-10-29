@@ -1,8 +1,9 @@
 "use client";
 
-import { useLayoutEffect, useRef, useSyncExternalStore, type CSSProperties } from "react";
+import { useEffect, useLayoutEffect, useRef, useSyncExternalStore, type CSSProperties } from "react";
 import { useLang } from "@/lib/i18n/lang";
 import type { Phrase, Place } from "@/lib/journey/story";
+import { fitPhrases } from "@/lib/journey/fit";
 import { storyStore } from "@/lib/journey/storyStore";
 
 /** Position and text size as CSS variables: `--m*` on phones, `--d*` from the md breakpoint. */
@@ -113,9 +114,18 @@ export function StoryOverlays() {
   const root = useRef<HTMLDivElement>(null);
   const mounted = useRef(false);
   useLayoutEffect(() => {
+    if (root.current) fitPhrases(root.current);
     if (mounted.current) root.current?.dispatchEvent(new Event("story:change", { bubbles: true }));
     mounted.current = true;
   }, [lang, phrases, cta, studio]);
+
+  // Fit again when the screen changes size, and once the fonts are in (they change widths).
+  useEffect(() => {
+    const fit = () => root.current && fitPhrases(root.current);
+    window.addEventListener("resize", fit);
+    document.fonts?.ready.then(fit);
+    return () => window.removeEventListener("resize", fit);
+  }, []);
 
   const editing = studio.mode === "edit";
   return (

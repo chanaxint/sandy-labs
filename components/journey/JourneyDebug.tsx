@@ -8,15 +8,15 @@ import { frameAt, paceAt, progressAt } from "@/lib/journey/pace";
 import { getLenis, gsap } from "@/lib/scroll/engine";
 
 /**
- * TEMPORARY tuning panel for the journey film: shown in development, or anywhere
- * with `?debug` in the URL. Updated from the shared GSAP ticker, a few times a second.
+ * Tuning panel for the journey film: hidden unless the URL has `?debug` (also what the
+ * browser tests open). Updated from the shared GSAP ticker, a few times a second.
  */
 export function JourneyDebug() {
   const out = useRef<HTMLPreElement>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const enabled = (process.env.NODE_ENV !== "production" || params.has("debug")) && !params.has("studio");
+    const enabled = params.has("debug") && !params.has("studio");
     if (!enabled || !out.current) return;
     out.current.hidden = false;
     // For browser tests.

@@ -27,7 +27,7 @@ components/scroll/          <SmoothScroll /> (engine starter) and <ScrollScene /
 lib/journey/config.ts       the film's tuning: scroll pace, scrub, blending, sizes, caching
 lib/journey/frameSource.ts  WebCodecs decoder: ranged downloads, frame cache, decode-ahead
 lib/journey/film.ts         scroll progress → frame → full-screen canvas
-components/journey/         <JourneyFilm /> and the temporary <JourneyDebug /> panel
+components/journey/         <JourneyFilm /> and the <JourneyDebug /> panel (`?debug`)
 public/media/journey/       encoded film (2160p/1440p/1080p/720p H.264, 720p AV1), frame indexes, poster, thumbnails
 scripts/journey/            build-journey.sh + index.py: encodes the film from the source video
 public/media/{hero,intro}/  media from the previous site, kept but not used
@@ -91,7 +91,7 @@ scroll position asks for on a full-screen canvas:
   frames at 4K; hardware decoders have limited buffers).
 - Never black: poster behind the canvas, then the nearest decoded frame or a thumbnail.
 - Reloading keeps the position. Without WebCodecs it falls back to seeking a `<video>`.
-- Debug panel: shown in development, or with `?debug` in production.
+- Debug panel: only with `?debug` in the URL (development and production alike).
 - Phones and tablets get at most 1080p and a smaller frame cache (mobile browsers close
   tabs that use too much memory); touch keeps native scrolling.
 - Testing on a phone: WebCodecs only runs on HTTPS (or localhost), so a phone opening

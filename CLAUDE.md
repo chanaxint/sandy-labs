@@ -91,7 +91,7 @@ Rules:
   hint shows) hands over to the header (`SiteHeader.tsx`: mark top centre, two-line menu with
   chapters, language, CTA) and the progress line that replaces the scrollbar (`ScrollProgress.tsx`). Logo paths: `lib/brand/logo.ts` (traced from
   `design/brand/sandy-labs-logo.jpg`).
-  `JourneyDebug` is a temporary tuning panel (development, or `?debug`).
+  `JourneyDebug` is a tuning panel, shown only with `?debug` in the URL.
 
 ## Code conventions
 
