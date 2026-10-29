@@ -239,19 +239,34 @@ export const scenes: Scene[] = [
     id: "snowboard",
     phrases: [
       {
-        // The snowboarder rides in from the top right (~2476) and carves to the centre;
-        // gone before he speeds up towards the jump.
+        // The snowboarder rides in from the top right (~2476) and carves down the slope.
         id: "snowboard-a",
-        text: { en: ["That's when you want", "to do more than watch…"], tr: ["İşte o zaman,", "sadece izlemek değil…"] },
+        text: { en: ["That's when,"], tr: ["İşte o zaman,"] },
         in: 2448,
         shown: 2505,
-        out: 2640,
-        gone: 2688,
+        out: 2570,
+        gone: 2600,
         enter: "rise",
         exit: "rise",
         tone: "dark",
         // Below the dark ridge at the top, on open snow.
         desktop: { top: "25vh", left: margin.x, align: "left" },
+        mobile: { ...phoneTop, top: "20vh" },
+      },
+      {
+        // A short pause, then while he carves across the slope (2700–2880, centre right)
+        // the open snow to his left holds the phrase; gone before he swings to the centre
+        // and speeds up towards the jump.
+        id: "snowboard-a2",
+        text: { en: ["you want to do more", "than watch…"], tr: ["sadece izlemek", "değil…"] },
+        in: 2660,
+        shown: 2702,
+        out: 2840,
+        gone: 2882,
+        enter: "rise",
+        exit: "rise",
+        tone: "dark",
+        desktop: { top: "44%", right: "57.5%", align: "right" },
         mobile: { ...phoneTop, top: "20vh" },
       },
       {

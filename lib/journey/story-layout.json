@@ -1,4 +1,650 @@
 {
   "version": 1,
-  "phrases": {}
+  "cta": {
+    "en": "Create My Website",
+    "tr": "Web Sitemi Oluştur"
+  },
+  "phrases": {
+    "intro": {
+      "text": {
+        "en": [
+          "Come along.",
+          "Let's take a journey."
+        ],
+        "tr": [
+          "Haydi, bir gezintiye",
+          "çıkalım."
+        ]
+      },
+      "in": 0,
+      "shown": 0,
+      "out": 205,
+      "gone": 290,
+      "enter": "rise",
+      "exit": "rise",
+      "tone": "light",
+      "veil": false,
+      "desktop": {
+        "align": "left",
+        "top": "42.9%",
+        "left": "36.2%"
+      },
+      "mobile": {
+        "top": "5.5rem",
+        "left": "1.5rem",
+        "right": "1.5rem",
+        "align": "left"
+      }
+    },
+    "island-1": {
+      "text": {
+        "en": [
+          "Because every journey…"
+        ],
+        "tr": [
+          "Çünkü her yolculuk…"
+        ]
+      },
+      "in": 335,
+      "shown": 367,
+      "out": 398,
+      "gone": 430,
+      "enter": "rise",
+      "exit": "rise",
+      "tone": "dark",
+      "veil": false,
+      "desktop": {
+        "align": "left",
+        "top": "46.5%",
+        "left": "33.4%"
+      },
+      "mobile": {
+        "align": "left",
+        "top": "48%",
+        "left": "17%",
+        "right": "-1.1%"
+      }
+    },
+    "island-2": {
+      "text": {
+        "en": [
+          "…begins with",
+          "a simple idea."
+        ],
+        "tr": [
+          "Önce küçük bir",
+          "fikirle başlar."
+        ]
+      },
+      "in": 456,
+      "shown": 472,
+      "out": 500,
+      "gone": 548,
+      "enter": "mask",
+      "exit": "rise",
+      "tone": "light",
+      "veil": true,
+      "desktop": {
+        "align": "left",
+        "top": "12.6%",
+        "left": "3.3%"
+      },
+      "mobile": {
+        "align": "left",
+        "top": "45.8%",
+        "left": "30.1%",
+        "right": "-11.2%"
+      }
+    },
+    "takeoff-1": {
+      "text": {
+        "en": [
+          "And the right beginning…"
+        ],
+        "tr": [
+          "Ve doğru başlangıç…"
+        ]
+      },
+      "in": 688,
+      "shown": 708,
+      "out": 747,
+      "gone": 767,
+      "enter": "rise",
+      "exit": "rise",
+      "tone": "light",
+      "veil": false,
+      "desktop": {
+        "align": "right",
+        "scale": 1.15,
+        "top": "35.8%",
+        "right": "28.4%"
+      },
+      "mobile": {
+        "align": "left",
+        "top": "41.9%",
+        "left": "15.2%",
+        "right": "0.7%"
+      }
+    },
+    "takeoff-2": {
+      "text": {
+        "en": [
+          "…can take that idea",
+          "somewhere unexpected."
+        ],
+        "tr": [
+          "…o fikri hiç beklemediğin",
+          "yerlere taşır."
+        ]
+      },
+      "in": 927,
+      "shown": 966,
+      "out": 1006,
+      "gone": 1025,
+      "enter": "mask",
+      "exit": "rise",
+      "tone": "light",
+      "veil": false,
+      "desktop": {
+        "align": "right",
+        "top": "18.1%",
+        "right": "32.1%"
+      },
+      "mobile": {
+        "align": "left",
+        "top": "20.9%",
+        "left": "7.9%",
+        "right": "7.9%"
+      }
+    },
+    "swap-1": {
+      "text": {
+        "en": [
+          "Sometimes the route changes…"
+        ],
+        "tr": [
+          "Bazen yol değişir…"
+        ]
+      },
+      "in": 1586,
+      "shown": 1618,
+      "out": 1686,
+      "gone": 1717,
+      "enter": "rise",
+      "exit": "rise",
+      "tone": "dark",
+      "veil": false,
+      "desktop": {
+        "align": "left",
+        "top": "23.9%",
+        "left": "28.3%"
+      },
+      "mobile": {
+        "align": "left",
+        "top": "20.2%",
+        "left": "7.9%",
+        "right": "7.9%"
+      }
+    },
+    "swap-2": {
+      "text": {
+        "en": [
+          "…but the urge to explore",
+          "never does."
+        ],
+        "tr": [
+          "Ama keşfetme isteği",
+          "hep devam eder."
+        ]
+      },
+      "in": 1750,
+      "shown": 1787,
+      "out": 1824,
+      "gone": 1843,
+      "enter": "rise",
+      "exit": "fade",
+      "tone": "dark",
+      "veil": false,
+      "desktop": {
+        "align": "left",
+        "top": "12%",
+        "left": "33.1%"
+      },
+      "mobile": {
+        "align": "left",
+        "top": "14.5%",
+        "left": "9.4%",
+        "right": "9.4%"
+      }
+    },
+    "mountains-1": {
+      "text": {
+        "en": [
+          "With every new horizon…"
+        ],
+        "tr": [
+          "Yeni bir manzarayla",
+          "birlikte…"
+        ]
+      },
+      "in": 1880,
+      "shown": 1935,
+      "out": 2017,
+      "gone": 2054,
+      "enter": "rise",
+      "exit": "rise",
+      "tone": "light",
+      "veil": false,
+      "desktop": {
+        "align": "right",
+        "scale": 1.4,
+        "top": "84.5%",
+        "right": "25.1%"
+      },
+      "mobile": {
+        "align": "left",
+        "top": "90.1%",
+        "left": "14%",
+        "right": "1.9%"
+      }
+    },
+    "mountains-2": {
+      "text": {
+        "en": [
+          "…come new possibilities."
+        ],
+        "tr": [
+          "…yeni ihtimaller",
+          "de belirir."
+        ]
+      },
+      "in": 2141,
+      "shown": 2178,
+      "out": 2334,
+      "gone": 2357,
+      "enter": "mask",
+      "exit": "rise",
+      "tone": "dark",
+      "veil": false,
+      "desktop": {
+        "align": "right",
+        "scale": 1.1,
+        "top": "46.1%",
+        "right": "31.1%"
+      },
+      "mobile": {
+        "align": "left",
+        "top": "48%",
+        "left": "14.2%",
+        "right": "4.8%"
+      }
+    },
+    "snowboard-a": {
+      "text": {
+        "en": [
+          "That's when,"
+        ],
+        "tr": [
+          "İşte o zaman,"
+        ]
+      },
+      "in": 2478,
+      "shown": 2515,
+      "out": 2570,
+      "gone": 2589,
+      "enter": "rise",
+      "exit": "rise",
+      "tone": "dark",
+      "veil": false,
+      "desktop": {
+        "align": "left",
+        "top": "78.7%",
+        "left": "40.9%"
+      },
+      "mobile": {
+        "top": "20vh",
+        "left": "1.5rem",
+        "right": "1.5rem",
+        "align": "left"
+      }
+    },
+    "snowboard-b": {
+      "text": {
+        "en": [
+          "You want",
+          "to feel it."
+        ],
+        "tr": [
+          "Hissetmek",
+          "istersin."
+        ]
+      },
+      "in": 3074,
+      "shown": 3107,
+      "out": 3124,
+      "gone": 3140,
+      "enter": "cut",
+      "exit": "fade",
+      "tone": "dark",
+      "veil": false,
+      "desktop": {
+        "top": "27%",
+        "left": "0",
+        "right": "0",
+        "align": "center",
+        "centerY": true,
+        "scale": 1.2
+      },
+      "mobile": {
+        "bottom": "8vh",
+        "left": "0",
+        "right": "0",
+        "align": "center"
+      }
+    },
+    "miami-1": {
+      "text": {
+        "en": [
+          "At Sandy Labs…"
+        ],
+        "tr": [
+          "Biz Sandy Labs'ta…"
+        ]
+      },
+      "in": 3745,
+      "shown": 3797,
+      "out": 3842,
+      "gone": 3857,
+      "enter": "rise",
+      "exit": "rise",
+      "tone": "dark",
+      "veil": false,
+      "desktop": {
+        "align": "left",
+        "top": "80%",
+        "left": "39%"
+      },
+      "mobile": {
+        "bottom": "4.5rem",
+        "left": "1.5rem",
+        "right": "1.5rem",
+        "align": "left"
+      }
+    },
+    "miami-2": {
+      "text": {
+        "en": [
+          "…that's exactly how",
+          "we see websites."
+        ],
+        "tr": [
+          "Web sitelerine tam da",
+          "böyle bakıyoruz."
+        ]
+      },
+      "in": 3878,
+      "shown": 3908,
+      "out": 3969,
+      "gone": 3984,
+      "enter": "mask",
+      "exit": "fade",
+      "tone": "light",
+      "veil": true,
+      "desktop": {
+        "align": "left",
+        "top": "79.6%",
+        "left": "37.4%"
+      },
+      "mobile": {
+        "bottom": "4.5rem",
+        "left": "1.5rem",
+        "right": "1.5rem",
+        "align": "left"
+      }
+    },
+    "jet-1": {
+      "text": {
+        "en": [
+          "You share your idea…"
+        ],
+        "tr": [
+          "Sen fikrini anlatırsın…"
+        ]
+      },
+      "in": 3988,
+      "shown": 4026,
+      "out": 4076,
+      "gone": 4100,
+      "enter": "rise",
+      "exit": "rise",
+      "tone": "dark",
+      "veil": false,
+      "desktop": {
+        "align": "right",
+        "top": "8%",
+        "right": "35.1%"
+      },
+      "mobile": {
+        "top": "5.5rem",
+        "left": "1.5rem",
+        "right": "1.5rem",
+        "align": "left"
+      }
+    },
+    "jet-2": {
+      "text": {
+        "en": [
+          "We turn it into an experience",
+          "worth exploring."
+        ],
+        "tr": [
+          "Biz onu keşfedilecek",
+          "bir deneyime dönüştürürüz."
+        ]
+      },
+      "in": 4111,
+      "shown": 4144,
+      "out": 4177,
+      "gone": 4194,
+      "enter": "mask",
+      "exit": "rise",
+      "tone": "dark",
+      "veil": false,
+      "desktop": {
+        "align": "right",
+        "top": "12.1%",
+        "right": "4.4%"
+      },
+      "mobile": {
+        "top": "5.5rem",
+        "left": "1.5rem",
+        "right": "1.5rem",
+        "align": "left"
+      }
+    },
+    "value-1": {
+      "text": {
+        "en": [
+          "With immersive 3D worlds",
+          "and fluid scroll animations."
+        ],
+        "tr": [
+          "3D dünyalar ve akıcı",
+          "scroll animasyonlarıyla."
+        ]
+      },
+      "in": 4249,
+      "shown": 4266,
+      "out": 4299,
+      "gone": 4316,
+      "enter": "rise",
+      "exit": "rise",
+      "tone": "light",
+      "veil": true,
+      "desktop": {
+        "align": "right",
+        "top": "79.9%",
+        "right": "30.5%"
+      },
+      "mobile": {
+        "bottom": "4.5rem",
+        "left": "1.5rem",
+        "right": "1.5rem",
+        "align": "left"
+      }
+    },
+    "value-2": {
+      "text": {
+        "en": [
+          "What's more…"
+        ],
+        "tr": [
+          "Üstelik…"
+        ]
+      },
+      "in": 4354,
+      "shown": 4387,
+      "out": 4437,
+      "gone": 4471,
+      "enter": "rise",
+      "exit": "fade",
+      "tone": "light",
+      "veil": true,
+      "desktop": {
+        "align": "right",
+        "top": "56.2%",
+        "right": "40%"
+      },
+      "mobile": {
+        "bottom": "4.5rem",
+        "left": "1.5rem",
+        "right": "1.5rem",
+        "align": "left"
+      }
+    },
+    "value-3": {
+      "text": {
+        "en": [
+          "In around",
+          "5 minutes."
+        ],
+        "tr": [
+          "Yaklaşık",
+          "5 dakikada."
+        ]
+      },
+      "in": 4463,
+      "shown": 4487,
+      "out": 4503,
+      "gone": 4553,
+      "enter": "statement",
+      "exit": "rise",
+      "tone": "light",
+      "veil": false,
+      "desktop": {
+        "align": "right",
+        "scale": 0.65,
+        "top": "18.4%",
+        "right": "5.5%"
+      },
+      "mobile": {
+        "top": "5.5rem",
+        "left": "1.5rem",
+        "right": "1.5rem",
+        "align": "left"
+      }
+    },
+    "night-1": {
+      "text": {
+        "en": [
+          "Because every brand…"
+        ],
+        "tr": [
+          "Çünkü her markanın…"
+        ]
+      },
+      "in": 4614,
+      "shown": 4647,
+      "out": 4680,
+      "gone": 4714,
+      "enter": "rise",
+      "exit": "rise",
+      "tone": "light",
+      "veil": false,
+      "desktop": {
+        "align": "left",
+        "top": "46.5%",
+        "left": "34.4%"
+      },
+      "mobile": {
+        "align": "left",
+        "top": "48%",
+        "left": "20%",
+        "right": "-4.1%"
+      }
+    },
+    "night-2": {
+      "text": {
+        "en": [
+          "…has a story",
+          "waiting to be told."
+        ],
+        "tr": [
+          "Anlatılmayı bekleyen",
+          "bir hikâyesi vardır."
+        ]
+      },
+      "in": 4756,
+      "shown": 4788,
+      "out": 4826,
+      "gone": 4852,
+      "enter": "mask",
+      "exit": "fade",
+      "tone": "light",
+      "veil": false,
+      "desktop": {
+        "align": "left",
+        "top": "42.7%",
+        "left": "37.3%"
+      },
+      "mobile": {
+        "align": "left",
+        "top": "45.8%",
+        "left": "24.6%",
+        "right": "-8.7%"
+      }
+    },
+    "final": {
+      "text": {
+        "en": [
+          "Now it's time",
+          "to tell yours."
+        ],
+        "tr": [
+          "Şimdi sıra",
+          "senin hikâyende."
+        ]
+      },
+      "in": 4866,
+      "shown": 4966,
+      "out": null,
+      "enter": "mask",
+      "exit": "fade",
+      "tone": "light",
+      "veil": false,
+      "desktop": {
+        "top": "56%",
+        "left": "clamp(1.5rem, 6vw, 6.5rem)",
+        "align": "left",
+        "centerY": true
+      },
+      "mobile": {
+        "top": "52%",
+        "left": "1.5rem",
+        "right": "1.5rem",
+        "align": "left",
+        "centerY": true
+      }
+    }
+  }
 }
