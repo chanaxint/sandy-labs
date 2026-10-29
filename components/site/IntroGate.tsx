@@ -1,23 +1,37 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useSyncExternalStore } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { SandyMark, SandyWordmark } from "@/components/brand/SandyLogo";
 import { useLang } from "@/lib/i18n/lang";
 import { goToFrame } from "@/lib/journey/navigate";
+import { storyStore } from "@/lib/journey/storyStore";
 import { copy } from "@/lib/site/copy";
 import { holdScroll, introStore, releaseScroll } from "@/lib/site/intro";
 import { getLenis, gsap, prefersReducedMotion } from "@/lib/scroll/engine";
 
-/** Where the film glides to by itself once the journey starts (the cloud dive begins ~320). */
-const glideTo = 210;
+/** The film plays by itself up to this phrase (the first of the story), then the scroll takes over. */
+const firstPhrase = "island-1";
+/** How long that opening run lasts (s): about the film's own speed. */
+const runSeconds = 6.5;
+/** Scrolled this far (px) from where the run stopped: the scroll hint goes. */
+const hintGone = 24;
+
+/** A frame where the first phrase is fully there (early in its hold). */
+function runTo() {
+  const p = storyStore.get().phrases.find((x) => x.id === firstPhrase);
+  if (!p) return 360;
+  const out = Number.isFinite(p.out) ? p.out : p.shown + 60;
+  return Math.round(p.shown + (out - p.shown) * 0.4);
+}
 /** Keys that would scroll: they start the journey too. */
 const scrollKeys = new Set(["ArrowDown", "PageDown", " ", "End", "Spacebar"]);
 
 /**
  * The opening: the full logo over the clouds and the start button. Starting (the button,
  * or a first scroll) fades the wordmark and the button, carries the mark up to its place
- * at the top of the page (SiteHeader's), then lets the film glide into the journey and
- * hands the scroll over. Skipped when the page opens mid-film (a reload) or in the Studio.
+ * at the top of the page (SiteHeader's), then plays the film by itself up to the first
+ * phrase and hands the scroll over, with a small scroll hint until the visitor scrolls.
+ * Skipped when the page opens mid-film (a reload) or in the Studio.
  */
 export function IntroGate() {
   const { lang } = useLang();
@@ -26,6 +40,7 @@ export function IntroGate() {
   const wordRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
+  const [hint, setHint] = useState(false);
 
   const start = useRef(() => {});
   const startJourney = () => {
@@ -34,10 +49,15 @@ export function IntroGate() {
     const reduce = prefersReducedMotion();
     const slot = document.querySelector<HTMLElement>("[data-header-mark]");
     const mark = markRef.current;
+    // The scroll stays held while the film plays to the first phrase (Lenis' `force`).
+    const handOver = () => {
+      if (introStore.get() !== "done") return;
+      releaseScroll();
+      setHint(true);
+    };
     const finish = () => {
       introStore.set("done");
-      releaseScroll();
-      if (!reduce) goToFrame(glideTo, 2.6);
+      goToFrame(runTo(), reduce ? undefined : runSeconds, handOver);
     };
     if (!slot || !mark || reduce) {
       gsap.to(rootRef.current, { autoAlpha: 0, duration: 0.5, ease: "power1.inOut", onComplete: finish });
@@ -109,7 +129,16 @@ export function IntroGate() {
     };
   }, []);
 
-  if (state === "done") return null;
+  // The hint goes once the visitor scrolls on (or anything else moves the page: the menu).
+  useEffect(() => {
+    const lenis = getLenis();
+    if (!hint || !lenis) return;
+    const from = lenis.scroll;
+    const onScroll = () => Math.abs(lenis.scroll - from) > hintGone && setHint(false);
+    return lenis.on("scroll", onScroll);
+  }, [hint]);
+
+  if (state === "done") return <ScrollHint shown={hint} label={copy.scroll[lang]} />;
 
   return (
     <div ref={rootRef} className="pointer-events-none fixed inset-0 z-20 text-snow [--mh:clamp(92px,15vh,150px)]">
@@ -126,6 +155,19 @@ export function IntroGate() {
           {copy.start[lang]}
         </button>
       </div>
+    </div>
+  );
+}
+
+/** A small "Scroll" with a line below it, at the bottom centre (dark: it stands over the white cloud). */
+function ScrollHint({ shown, label }: { shown: boolean; label: string }) {
+  return (
+    <div
+      aria-hidden={!shown}
+      className={`scroll-hint pointer-events-none fixed bottom-[max(4.5vh,1.75rem)] left-1/2 z-20 -translate-x-1/2 text-ink ${shown ? "is-shown" : ""}`}
+    >
+      <span>{label}</span>
+      <i />
     </div>
   );
 }

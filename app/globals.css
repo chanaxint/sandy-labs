@@ -238,6 +238,47 @@ body {
   outline-offset: 5px;
 }
 
+/* The scroll hint after the opening run: fades in, a dot runs down its line. */
+.scroll-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  opacity: 0;
+  transition: opacity 700ms ease;
+}
+.scroll-hint.is-shown {
+  opacity: 0.72;
+  transition-duration: 1100ms;
+}
+.scroll-hint i {
+  position: relative;
+  display: block;
+  width: 1px;
+  height: 34px;
+  overflow: hidden;
+  background: rgb(8 20 32 / 0.22);
+}
+.scroll-hint i::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 12px;
+  background: currentColor;
+  animation: scroll-hint-run 1.9s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+@keyframes scroll-hint-run {
+  from {
+    transform: translateY(-12px);
+  }
+  to {
+    transform: translateY(34px);
+  }
+}
+
 /* Two lines; they cross into an X while the menu is open. */
 .menu-toggle span {
   display: block;
@@ -256,6 +297,10 @@ body {
   transform: translateY(-4.25px) rotate(-45deg);
 }
 @media (prefers-reduced-motion: reduce) {
+  .scroll-hint i::after {
+    animation: none;
+    transform: translateY(11px);
+  }
   .menu-toggle span,
   .intro-start {
     transition: none;

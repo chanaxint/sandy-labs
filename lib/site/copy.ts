@@ -3,6 +3,7 @@ import type { Lang } from "@/lib/journey/story";
 /** Site chrome copy (English and Turkish). The story's own copy is in lib/journey/story.ts. */
 export const copy = {
   start: { en: "Let's take a journey", tr: "Haydi, bir gezintiye çıkalım" },
+  scroll: { en: "Scroll", tr: "Kaydır" },
   home: { en: "Sandy Labs, back to the start", tr: "Sandy Labs, başa dön" },
   menu: { en: "Menu", tr: "Menü" },
   close: { en: "Close menu", tr: "Menüyü kapat" },

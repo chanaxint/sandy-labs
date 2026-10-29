@@ -104,8 +104,10 @@ scroll position asks for on a full-screen canvas:
 - The opening (`components/site/IntroGate.tsx`): the full logo over the clouds and a "Let's
   take a journey" button at the bottom centre; the scroll is held until then. Starting (the
   button, or a first scroll) fades the wordmark and the button, carries the mark up to the
-  top centre, lets the film glide a little into the journey and hands the scroll over.
-  Skipped when the page opens mid-film (a reload) and in the Studio; reduced motion: a fade.
+  top centre, then plays the film by itself (6.5 s, scroll still held) to the first phrase
+  ("Because every journey…") and hands the scroll over with a small "Scroll" hint at the
+  bottom centre, gone once the visitor scrolls. Skipped when the page opens mid-film (a
+  reload) and in the Studio; reduced motion: a fade, then straight to the first phrase.
 - Header (`components/site/SiteHeader.tsx`): the mark at the top centre (back to the start)
   and a two-line menu button at the top right. The menu (Motion) lists the film's chapters
   (`lib/site/copy.ts`; each jumps there), the language switch and the call to action.
