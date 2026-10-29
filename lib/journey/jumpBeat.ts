@@ -3,11 +3,11 @@
  *
  * Scrolling forward onto the approach to the lip (`jumpApproach`):
  *  1. the scroll is held (Lenis stopped) and the film plays by itself up to the frame
- *     where the board is side-on in the air (`jumpFrame`), slowing into it (a fling that
- *     lands past it is set straight back onto it);
+ *     where the board is side-on in the air (`jumpFrame`), fast, and stops dead on it (a
+ *     fling that lands past it is set straight back onto it);
  *  2. "You want to feel it." cuts in at once (no fade), and the film holds `hold` seconds;
- *  3. the film then carries on by itself through the landing to `jumpResume`, and the
- *     phrase fades as the motion resumes;
+ *  3. the film then breaks out of it at full speed through the landing to `jumpResume`,
+ *     and the phrase goes as the motion resumes;
  *  4. the scroll is handed back.
  * The scroll position itself is animated (Lenis scrollTo), so film, ScrollTrigger and
  * scroll stay one. It plays once per pass: it re-arms after a deliberate step back before
@@ -25,14 +25,14 @@ import { frameAt, progressAt } from "./pace";
 import { jumpApproach, jumpFrame, jumpResume } from "./story";
 import { storyStore } from "./storyStore";
 
-/** Seconds per film frame of the approach (the film's own speed is 1/60). */
-const approachPace = 1.25 / 60;
+/** Seconds per film frame of the approach: a little faster than the film's own 1/60. */
+const approachPace = 0.75 / 60;
 /** Seconds the film holds on the freeze frame. */
 const hold = 0.8;
-/** Seconds the film takes to carry on by itself, freeze frame to `jumpResume`. */
-const run = 1.1;
-/** Seconds the phrase takes to fade once the motion resumes. */
-const fade = 0.55;
+/** Seconds the film takes to carry on by itself, freeze frame to `jumpResume` (a little faster than its own speed). */
+const run = 0.7;
+/** Seconds the phrase takes to go once the motion resumes. */
+const fade = 0.3;
 /** Longest wait (s) for the take-off frame to be decoded before the hold starts anyway. */
 const wait = 0.4;
 /** Scrolling back this many frames before the approach arms it again (a deliberate step back, not a wobble). */
@@ -76,9 +76,9 @@ export function createJumpBeat(stage: HTMLElement, sceneId: string): SceneMedia 
     if (frame >= jumpFrame) return freeze();
     setState("approaching");
     lenis.scrollTo(at, {
-      duration: Math.max(0.5, (jumpFrame - frame) * approachPace),
-      // Carrying on at the scroll's speed, slowing into the freeze.
-      easing: (t) => 1 - (1 - t) * (1 - t),
+      duration: Math.max(0.3, (jumpFrame - frame) * approachPace),
+      // At full speed into the freeze: it stops all at once.
+      easing: (t) => t,
       force: true,
       lock: true,
       onComplete: freeze,
@@ -118,8 +118,8 @@ export function createJumpBeat(stage: HTMLElement, sceneId: string): SceneMedia 
         setState("running");
         lenis.scrollTo(to, {
           duration: run,
-          // From still into the jump's own speed, easing out after the landing.
-          easing: (t) => 0.5 - Math.cos(Math.PI * t) / 2,
+          // Straight back to full speed: the freeze breaks all at once.
+          easing: (t) => t,
           force: true,
           lock: true,
           onComplete: finish,

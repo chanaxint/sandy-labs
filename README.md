@@ -141,9 +141,10 @@ to action. Each phrase is tied to a moment in the footage, not to a time.
   scrolling up and stop when the scroll stops. Lines move as whole lines (fade and ~16px,
   or a mask), never word by word. No timers. Reduced motion: fades only, no glide.
 - The jump (`lib/journey/jumpBeat.ts`): scrolling forward onto the approach to the lip
-  (3062), the scroll is held and the film plays by itself, slowing into the frame where the
-  board is side-on in the air (3116); it holds 0.8 s as "You want to feel it." cuts in, then
-  carries on by itself through the landing (3166), the phrase fades and the scroll is handed
+  (3062), the scroll is held and the film plays by itself, a little faster than its own
+  speed, and stops dead on the frame where the board is side-on in the air (3116); it holds
+  0.8 s as "You want to feel it." cuts in, then breaks out at full speed through the landing
+  (3166), the phrase goes and the scroll is handed
   back (the scroll position itself is animated, so film, ScrollTrigger and scroll stay in
   step). Once per pass: it re-arms after stepping back a little before the approach;
   scrolling back through it or jumping over it plays nothing. Reduced motion: no beat, the
