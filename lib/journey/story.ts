@@ -66,10 +66,12 @@ const bottomLeft: Place = { bottom: margin.bottom, left: margin.x, align: "left"
 const phoneTop: Place = { top: phone.top, left: phone.x, right: phone.x, align: "left" };
 const phoneBottom: Place = { bottom: phone.bottom, left: phone.x, right: phone.x, align: "left" };
 
-/** The snowboarder's board leaves the lip (3103) and is clearly in the air: the freeze frame. */
-export const jumpFrame = 3104;
-/** Where the beat's own forward run ends and the scroll takes over again (just before landing). */
-export const jumpResume = 3156;
+/** The rider heads for the lip: scrolling onto this frame hands the jump over to the film. */
+export const jumpApproach = 3062;
+/** In the air, the board seen exactly side-on (3112–3120): the freeze frame. */
+export const jumpFrame = 3116;
+/** Landed (3150) and settled: the beat's own run ends and the scroll takes over again. */
+export const jumpResume = 3166;
 
 export const scenes: Scene[] = [
   {
@@ -250,7 +252,8 @@ export const scenes: Scene[] = [
         mobile: { ...phoneTop, top: "20vh" },
       },
       {
-        // The jump. At the freeze frame the film holds ~0.8 s and this cuts in, large, in
+        // The jump. From the approach the film plays by itself; at the freeze frame (board
+        // side-on) it holds ~0.8 s and this cuts in, large, in
         // the open sky either side of the rider (arms out, he spans ~35–61% of the width),
         // his cut-out drawn in front of it (lib/journey/rider.ts); it fades as the film
         // moves on by itself. Phones: the frame is all rider, so it sits on the snow below.

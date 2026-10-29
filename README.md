@@ -140,13 +140,14 @@ to action. Each phrase is tied to a moment in the footage, not to a time.
   (through the pace mapping) with a short glide (`follow`, 0.5 s): they play backwards when
   scrolling up and stop when the scroll stops. Lines move as whole lines (fade and ~16px,
   or a mask), never word by word. No timers. Reduced motion: fades only, no glide.
-- The jump (`lib/journey/jumpBeat.ts`): scrolling forward onto the frame where the board
-  leaves the lip (3104), the scroll is held and set exactly to that frame, the film holds
-  0.8 s and "You want to feel it." cuts in, then the film carries on by itself to just
-  before the landing (the scroll position itself is animated, so film, ScrollTrigger and
-  scroll stay in step), the phrase fades and the scroll is handed back. Once per pass:
-  it re-arms after stepping back a little before the take-off; scrolling back through it or
-  jumping over it plays nothing. Reduced motion: no hold, the phrase fades with the scroll.
+- The jump (`lib/journey/jumpBeat.ts`): scrolling forward onto the approach to the lip
+  (3062), the scroll is held and the film plays by itself, slowing into the frame where the
+  board is side-on in the air (3116); it holds 0.8 s as "You want to feel it." cuts in, then
+  carries on by itself through the landing (3166), the phrase fades and the scroll is handed
+  back (the scroll position itself is animated, so film, ScrollTrigger and scroll stay in
+  step). Once per pass: it re-arms after stepping back a little before the approach;
+  scrolling back through it or jumping over it plays nothing. Reduced motion: no beat, the
+  phrase fades with the scroll.
   The phrase sits either side of the rider, his cut-out drawn in front of it
   (`public/media/journey/rider/`, a transparent WebP per film frame, ~8 MB, fetched as the
   film nears the jump; `lib/journey/rider.ts`), made with Robust Video Matting by

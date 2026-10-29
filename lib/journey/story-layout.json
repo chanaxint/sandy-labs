@@ -350,10 +350,10 @@
           "istersin."
         ]
       },
-      "in": 3074,
-      "shown": 3107,
-      "out": 3124,
-      "gone": 3140,
+      "in": 3090,
+      "shown": 3114,
+      "out": 3134,
+      "gone": 3160,
       "enter": "cut",
       "exit": "fade",
       "tone": "dark",

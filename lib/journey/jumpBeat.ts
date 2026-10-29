@@ -1,15 +1,17 @@
 /**
  * The snowboard jump's beat: the one moment the film briefly takes over from the scroll.
  *
- * Scrolling forward onto the frame where the board leaves the lip (`jumpFrame`):
- *  1. the scroll is held (Lenis stopped) and set exactly to that frame, so the film never
- *     shows a frame past it in between;
+ * Scrolling forward onto the approach to the lip (`jumpApproach`):
+ *  1. the scroll is held (Lenis stopped) and the film plays by itself up to the frame
+ *     where the board is side-on in the air (`jumpFrame`), slowing into it (a fling that
+ *     lands past it is set straight back onto it);
  *  2. "You want to feel it." cuts in at once (no fade), and the film holds `hold` seconds;
- *  3. the film then carries on by itself: the scroll position itself is animated to
- *     `jumpResume` (Lenis scrollTo), so film, ScrollTrigger and scroll stay one, and the
+ *  3. the film then carries on by itself through the landing to `jumpResume`, and the
  *     phrase fades as the motion resumes;
  *  4. the scroll is handed back.
- * It plays once per pass: it re-arms after a deliberate step back before the take-off.
+ * The scroll position itself is animated (Lenis scrollTo), so film, ScrollTrigger and
+ * scroll stay one. It plays once per pass: it re-arms after a deliberate step back before
+ * the approach.
  * Scrolling backwards through the jump, or jumping over it (scrollbar, a long fling past
  * the landing), plays nothing. With reduced motion there is no beat at all: the phrase
  * fades in and out with the scroll (storyTimeline.ts).
@@ -20,21 +22,23 @@ import { getLenis, gsap, prefersReducedMotion, ScrollTrigger } from "@/lib/scrol
 import type { SceneMedia, SceneUpdate } from "@/lib/scroll/scene";
 import { filmStatus } from "./film";
 import { frameAt, progressAt } from "./pace";
-import { jumpFrame, jumpResume } from "./story";
+import { jumpApproach, jumpFrame, jumpResume } from "./story";
 import { storyStore } from "./storyStore";
 
-/** Seconds the film holds on the take-off frame. */
+/** Seconds per film frame of the approach (the film's own speed is 1/60). */
+const approachPace = 1.25 / 60;
+/** Seconds the film holds on the freeze frame. */
 const hold = 0.8;
-/** Seconds the film takes to carry on by itself, take-off to `jumpResume`. */
-const run = 1.05;
+/** Seconds the film takes to carry on by itself, freeze frame to `jumpResume`. */
+const run = 1.1;
 /** Seconds the phrase takes to fade once the motion resumes. */
 const fade = 0.55;
 /** Longest wait (s) for the take-off frame to be decoded before the hold starts anyway. */
 const wait = 0.4;
-/** Scrolling back this many frames before the take-off frame arms it again (a deliberate step back, not a wobble). */
+/** Scrolling back this many frames before the approach arms it again (a deliberate step back, not a wobble). */
 const rearm = 24;
 
-type State = "armed" | "holding" | "running" | "done";
+type State = "armed" | "approaching" | "holding" | "running" | "done";
 
 /** The beat's state, for the debug panel and tests. */
 export const jumpStatus: { state: State; plays: number } = { state: "armed", plays: 0 };
@@ -61,23 +65,41 @@ export function createJumpBeat(stage: HTMLElement, sceneId: string): SceneMedia 
 
   const lines = () => gsap.utils.toArray<HTMLElement>(root.querySelectorAll("[data-line]"));
 
-  const start = () => {
+  /** The film plays itself from `frame` to the freeze frame, then the beat holds. */
+  const start = (frame: number) => {
+    const lenis = getLenis();
+    const at = scrollFor(jumpFrame + 0.3);
+    if (!lenis || at === null) return;
+    jumpStatus.plays++;
+    document.documentElement.classList.add("scroll-held");
+    lenis.stop();
+    if (frame >= jumpFrame) return freeze();
+    setState("approaching");
+    lenis.scrollTo(at, {
+      duration: Math.max(0.5, (jumpFrame - frame) * approachPace),
+      // Carrying on at the scroll's speed, slowing into the freeze.
+      easing: (t) => 1 - (1 - t) * (1 - t),
+      force: true,
+      lock: true,
+      onComplete: freeze,
+    });
+  };
+
+  /** On the freeze frame: the phrase cuts in, the film holds, then runs on to the landing. */
+  const freeze = () => {
     const lenis = getLenis();
     const at = scrollFor(jumpFrame + 0.3);
     const to = scrollFor(jumpResume);
     if (!lenis || at === null || to === null) return;
     setState("holding");
-    jumpStatus.plays++;
-    document.documentElement.classList.add("scroll-held");
-    lenis.stop();
-    // Back onto the take-off frame within this same tick, before the film draws.
+    // Exactly onto the freeze frame within this same tick, before the film draws.
     lenis.scrollTo(at, { immediate: true, force: true });
 
     // The phrase is simply there: no entrance.
     gsap.set(root, { autoAlpha: 1 });
     gsap.set(lines(), { opacity: 1, y: 0 });
 
-    // The hold counts from the moment the take-off frame is on screen (it may still be
+    // The hold counts from the moment the freeze frame is on screen (it may still be
     // decoding for a moment after a quick scroll), at most `wait` seconds later.
     const shown = () => Math.round(filmStatus.shown) === jumpFrame && (filmStatus.mode === "exact" || filmStatus.mode === "nearest");
     let waited = 0;
@@ -96,7 +118,7 @@ export function createJumpBeat(stage: HTMLElement, sceneId: string): SceneMedia 
         setState("running");
         lenis.scrollTo(to, {
           duration: run,
-          // From still into the jump's own speed, easing out into the landing.
+          // From still into the jump's own speed, easing out after the landing.
           easing: (t) => 0.5 - Math.cos(Math.PI * t) / 2,
           force: true,
           lock: true,
@@ -134,13 +156,13 @@ export function createJumpBeat(stage: HTMLElement, sceneId: string): SceneMedia 
         return;
       }
       if (state === "armed") {
-        // Crossing onto the take-off frame going forward, landing not yet passed.
-        if (update.direction > 0 && last >= 0 && last < jumpFrame && frame >= jumpFrame && frame < jumpResume) {
+        // Crossing onto the approach going forward, landing not yet passed.
+        if (update.direction > 0 && last >= 0 && last < jumpApproach && frame >= jumpApproach && frame < jumpResume) {
           last = frame;
-          start();
+          start(frame);
           return;
         }
-      } else if (state === "done" && frame < jumpFrame - rearm) {
+      } else if (state === "done" && frame < jumpApproach - rearm) {
         reset();
         setState("armed");
       }
@@ -148,7 +170,7 @@ export function createJumpBeat(stage: HTMLElement, sceneId: string): SceneMedia 
     },
     dispose() {
       reset();
-      if (state === "holding" || state === "running") getLenis()?.start();
+      if (state === "approaching" || state === "holding" || state === "running") getLenis()?.start();
     },
   };
 }
