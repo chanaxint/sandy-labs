@@ -63,6 +63,15 @@ ffmpeg -v error -y -i "$SRC" -vf "scale=1920:-2:flags=lanczos" -frames:v 1 -q:v 
 ffmpeg -v error -y -i "$OUT/journey-poster.jpg" \
   -filter_complex "[0]crop=iw:ih*0.58:0:ih*0.42,split[a][b];[b]hflip[c];[a][c]hstack" \
   -c:v libwebp -quality 78 "$OUT/intro-clouds.webp"
+# The morning sky behind "Create my website", drifting: the film's own frame 4600 (from
+# the 1440p encode, so the numbering matches) beside its mirror image
+# (components/site/MorningSky.tsx).
+STILL="$(mktemp --suffix=.png)"
+python3 "$(dirname "$0")/frame_still.py" "$OUT/journey-1440.h264" 4600 "$STILL"
+ffmpeg -v error -y -i "$STILL" \
+  -filter_complex "[0]scale=1920:-2:flags=lanczos,split[a][b];[b]hflip[c];[a][c]hstack" \
+  -c:v libwebp -quality 80 "$OUT/morning-sky.webp"
+rm -f "$STILL"
 ffmpeg -v error -y -i "$SRC" -vf "select='not(mod(n\,20))',scale=192:108:flags=area,tile=16x16" -frames:v 1 -q:v 5 \
   "$OUT/journey-thumbs.jpg"
 

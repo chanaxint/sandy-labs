@@ -413,6 +413,28 @@ html.create-mode [data-story-layer],
 html.create-mode [data-shooting-stars] {
   opacity: 0;
 }
+/* The morning sky drifting to the right behind the steps (MorningSky): a strip of the
+   frame and its mirror image, starting one frame-and-mirror to the left so the frame
+   itself sits exactly where the film shows it. */
+.morning-sky {
+  overflow: hidden;
+}
+.morning-sky > div {
+  position: absolute;
+  top: var(--st, 0);
+  left: calc(var(--sl, 0px) - var(--sw, 0px));
+  width: calc(var(--sw, 0px) * 3);
+  height: var(--sh, 100%);
+  background-repeat: repeat-x;
+  background-size: var(--sw, 0px) 100%;
+  animation: morning-sky-drift var(--sd, 426s) linear infinite;
+  will-change: transform;
+}
+@keyframes morning-sky-drift {
+  to {
+    transform: translateX(var(--sw, 0px));
+  }
+}
 /* The morning's warm light from the horizon (its opacity is GSAP's). */
 .create-dawn {
   background:
@@ -996,6 +1018,9 @@ html.create-mode [data-shooting-stars] {
   transform: translateY(-4.25px) rotate(-45deg);
 }
 @media (prefers-reduced-motion: reduce) {
+  .morning-sky {
+    display: none;
+  }
   .sp *,
   .sp *::before,
   .sp *::after {

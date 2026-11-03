@@ -132,7 +132,9 @@ scroll position asks for on a full-screen canvas:
   types in `lib/site/create.ts`): the closing phrase's call to action, or the menu's, plays
   the film's dusk backwards by itself (scroll held) so the night turns back into morning
   (frame 4600), with a warm dawn light rising from the horizon on the way; the story's
-  lines and the shooting stars step aside, and the steps open over the morning sky in a
+  lines and the shooting stars step aside, and the steps open over the morning sky (drifting
+  slowly to the right: `MorningSky.tsx`, the film's frame 4600 beside its mirror image,
+  `morning-sky.webp`, made with `scripts/journey/frame_still.py`) in a
   see-through, softly blurred card (radio groups, keyboard and screen-reader friendly;
   each title slides up from behind its edge):
   1. which industry (eight, two columns; "Other" opens a small field in its own box);

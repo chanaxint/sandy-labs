@@ -6,6 +6,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useLang } from "@/lib/i18n/lang";
 import { filmStatus } from "@/lib/journey/film";
 import { goToFrame } from "@/lib/journey/navigate";
+import { MorningSky } from "@/components/site/MorningSky";
 import { StylePreview } from "@/components/site/StylePreview";
 import {
   createCopy,
@@ -34,8 +35,9 @@ const ease = [0.22, 1, 0.36, 1] as const;
  * story's lines and the shooting stars step aside (`create-mode`, app/globals.css).
  * There is no way back to the night from it: it stays until the menu takes the visitor
  * to a chapter of the film.
+ * Once it is morning the sky drifts slowly to the right behind the steps (MorningSky).
  * GSAP owns the film run and the dawn light; Motion owns the card's and the steps' enter
- * and exit.
+ * and exit; CSS the sky's drift.
  */
 export function CreateFlow() {
   const state = useSyncExternalStore(createStore.subscribe, createStore.get, () => "closed" as const);
@@ -78,6 +80,8 @@ export function CreateFlow() {
 
   return (
     <>
+      {/* Once there, the morning sky drifts slowly to the right behind the steps. */}
+      {state === "open" ? <MorningSky /> : null}
       {/* The morning's warm light rising from the horizon, over the film. */}
       <div ref={dawn} aria-hidden className="create-dawn pointer-events-none fixed inset-0 z-[15] opacity-0" />
       <LazyMotion features={domMax} strict>
