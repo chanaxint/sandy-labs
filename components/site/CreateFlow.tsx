@@ -5,7 +5,18 @@ import { AnimatePresence, domMax, LazyMotion, m, MotionConfig } from "motion/rea
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useLang } from "@/lib/i18n/lang";
 import { goToFrame } from "@/lib/journey/navigate";
-import { createCopy, createStore, morningFrame, sectors, sitesFor, siteTypes, type SiteType } from "@/lib/site/create";
+import { StylePreview } from "@/components/site/StylePreview";
+import {
+  createCopy,
+  createStore,
+  designStyles,
+  morningFrame,
+  sectors,
+  sitesFor,
+  siteTypes,
+  type DesignStyle,
+  type SiteType,
+} from "@/lib/site/create";
 import { holdScroll, releaseScroll } from "@/lib/site/intro";
 import { gsap, prefersReducedMotion } from "@/lib/scroll/engine";
 
@@ -15,7 +26,7 @@ const ease = [0.22, 1, 0.36, 1] as const;
 
 /**
  * "Create my website": the night turns back into morning and the steps open over the
- * morning sky (1. the industry, 2. the kind of website). The film plays its dusk backwards by itself (the scroll position is
+ * morning sky (1. the industry, 2. the kind of website, 3. the design style). The film plays its dusk backwards by itself (the scroll position is
  * animated, scroll held), a warm dawn light rises from the horizon on the way, and the
  * story's lines and the shooting stars step aside (`create-mode`, app/globals.css).
  * There is no way back to the night from it: it stays until the menu takes the visitor
@@ -74,11 +85,12 @@ export function CreateFlow() {
 
 /** The card, and the step in it: the answers are kept while going back and forth. */
 function CreateSteps() {
-  const [step, setStep] = useState<1 | 2>(1);
+  const [step, setStep] = useState<1 | 2 | 3>(1);
   const [sector, setSector] = useState<string | null>(null);
   /** The industry written in when none of the list fits ("other"). */
   const [other, setOther] = useState("");
   const [site, setSite] = useState<SiteType | null>(null);
+  const [style, setStyle] = useState<DesignStyle | null>(null);
 
   return (
     <div className="fixed inset-0 z-40 grid place-items-center px-4 pt-20 pb-6 md:pt-24">
@@ -113,8 +125,16 @@ function CreateSteps() {
                 setOther={setOther}
                 onNext={() => setStep(2)}
               />
+            ) : step === 2 ? (
+              <SiteStep
+                sector={sector ?? "other"}
+                site={site}
+                setSite={setSite}
+                onBack={() => setStep(1)}
+                onNext={() => setStep(3)}
+              />
             ) : (
-              <SiteStep sector={sector ?? "other"} site={site} setSite={setSite} onBack={() => setStep(1)} />
+              <StyleStep style={style} setStyle={setStyle} onBack={() => setStep(2)} />
             )}
           </m.div>
         </AnimatePresence>
@@ -264,11 +284,13 @@ function SiteStep({
   site,
   setSite,
   onBack,
+  onNext,
 }: {
   sector: string;
   site: SiteType | null;
   setSite: (t: SiteType) => void;
   onBack: () => void;
+  onNext: () => void;
 }) {
   const { lang } = useLang();
   const box = useStepFocus();
@@ -279,8 +301,8 @@ function SiteStep({
     <div ref={box}>
       <StepTitle delay={0.1}>{t.siteTitle[lang]}</StepTitle>
 
-      <fieldset className="mt-6">
-        <legend className="mb-4 text-[1.02rem] text-snow/90">{(any ? t.siteHintAny : t.siteHint)[lang]}</legend>
+      <fieldset className="mt-5">
+        <legend className="sr-only">{t.siteTitle[lang]}</legend>
         <div className="create-types grid gap-2 sm:grid-cols-2 md:gap-2.5">
           {choices.map((c, i) => (
             <label key={c.type} className="create-option create-type">
@@ -309,17 +331,67 @@ function SiteStep({
         </div>
       </fieldset>
 
-      <div className="mt-6 flex items-center gap-2">
-        <button type="button" onClick={onBack} className="create-back flex items-center gap-1.5 rounded-full px-4 py-3.5 text-snow/85 transition-colors hover:text-snow">
-          <ArrowLeft aria-hidden className="size-[18px]" strokeWidth={1.8} />
-          {t.back[lang]}
-        </button>
-        {/* Not connected yet: the next steps (and any backend) don't exist in this project. */}
-        <button type="button" disabled={!site} className={continueClass}>
-          {t.continue[lang]}
-          <ArrowRight aria-hidden className="size-[18px]" strokeWidth={1.8} />
-        </button>
-      </div>
+      <StepNav onBack={onBack} onNext={onNext} ready={site !== null} />
+    </div>
+  );
+}
+
+/** Back and Continue at the foot of a later step. */
+function StepNav({ onBack, onNext, ready }: { onBack: () => void; onNext?: () => void; ready: boolean }) {
+  const { lang } = useLang();
+  const t = createCopy;
+  return (
+    <div className="mt-6 flex items-center gap-2">
+      <button type="button" onClick={onBack} className="create-back flex items-center gap-1.5 rounded-full px-4 py-3.5 text-snow/85 transition-colors hover:text-snow">
+        <ArrowLeft aria-hidden className="size-[18px]" strokeWidth={1.8} />
+        {t.back[lang]}
+      </button>
+      {/* Without onNext, not connected yet: the next steps (and any backend) don't exist in this project. */}
+      <button type="button" disabled={!ready} onClick={onNext} className={continueClass}>
+        {t.continue[lang]}
+        <ArrowRight aria-hidden className="size-[18px]" strokeWidth={1.8} />
+      </button>
+    </div>
+  );
+}
+
+/** 3. The design style: each shown as a small moving preview, named below it. */
+function StyleStep({ style, setStyle, onBack }: { style: DesignStyle | null; setStyle: (s: DesignStyle) => void; onBack: () => void }) {
+  const { lang } = useLang();
+  const box = useStepFocus();
+  const t = createCopy;
+  return (
+    <div ref={box}>
+      <StepTitle delay={0.1}>{t.styleTitle[lang]}</StepTitle>
+
+      <fieldset className="mt-5">
+        <legend className="sr-only">{t.styleTitle[lang]}</legend>
+        <div className="create-styles grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-2.5">
+          {designStyles.map((d) => (
+            <label key={d.id} className="create-option create-style">
+              <input
+                type="radio"
+                name="style"
+                value={d.id}
+                checked={style === d.id}
+                onChange={() => setStyle(d.id)}
+                className="peer sr-only"
+              />
+              <StylePreview style={d.id} />
+              <span className="flex items-center justify-between gap-2 px-1">
+                <span>{d.label[lang]}</span>
+                <CircleCheck
+                  aria-hidden
+                  className={`size-[17px] shrink-0 transition-opacity ${style === d.id ? "opacity-100" : "opacity-0"}`}
+                  strokeWidth={1.6}
+                />
+              </span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      <StepNav onBack={onBack} ready={style !== null} />
     </div>
   );
 }

@@ -2,10 +2,10 @@
  * "Create my website": the start of the website-creation questions. The call to action
  * (the closing phrase's, the menu's) turns the film's night back into morning and opens
  * the steps over the morning sky: 1. the industry, 2. the kind of website (its choices
- * depend on the industry). There is no way back to the night from them; the menu still
+ * depend on the industry), 3. the design style (shown as small moving previews). There is no way back to the night from them; the menu still
  * takes the visitor to any chapter of the film.
  *
- * Only these two steps exist so far, and nothing is sent anywhere: there is no backend.
+ * Only these three steps exist so far, and nothing is sent anywhere: there is no backend.
  */
 import type { Lang } from "@/lib/journey/story";
 
@@ -44,9 +44,8 @@ export const createCopy = {
   continue: { en: "Continue", tr: "Devam et" },
   back: { en: "Back", tr: "Geri" },
   siteTitle: { en: "What kind of website do you want?", tr: "Nasıl bir web sitesi istiyorsunuz?" },
-  siteHint: { en: "Picked for your industry.", tr: "Sektörünüze göre seçtik." },
-  siteHintAny: { en: "Pick the one that fits best.", tr: "Size en uygun olanı seçin." },
   recommended: { en: "Recommended", tr: "Önerilen" },
+  styleTitle: { en: "What design style suits you?", tr: "Tasarım tarzınız nasıl olsun?" },
   otherLabel: { en: "Your industry", tr: "Sektörünüz" },
   otherPlaceholder: { en: "Write it here…", tr: "Buraya yazın…" },
 } satisfies Record<string, Copy>;
@@ -136,3 +135,14 @@ export const sitesFor: Record<string, { type: SiteType; about?: Copy }[]> = {
   ],
   other: [{ type: "ecommerce" }, { type: "corporate" }, { type: "portfolio" }, { type: "booking" }, { type: "landing" }],
 };
+
+/** The design styles of the third step, each shown as a small moving preview (StylePreview). */
+export type DesignStyle = "minimal" | "modern" | "3d" | "cinematic" | "playful";
+
+export const designStyles: { id: DesignStyle; label: Copy }[] = [
+  { id: "minimal", label: { en: "Minimal & luxury", tr: "Minimal & lüks" } },
+  { id: "modern", label: { en: "Modern & dynamic", tr: "Modern & dinamik" } },
+  { id: "3d", label: { en: "3D experience", tr: "3D deneyim" } },
+  { id: "cinematic", label: { en: "Cinematic scroll", tr: "Sinematik scroll" } },
+  { id: "playful", label: { en: "Playful & colourful", tr: "Eğlenceli & renkli" } },
+];

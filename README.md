@@ -138,9 +138,13 @@ scroll position asks for on a full-screen canvas:
   1. which industry (eight, two columns; "Other" opens a small field in its own box);
   2. what kind of website: e-commerce, corporate, portfolio, booking or landing page,
      the ones that fit the industry, best first (marked recommended) and described for it
-     (`sitesFor`); "Other" gets all five. Back returns to step 1 with the answers kept.
+     (`sitesFor`); "Other" gets all five;
+  3. the design style: minimal & luxury, modern & dynamic, 3D experience, cinematic
+     scroll, playful & colourful, each shown as a small moving preview of abstract shapes
+     (`components/site/StylePreview.tsx`, CSS keyframes `.sp-*`; still with reduced motion).
+  Back returns to the step before with the answers kept.
   There is no way back to the night from the steps; the menu still takes the visitor to
-  any chapter. Nothing is sent anywhere (no backend), so step 2's Continue isn't wired
+  any chapter. Nothing is sent anywhere (no backend), so step 3's Continue isn't wired
   yet. Reduced motion: straight there, fades only.
 - Logo: traced from the brand artwork (`design/brand/sandy-labs-logo.jpg`) into SVG paths
   (`lib/brand/logo.ts`, `components/brand/SandyLogo.tsx`).

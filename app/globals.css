@@ -503,6 +503,363 @@ html.create-mode [data-shooting-stars] {
     grid-column: 1 / -1;
   }
 }
+/* The third step's choices: a small moving preview, the style's name below it. */
+.create-style {
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 0.55rem;
+  min-height: 0;
+  padding: 0.5rem 0.5rem 0.65rem;
+}
+@media (max-width: 47.99rem) {
+  /* An odd last one sits centred on its own row, the size of the others. */
+  .create-styles > .create-style:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+    justify-self: center;
+    width: calc(50% - 0.25rem);
+  }
+}
+
+/* Style previews (StylePreview): a tiny page of abstract shapes, moving. */
+.sp {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: 0.7rem;
+  container-type: inline-size;
+}
+.sp > span,
+.sp-3-scene > span {
+  position: absolute;
+  display: block;
+}
+@keyframes sp-fade {
+  0%, 100% { opacity: 0.25; }
+  35%, 75% { opacity: 1; }
+}
+@keyframes sp-draw {
+  0% { transform: scaleX(0); }
+  35%, 75% { transform: scaleX(1); }
+  95%, 100% { transform: scaleX(0); opacity: 0; }
+}
+@keyframes sp-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6%); }
+}
+@keyframes sp-slide {
+  0% { transform: translateX(-115%); opacity: 0; }
+  22%, 78% { transform: translateX(0); opacity: 1; }
+  100% { transform: translateX(0); opacity: 0; }
+}
+@keyframes sp-grow {
+  0% { transform: scaleX(0.2); opacity: 0; }
+  25%, 78% { transform: scaleX(1); opacity: 1; }
+  100% { transform: scaleX(1); opacity: 0; }
+}
+@keyframes sp-rise {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-14%); }
+}
+@keyframes sp-spin {
+  from { transform: rotateX(-24deg) rotateY(0deg); }
+  to { transform: rotateX(-24deg) rotateY(360deg); }
+}
+@keyframes sp-pan {
+  to { transform: translateX(-50%); }
+}
+@keyframes sp-bounce {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  45% { transform: translateY(-22%) scale(0.96, 1.04); }
+  90% { transform: translateY(0) scale(1.06, 0.94); }
+}
+@keyframes sp-wiggle {
+  0%, 100% { transform: rotate(-9deg); }
+  50% { transform: rotate(9deg); }
+}
+
+/* Minimal & luxury: ivory, room, a thin gold line drawn slowly. */
+.sp-minimal {
+  background: #f2ede4;
+}
+.sp-m-nav {
+  left: 8%;
+  right: 8%;
+  top: 11%;
+  height: 3.5%;
+}
+.sp-m-nav::before,
+.sp-m-nav::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background: #2b2620;
+  border-radius: 1px;
+}
+.sp-m-nav::before {
+  left: 0;
+  width: 14%;
+}
+.sp-m-nav::after {
+  right: 0;
+  width: 22%;
+  opacity: 0.45;
+}
+.sp-m-title {
+  left: 26%;
+  right: 26%;
+  top: 37%;
+  height: 8%;
+  border-radius: 2px;
+  background: #2b2620;
+  animation: sp-fade 6s ease-in-out infinite;
+}
+.sp-m-line {
+  left: 39%;
+  right: 39%;
+  top: 52%;
+  height: 1.5px;
+  background: #b8975a;
+  animation: sp-draw 6s ease-in-out infinite;
+}
+.sp-m-sub {
+  left: 34%;
+  right: 34%;
+  top: 58%;
+  height: 3.5%;
+  border-radius: 1px;
+  background: rgb(43 38 32 / 0.35);
+}
+.sp-m-item {
+  left: 45%;
+  bottom: 9%;
+  width: 10%;
+  height: 20%;
+  border: 1px solid rgb(184 151 90 / 0.7);
+  border-radius: 45% 45% 3px 3px;
+  animation: sp-float 6s ease-in-out infinite;
+}
+
+/* Modern & dynamic: dark, bold blocks sliding in, a bright accent, cards on the move. */
+.sp-modern {
+  background: #0e1320;
+}
+.sp-d-bar {
+  left: 8%;
+  height: 9%;
+  border-radius: 2px;
+  background: #f2f4f8;
+  animation: sp-slide 3.2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+.sp-d-bar1 {
+  top: 13%;
+  width: 54%;
+}
+.sp-d-bar2 {
+  top: 26%;
+  width: 36%;
+  animation-delay: 0.12s;
+}
+.sp-d-pill {
+  top: 41%;
+  left: 8%;
+  width: 24%;
+  height: 7%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #5b7cff, #c056f5);
+  transform-origin: left center;
+  animation: sp-grow 3.2s cubic-bezier(0.22, 1, 0.36, 1) 0.25s infinite;
+}
+.sp-d-card {
+  bottom: 9%;
+  width: 26%;
+  height: 30%;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-radius: 6px;
+  background: #1c2436;
+  animation: sp-rise 3.2s ease-in-out infinite;
+}
+.sp-d-card1 {
+  left: 8%;
+}
+.sp-d-card2 {
+  left: 37%;
+  background: linear-gradient(160deg, #2a3a6e, #1c2436);
+  animation-delay: 0.2s;
+}
+.sp-d-card3 {
+  left: 66%;
+  animation-delay: 0.4s;
+}
+
+/* 3D experience: a see-through cube turning in perspective over a soft glow. */
+.sp-3d {
+  background: radial-gradient(circle at 50% 42%, #24325a, #0a0f1d 72%);
+}
+.sp-3-glow {
+  left: 28%;
+  right: 28%;
+  bottom: 10%;
+  height: 12%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(122 162 255 / 0.5), transparent);
+  animation: sp-fade 4.5s ease-in-out infinite;
+}
+.sp > .sp-3-scene {
+  inset: 0;
+  display: grid;
+  place-items: center;
+  perspective: 300px;
+}
+.sp-3-scene > .sp-3-cube {
+  position: relative;
+  width: 22cqw;
+  height: 22cqw;
+  transform-style: preserve-3d;
+  animation: sp-spin 9s linear infinite;
+}
+.sp-3-face {
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgb(180 205 255 / 0.6);
+  background: linear-gradient(135deg, rgb(120 160 255 / 0.34), rgb(190 120 255 / 0.16));
+}
+.sp-3-front {
+  transform: translateZ(11cqw);
+}
+.sp-3-back {
+  transform: rotateY(180deg) translateZ(11cqw);
+}
+.sp-3-right {
+  transform: rotateY(90deg) translateZ(11cqw);
+}
+.sp-3-left {
+  transform: rotateY(-90deg) translateZ(11cqw);
+}
+.sp-3-top {
+  transform: rotateX(90deg) translateZ(11cqw);
+}
+.sp-3-bottom {
+  transform: rotateX(-90deg) translateZ(11cqw);
+}
+
+/* Cinematic scroll: letterboxed, mountain layers gliding at their own speeds. */
+.sp-cinematic {
+  background: linear-gradient(to bottom, #f2a97f, #f4cfa2 38%, #a9bccb 62%, #44566c);
+}
+.sp-c-sun {
+  left: 58%;
+  top: 26%;
+  width: 14cqw;
+  height: 14cqw;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, #fff4dc, #ffd39c 62%, transparent);
+  animation: sp-float 10s ease-in-out infinite;
+}
+.sp-c-far,
+.sp-c-near {
+  left: 0;
+  width: 200%;
+}
+.sp-c-far {
+  bottom: 18%;
+  height: 38%;
+  background: #73839a;
+  clip-path: polygon(0% 100%, 0% 55%, 8% 30%, 16% 60%, 25% 22%, 33% 55%, 41% 36%, 50% 55%, 58% 30%, 66% 60%, 75% 22%, 83% 55%, 91% 36%, 100% 55%, 100% 100%);
+  animation: sp-pan 20s linear infinite;
+}
+.sp-c-near {
+  bottom: 12%;
+  height: 30%;
+  background: #2c3a4c;
+  clip-path: polygon(0% 100%, 0% 60%, 10% 40%, 20% 70%, 30% 36%, 40% 66%, 50% 60%, 60% 40%, 70% 70%, 80% 36%, 90% 66%, 100% 60%, 100% 100%);
+  animation: sp-pan 9s linear infinite;
+}
+.sp-c-caption {
+  left: 32%;
+  right: 32%;
+  bottom: 20%;
+  height: 4%;
+  border-radius: 2px;
+  background: rgb(255 255 255 / 0.75);
+  animation: sp-fade 6s ease-in-out infinite;
+}
+.sp-c-bar {
+  left: 0;
+  right: 0;
+  height: 12%;
+  background: #07090d;
+}
+.sp-c-top {
+  top: 0;
+}
+.sp-c-bottom {
+  bottom: 0;
+}
+
+/* Playful & colourful: warm ground, bright shapes bouncing. */
+.sp-playful {
+  background: #ffe6d5;
+}
+.sp-f-blob {
+  border-radius: 50%;
+  animation: sp-bounce 1.7s ease-in-out infinite;
+}
+.sp-f-b1 {
+  left: 9%;
+  top: 50%;
+  width: 17cqw;
+  height: 17cqw;
+  background: #ff5c8a;
+}
+.sp-f-b2 {
+  left: 33%;
+  top: 30%;
+  width: 11cqw;
+  height: 11cqw;
+  background: #ffc93c;
+  animation-delay: 0.2s;
+}
+.sp-f-b3 {
+  left: 54%;
+  top: 46%;
+  width: 14cqw;
+  height: 14cqw;
+  background: #4cc9f0;
+  animation-delay: 0.4s;
+}
+.sp-f-b4 {
+  left: 77%;
+  top: 24%;
+  width: 10cqw;
+  height: 10cqw;
+  border-radius: 28%;
+  background: #7bd389;
+  animation-delay: 0.6s;
+}
+.sp-f-squiggle {
+  left: 70%;
+  top: 66%;
+  width: 20cqw;
+  height: 7cqw;
+  border: 3px solid #7b5cff;
+  border-color: #7b5cff transparent transparent;
+  border-radius: 50%;
+  animation: sp-wiggle 1.4s ease-in-out infinite;
+}
+.sp-f-bar {
+  left: 9%;
+  top: 12%;
+  width: 40%;
+  height: 7%;
+  border-radius: 999px;
+  background: #2d1b4e;
+  animation: sp-wiggle 2.6s ease-in-out infinite;
+}
+
 .create-option:has(:focus-visible),
 .create-card button:focus-visible {
   outline: 2px solid var(--color-snow);
@@ -578,6 +935,11 @@ html.create-mode [data-shooting-stars] {
   transform: translateY(-4.25px) rotate(-45deg);
 }
 @media (prefers-reduced-motion: reduce) {
+  .sp *,
+  .sp *::before,
+  .sp *::after {
+    animation: none !important;
+  }
   [data-story-layer],
   [data-shooting-stars],
   .create-option {
