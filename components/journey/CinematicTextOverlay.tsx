@@ -94,7 +94,7 @@ export function CinematicTextOverlay({
           )}
         </p>
         {ctaLabel ? (
-          <div data-line className="mt-9 md:mt-11">
+          <div data-line className={`mt-9 md:mt-11 ${alignClass(phrase.mobile, false)} ${alignClass(phrase.desktop, true)}`}>
             {/* Opens the first step of the website creation (components/site/CreateFlow.tsx). */}
             <button type="button" onClick={openCreate} className="story-cta pointer-events-auto">
               {ctaLabel}

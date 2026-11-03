@@ -6,10 +6,10 @@
  * to scroll). Four points per phrase, each adjustable on its own:
  *   in    — starts appearing          shown — fully visible (reading starts)
  *   out   — starts leaving            gone  — fully hidden (omit to stay to the end)
- * The gap to the next phrase's `in` is the pause between them. Comments name the visual
- * event each phrase follows. `place` is per device (portrait phones see only the middle
- * of the frame, so phrases sit in its top or bottom band there); `tone` is the text
- * colour for the footage behind the phrase.
+ * The gap to the next phrase's `in` is the pause between them: the phrases are grouped
+ * around the film's events, with stretches of film alone between. Comments name the visual
+ * event each phrase follows. Every normal phrase stands at one fixed spot (`storyPlace`)
+ * as a single block; `tone` is the text colour for the footage behind it.
  */
 
 export type Lang = "en" | "tr";
@@ -67,14 +67,8 @@ export type Ink = { light: string; dark: string };
 
 export type Scene = { id: string; ink: Ink; phrases: Phrase[] };
 
-const margin = { x: "clamp(1.5rem, 6vw, 6.5rem)", top: "clamp(5rem, 14vh, 9rem)", bottom: "clamp(3rem, 11vh, 7rem)" };
-const phone = { x: "1.5rem", top: "5.5rem", bottom: "4.5rem" };
+const phone = { x: "1.5rem" };
 
-const topLeft: Place = { top: margin.top, left: margin.x, align: "left" };
-const topRight: Place = { top: margin.top, right: margin.x, align: "right" };
-const bottomLeft: Place = { bottom: margin.bottom, left: margin.x, align: "left" };
-const phoneTop: Place = { top: phone.top, left: phone.x, right: phone.x, align: "left" };
-const phoneBottom: Place = { bottom: phone.bottom, left: phone.x, right: phone.x, align: "left" };
 
 /** The rider heads for the lip: scrolling onto this frame hands the jump over to the film. */
 export const jumpApproach = 3062;
@@ -83,43 +77,43 @@ export const jumpFrame = 3116;
 /** Landed (3150), carved off to the left and gone from the frame (3222): the beat's own run ends and the scroll takes over again. */
 export const jumpResume = 3224;
 
+/**
+ * Where every normal phrase stands: one fixed spot, low in the middle of the frame (under
+ * the planes, the rider and the city, which hold the centre), so each new line takes the
+ * place of the last while the film carries on behind. Only the jump's line has its own.
+ */
+const storyPlace = {
+  desktop: { bottom: "clamp(3.5rem, 13vh, 8rem)", left: "0", right: "0", align: "center" } as Place,
+  mobile: { bottom: "11vh", left: phone.x, right: phone.x, align: "center" } as Place,
+};
+
+/** A normal phrase: one block, fading in rising a little, fading out in place, at the story's spot. */
+const line = (p: Omit<Phrase, "enter" | "exit" | "desktop" | "mobile"> & Partial<Pick<Phrase, "enter" | "exit">>): Phrase => ({
+  enter: "rise",
+  exit: "fade",
+  ...storyPlace,
+  ...p,
+});
+
 export const scenes: Scene[] = [
   {
     id: "island-reveal",
     // dawn-cloud umber; island sand
     ink: { light: "#f0dfc1", dark: "#392b1d" },
     phrases: [
-      {
-        // Diving through the white cloud (330–455): dark text over the cloud.
+      // Out of the cloud the island appears (460) and fills the frame until the cut to the
+      // runway (586). (The opening's run stops here: components/site/IntroGate.tsx.)
+      line({
         id: "island-1",
-        text: { en: ["Because every journey…"], tr: ["Çünkü her yolculuk…"] },
-        in: 345,
-        shown: 392,
-        out: 440,
-        gone: 474,
-        enter: "rise",
-        exit: "rise",
-        tone: "dark",
-        desktop: topLeft,
-        mobile: phoneTop,
-      },
-      {
-        // The island clears from the clouds (~460) and fills the frame until the cut to
-        // the runway (~585). It grows towards the bottom left, so the open sea at the top
-        // left holds the phrase on desktop.
-        id: "island-2",
-        text: { en: ["…begins with", "a simple idea."], tr: ["Önce küçük bir", "fikirle başlar."] },
-        in: 478,
-        shown: 512,
-        out: 552,
-        gone: 582,
-        enter: "mask",
-        exit: "rise",
+        text: { en: ["Because every journey", "begins with a simple idea."], tr: ["Çünkü her yolculuk,", "önce küçük bir fikirle başlar."] },
+        in: 470,
+        shown: 500,
+        out: 556,
+        gone: 578,
         tone: "light",
+        // Over white rock / snow: a faint shade behind the words.
         veil: true,
-        desktop: { ...topLeft, top: "clamp(3.5rem, 9vh, 6rem)" },
-        mobile: phoneBottom,
-      },
+      }),
     ],
   },
   {
@@ -127,38 +121,20 @@ export const scenes: Scene[] = [
     // pine shade; sand
     ink: { light: "#f7f1e4", dark: "#252f1e" },
     phrases: [
-      {
-        // The first plane on the runway, starting to roll (600–800).
-        id: "takeoff-1",
-        text: { en: ["And the right beginning…"], tr: ["Ve doğru başlangıç…"] },
-        in: 640,
-        shown: 688,
-        out: 768,
-        gone: 804,
-        enter: "rise",
-        exit: "rise",
-        tone: "light",
-        desktop: topRight,
-        mobile: { ...phoneTop, top: "17vh" },
-      },
-      {
-        // It lifts off over the cliff (~905) and climbs over the sea; gone before the cloud
-        // wall rises at the top right (~1030).
-        id: "takeoff-2",
+      // Transition A: the take-off (600–912) closes into cloud (dense 910–968, lib/journey/veils.ts),
+      // the cut to the flight over the sea (918) happens inside it, and it opens on the sea.
+      line({
+        id: "takeoff",
         text: {
-          en: ["…can take that idea", "somewhere unexpected."],
-          tr: ["…o fikri hiç beklemediğin", "yerlere taşır."],
+          en: ["And the right beginning can take", "that idea somewhere unexpected."],
+          tr: ["Ve doğru başlangıç, o fikri", "hiç beklemediğin yerlere taşır."],
         },
-        in: 815,
-        shown: 868,
-        out: 975,
-        gone: 1018,
-        enter: "mask",
-        exit: "rise",
-        tone: "light",
-        desktop: topRight,
-        mobile: { ...phoneTop, top: "17vh" },
-      },
+        in: 912,
+        shown: 924,
+        out: 956,
+        gone: 966,
+        tone: "dark",
+      }),
     ],
   },
   {
@@ -166,35 +142,20 @@ export const scenes: Scene[] = [
     // slate in the white-out; cloud white
     ink: { light: "#e2e8ee", dark: "#21303d" },
     phrases: [
-      {
-        // The first plane flies into the cloud wall (1520) and fades into it (gone ~1650).
-        id: "swap-1",
-        text: { en: ["Sometimes the route changes…"], tr: ["Bazen yol değişir…"] },
-        in: 1528,
-        shown: 1566,
-        out: 1606,
-        gone: 1634,
-        enter: "rise",
-        exit: "rise",
+      // The first plane flies into the cloud wall (1520) and is lost in it; nothing but
+      // white until the second plane takes shape (1685–1720).
+      line({
+        id: "swap",
+        text: {
+          en: ["Sometimes the route changes,", "but the urge to explore never does."],
+          tr: ["Bazen yol değişir;", "ama keşfetme isteği hep devam eder."],
+        },
+        in: 1600,
+        shown: 1626,
+        out: 1688,
+        gone: 1708,
         tone: "dark",
-        desktop: topLeft,
-        mobile: phoneTop,
-      },
-      {
-        // Nothing but white; the second plane takes shape (~1685) and is clear by ~1720:
-        // the phrase is gone just before.
-        id: "swap-2",
-        text: { en: ["…but the urge to explore", "never does."], tr: ["Ama keşfetme isteği", "hep devam eder."] },
-        in: 1638,
-        shown: 1664,
-        out: 1690,
-        gone: 1712,
-        enter: "rise",
-        exit: "fade",
-        tone: "dark",
-        desktop: topLeft,
-        mobile: phoneTop,
-      },
+      }),
     ],
   },
   {
@@ -202,37 +163,18 @@ export const scenes: Scene[] = [
     // glacier navy; ice
     ink: { light: "#c7e4ec", dark: "#183040" },
     phrases: [
-      {
-        // The second plane flies up the fjord between the snow mountains (1790–2100); the
-        // snowfield on the right, below the wing and above the dark shore, stays clear.
-        id: "mountains-1",
-        text: { en: ["With every new horizon…"], tr: ["Yeni bir manzarayla", "birlikte…"] },
-        in: 1792,
-        shown: 1840,
-        out: 1922,
-        gone: 1958,
-        enter: "rise",
-        exit: "rise",
-        tone: "dark",
-        // While the plane holds the centre its right wing reaches the snowfield: the bright
-        // peaks at the top right instead.
-        desktop: topRight,
-        mobile: phoneTop,
-      },
-      {
-        // The plane banks away to the left (~2100); before the cut to the peaks (2196).
-        id: "mountains-2",
-        text: { en: ["…come new possibilities."], tr: ["…yeni ihtimaller", "de belirir."] },
-        in: 1964,
-        shown: 2010,
-        out: 2110,
-        gone: 2150,
-        enter: "mask",
-        exit: "rise",
-        tone: "dark",
-        desktop: { bottom: "25vh", right: margin.x, align: "right" },
-        mobile: phoneTop,
-      },
+      // The second plane flies up the fjord between the snow mountains (1790–2190).
+      line({
+        id: "mountains",
+        text: { en: ["With every new horizon", "come new possibilities."], tr: ["Yeni bir manzarayla birlikte,", "yeni ihtimaller de belirir."] },
+        in: 1880,
+        shown: 1906,
+        out: 1990,
+        gone: 2012,
+        tone: "light",
+        // Over white rock / snow: a faint shade behind the words.
+        veil: true,
+      }),
     ],
   },
   {
@@ -240,43 +182,23 @@ export const scenes: Scene[] = [
     // steel navy; ice
     ink: { light: "#deedf2", dark: "#1c2f44" },
     phrases: [
-      {
-        // The snowboarder rides in from the top right (~2476) and carves down the slope.
+      // Transition B: the plane's view of the peaks closes into snow mist (dense 2192–2240,
+      // lib/journey/veils.ts), the cut to the snowboard slope (2196) happens inside it.
+      // It leads into the jump's line; it isn't shown again at the jump.
+      line({
         id: "snowboard-a",
-        text: { en: ["That's when,"], tr: ["İşte o zaman,"] },
-        in: 2448,
-        shown: 2505,
-        out: 2570,
-        gone: 2600,
-        enter: "rise",
-        exit: "rise",
+        text: { en: ["That's when you want", "to do more than watch…"], tr: ["İşte o zaman,", "sadece izlemek değil…"] },
+        in: 2194,
+        shown: 2204,
+        out: 2232,
+        gone: 2240,
         tone: "dark",
-        // Below the dark ridge at the top, on open snow.
-        desktop: { top: "25vh", left: margin.x, align: "left" },
-        mobile: { ...phoneTop, top: "20vh" },
-      },
-      {
-        // A short pause, then while he carves across the slope (2700–2880, centre right)
-        // the open snow to his left holds the phrase; gone before he swings to the centre
-        // and speeds up towards the jump.
-        id: "snowboard-a2",
-        text: { en: ["you want to do more", "than watch…"], tr: ["sadece izlemek", "değil…"] },
-        in: 2660,
-        shown: 2702,
-        out: 2840,
-        gone: 2882,
-        enter: "rise",
-        exit: "rise",
-        tone: "dark",
-        desktop: { top: "44%", right: "57.5%", align: "right" },
-        mobile: { ...phoneTop, top: "20vh" },
-      },
+      }),
       {
         // The jump. From the approach the film plays by itself; at the freeze frame (board
-        // side-on) it holds ~0.8 s and this cuts in, large, in
-        // the open sky either side of the rider (arms out, he spans ~35–61% of the width),
-        // his cut-out drawn in front of it (lib/journey/rider.ts); it fades as the film
-        // moves on by itself. Phones: the frame is all rider, so it sits on the snow below.
+        // side-on) the screen turns flat coral but for a crisp window on the frozen frame
+        // around the rider (jumpBeat.ts), and this cuts in, large, on the coral either side
+        // of it; coral and line go as the film moves on by itself. Phones: below the window.
         // in/out are used only with reduced motion (no freeze): a plain fade around the jump.
         id: "snowboard-b",
         text: { en: ["You want", "to feel it."], tr: ["Hissetmek", "istersin."] },
@@ -286,10 +208,11 @@ export const scenes: Scene[] = [
         gone: jumpResume,
         enter: "cut",
         exit: "fade",
-        tone: "dark",
+        tone: "light",
         size: "giant",
         interaction: "jump-freeze",
-        desktop: { top: "27%", left: "0", right: "0", align: "center", centerY: true },
+        // Centred on the impact's window around the rider (jumpBeat.ts sets --impact-*).
+        desktop: { top: "var(--impact-y, 39%)", left: "0", right: "0", align: "center", centerY: true },
         mobile: { bottom: "8vh", left: "0", right: "0", align: "center" },
       },
     ],
@@ -299,41 +222,20 @@ export const scenes: Scene[] = [
     // deep marine; Miami sand
     ink: { light: "#f9f0e2", dark: "#163042" },
     phrases: [
-      {
-        // The white-out over the city (3790–3860): dark text.
-        id: "miami-1",
-        text: { en: ["At Sandy Labs…"], tr: ["Biz Sandy Labs'ta…"] },
-        in: 3790,
-        shown: 3828,
-        out: 3858,
-        gone: 3884,
-        enter: "rise",
-        exit: "rise",
-        tone: "dark",
-        desktop: bottomLeft,
-        mobile: phoneBottom,
-      },
-      {
-        // Miami appears through the clouds (3860–3890). The skyline holds the top band and
-        // the islands the middle, so the phrase sits on the open water at the bottom left;
-        // gone before the jet's nose rises from the bottom (~3975).
-        id: "miami-2",
+      // Miami appears through the clouds (3860–3890); gone before the jet rises (~3975).
+      line({
+        id: "miami",
         text: {
-          en: ["…that's exactly how", "we see websites."],
-          tr: ["Web sitelerine tam da", "böyle bakıyoruz."],
+          en: ["At Sandy Labs, that's exactly", "how we see websites."],
+          tr: ["Biz Sandy Labs'ta, web sitelerine", "tam da böyle bakıyoruz."],
         },
-        in: 3888,
-        shown: 3914,
-        out: 3944,
+        in: 3876,
+        shown: 3900,
+        out: 3950,
         gone: 3970,
-        enter: "mask",
-        exit: "fade",
         tone: "light",
         veil: true,
-        // Below the marina, on the open water.
-        desktop: { bottom: "clamp(2rem, 6vh, 4rem)", left: margin.x, align: "left" },
-        mobile: phoneBottom,
-      },
+      }),
     ],
   },
   {
@@ -341,38 +243,20 @@ export const scenes: Scene[] = [
     // sky marine; sand
     ink: { light: "#f6ecda", dark: "#11263f" },
     phrases: [
-      {
-        // The private jet climbs into the frame from under the camera (3975–4030).
-        id: "jet-1",
-        text: { en: ["You share your idea…"], tr: ["Sen fikrini anlatırsın…"] },
-        in: 3988,
-        shown: 4026,
-        out: 4076,
-        gone: 4100,
-        enter: "rise",
-        exit: "rise",
-        tone: "dark",
-        desktop: { top: "clamp(2rem, 6vh, 4rem)", right: margin.x, align: "right" },
-        mobile: phoneTop,
-      },
-      {
-        // The jet holds the centre (4040–4190); gone before it banks and its right wing
-        // sweeps up to the top right (~4200).
-        id: "jet-2",
+      // The private jet climbs in (3975–4030) and holds the centre (4040–4190).
+      line({
+        id: "jet",
         text: {
-          en: ["We turn it into an experience", "worth exploring."],
-          tr: ["Biz onu keşfedilecek", "bir deneyime dönüştürürüz."],
+          en: ["You share your idea; we turn it", "into an experience worth exploring."],
+          tr: ["Sen fikrini anlatırsın; biz onu keşfedilecek", "bir deneyime dönüştürürüz."],
         },
-        in: 4102,
-        shown: 4134,
-        out: 4168,
-        gone: 4192,
-        enter: "mask",
-        exit: "rise",
-        tone: "dark",
-        desktop: { top: "clamp(2rem, 6vh, 4rem)", right: margin.x, align: "right" },
-        mobile: phoneTop,
-      },
+        in: 4036,
+        shown: 4062,
+        out: 4150,
+        gone: 4172,
+        tone: "light",
+        veil: true,
+      }),
     ],
   },
   {
@@ -380,56 +264,39 @@ export const scenes: Scene[] = [
     // marine; warm ivory sand
     ink: { light: "#f7f1e4", dark: "#10253c" },
     phrases: [
-      {
-        // The jet banks left and leaves (4200–4330): the water right of it is open.
+      // The jet banks away and leaves (4200–4330): three lines close together, the last
+      // the strongest and the longest.
+      line({
         id: "value-1",
-        text: {
-          en: ["With immersive 3D worlds", "and fluid scroll animations."],
-          tr: ["3D dünyalar ve akıcı", "scroll animasyonlarıyla."],
-        },
-        in: 4206,
-        shown: 4246,
-        out: 4318,
-        gone: 4348,
-        enter: "rise",
-        exit: "rise",
+        text: { en: ["With immersive 3D worlds", "and fluid scroll animations."], tr: ["3D dünyalar ve", "akıcı scroll animasyonlarıyla."] },
+        in: 4210,
+        shown: 4236,
+        out: 4292,
+        gone: 4312,
         tone: "light",
         veil: true,
-        // The band of water between the skyline and the islands.
-        desktop: { top: "51%", right: margin.x, align: "right" },
-        mobile: phoneBottom,
-      },
-      {
-        // Miami alone, the jet gone: a short pause.
+      }),
+      line({
         id: "value-2",
         text: { en: ["What's more…"], tr: ["Üstelik…"] },
-        in: 4362,
-        shown: 4384,
-        out: 4416,
-        gone: 4440,
-        enter: "rise",
-        exit: "fade",
+        in: 4322,
+        shown: 4342,
+        out: 4372,
+        gone: 4390,
         tone: "light",
         veil: true,
-        desktop: { top: "51%", right: margin.x, align: "right" },
-        mobile: phoneBottom,
-      },
-      {
-        // The camera tilts up from the skyline into the sky (4480–4580): the key line, in
-        // the sky above the city, held the longest.
+      }),
+      // The camera tilts up into the sky (4480–4580).
+      line({
         id: "value-3",
-        text: { en: ["In around", "5 minutes."], tr: ["Yaklaşık", "5 dakikada."] },
-        in: 4448,
-        shown: 4510,
-        out: 4612,
-        gone: 4648,
-        enter: "statement",
-        exit: "rise",
-        tone: "dark",
+        text: { en: ["In around 5 minutes."], tr: ["Yaklaşık 5 dakikada."] },
+        in: 4400,
+        shown: 4428,
+        out: 4520,
+        gone: 4550,
+        tone: "light",
         size: "statement",
-        desktop: { top: "clamp(2rem, 7vh, 4.5rem)", right: margin.x, align: "right" },
-        mobile: phoneTop,
-      },
+      }),
     ],
   },
   {
@@ -437,34 +304,19 @@ export const scenes: Scene[] = [
     // dusk; silver
     ink: { light: "#eff2f8", dark: "#171f36" },
     phrases: [
-      {
-        // The sky darkens (4660–4800).
-        id: "night-1",
-        text: { en: ["Because every brand…"], tr: ["Çünkü her markanın…"] },
-        in: 4654,
-        shown: 4690,
-        out: 4728,
-        gone: 4752,
-        enter: "rise",
-        exit: "rise",
+      // The sky darkens (4660–4800).
+      line({
+        id: "night",
+        text: {
+          en: ["Because every brand has", "a story waiting to be told."],
+          tr: ["Çünkü her markanın, anlatılmayı", "bekleyen bir hikâyesi vardır."],
+        },
+        in: 4650,
+        shown: 4676,
+        out: 4780,
+        gone: 4806,
         tone: "light",
-        desktop: bottomLeft,
-        mobile: phoneBottom,
-      },
-      {
-        // Gone as the first stars come out (~4820).
-        id: "night-2",
-        text: { en: ["…has a story", "waiting to be told."], tr: ["Anlatılmayı bekleyen", "bir hikâyesi vardır."] },
-        in: 4756,
-        shown: 4788,
-        out: 4826,
-        gone: 4852,
-        enter: "mask",
-        exit: "fade",
-        tone: "light",
-        desktop: bottomLeft,
-        mobile: phoneBottom,
-      },
+      }),
     ],
   },
   {
@@ -472,20 +324,16 @@ export const scenes: Scene[] = [
     // night; moonlight silver-blue
     ink: { light: "#d5dff0", dark: "#171f36" },
     phrases: [
-      {
-        // The night sky to the end of the film: stays, with the call to action.
+      // The night sky to the end of the film: stays, with the call to action.
+      line({
         id: "final",
-        text: { en: ["Now it's time", "to tell yours."], tr: ["Şimdi sıra", "senin hikâyende."] },
-        in: 4866,
-        shown: 4950,
+        text: { en: ["Now it's time to tell yours."], tr: ["Şimdi sıra senin hikâyende."] },
+        in: 4880,
+        shown: 4930,
         out: Infinity,
-        enter: "mask",
-        exit: "fade",
         tone: "light",
         size: "final",
-        desktop: { top: "56%", left: margin.x, align: "left", centerY: true },
-        mobile: { top: "52%", left: phone.x, right: phone.x, align: "left", centerY: true },
-      },
+      }),
     ],
   },
 ];

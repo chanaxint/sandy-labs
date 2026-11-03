@@ -7,8 +7,8 @@
  * and stops when the scroll stops. It follows the scroll with a short glide (`follow`)
  * so phrases settle in softly even after a quick flick. No timers.
  *
- * Phrases animate as whole lines (a short offset between lines), only opacity and
- * transform. The jump's phrase isn't here: its beat shows it (jumpBeat.ts), except with
+ * A phrase moves as one block (its lines together), only opacity and transform: in, a
+ * fade rising a little; out, a soft fade in place. The jump's phrase isn't here: its beat shows it (jumpBeat.ts), except with
  * reduced motion, where it simply fades in and out with the scroll like the others.
  */
 import { gsap, prefersReducedMotion } from "@/lib/scroll/engine";
@@ -23,19 +23,14 @@ type Vars = gsap.TweenVars;
 /** Seconds the phrases take to catch up with the scroll. */
 const follow = 0.65;
 
+/** In: a fade rising a little (a touch more for the larger statement). Out: a soft fade in place. */
 function enterVars(p: Phrase): { from: Vars; to: Vars; ease: string } {
-  switch (p.enter) {
-    case "mask":
-      return { from: { yPercent: 104, opacity: 0 }, to: { yPercent: 0, opacity: 1 }, ease: "power3.out" };
-    case "statement":
-      return { from: { yPercent: 104, opacity: 0 }, to: { yPercent: 0, opacity: 1 }, ease: "power2.out" };
-    default:
-      return { from: { y: 16, opacity: 0 }, to: { y: 0, opacity: 1 }, ease: "power2.out" };
-  }
+  const y = p.size === "statement" ? 22 : 14;
+  return { from: { y, opacity: 0 }, to: { y: 0, opacity: 1 }, ease: "power2.out" };
 }
 
 function exitVars(p: Phrase): Vars {
-  return p.exit === "rise" ? { y: -12, opacity: 0, ease: "power1.in" } : { opacity: 0, ease: "power1.inOut" };
+  return p.exit === "rise" ? { y: -10, opacity: 0, ease: "power1.in" } : { opacity: 0, ease: "power1.inOut" };
 }
 
 function build(stage: HTMLElement, reduce: boolean) {
@@ -58,7 +53,7 @@ function build(stage: HTMLElement, reduce: boolean) {
     const enter = p.shown - p.in;
     if (enter > 0) {
       const m = reduce ? { from: { opacity: 0 }, to: { opacity: 1 }, ease: "none" } : enterVars(p);
-      const each = gap > 0 ? (enter * 0.22) / gap : 0;
+      const each = 0; // one block: all its lines together
       // Lines rest in their "before" state: a line whose turn hasn't come yet (the
       // offset between lines) shows nothing, instead of its plain full look.
       gsap.set(lines, m.from);
@@ -74,7 +69,7 @@ function build(stage: HTMLElement, reduce: boolean) {
     // Exit, then hidden (until scrolled back).
     if (p.gone !== undefined && Number.isFinite(p.out)) {
       const leave = p.gone - p.out;
-      const each = gap > 0 ? (leave * 0.15) / gap : 0;
+      const each = 0;
       const x = reduce ? { opacity: 0, ease: "none" } : exitVars(p);
       tl.to(lines, { ...x, duration: leave - each * gap, stagger: each }, p.out);
       tl.set(root, { autoAlpha: 0 }, p.gone);

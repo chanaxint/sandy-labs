@@ -71,6 +71,15 @@ python3 "$(dirname "$0")/frame_still.py" "$OUT/journey-1440.h264" 4600 "$STILL"
 ffmpeg -v error -y -i "$STILL" \
   -filter_complex "[0]scale=1920:-2:flags=lanczos,split[a][b];[b]hflip[c];[a][c]hstack" \
   -c:v libwebp -quality 80 "$OUT/morning-sky.webp"
+# The cloud over the film's two hard cuts (lib/journey/veils.ts): the opening's own cloud
+# (frames 352, 366 and 340), as it is for the take-off and whitened, bluish and soft as
+# snow mist for the snowy peaks.
+still() { python3 "$(dirname "$0")/frame_still.py" "$OUT/journey-1440.h264" "$1" "$STILL"; }
+mist="eq=brightness=0.1:saturation=0.15:gamma=1.15:contrast=0.85,colorbalance=bs=0.05:bm=0.03"
+still 352 && ffmpeg -v error -y -i "$STILL" -vf "scale=1920:-2:flags=lanczos" -c:v libwebp -quality 72 "$OUT/veil-cloud-core.webp"
+still 366 && ffmpeg -v error -y -i "$STILL" -vf "scale=1920:-2:flags=lanczos,hflip" -c:v libwebp -quality 72 "$OUT/veil-cloud-ring.webp"
+still 340 && ffmpeg -v error -y -i "$STILL" -vf "scale=1920:-2:flags=lanczos,hflip,$mist" -c:v libwebp -quality 72 "$OUT/veil-mist-core.webp"
+still 366 && ffmpeg -v error -y -i "$STILL" -vf "scale=1920:-2:flags=lanczos,${mist/brightness=0.1/brightness=0.12}" -c:v libwebp -quality 72 "$OUT/veil-mist-ring.webp"
 rm -f "$STILL"
 ffmpeg -v error -y -i "$SRC" -vf "select='not(mod(n\,20))',scale=192:108:flags=area,tile=16x16" -frames:v 1 -q:v 5 \
   "$OUT/journey-thumbs.jpg"

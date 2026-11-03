@@ -166,12 +166,21 @@ fog, the fjord, the snowboarder's jump, Miami and the jet, to the night sky and 
 to action. Each phrase is tied to a moment in the footage, not to a time.
 
 - Copy (English and Turkish), timing and placement: `lib/journey/story.ts`, as scenes of
-  phrases. Each phrase has four film frames, `in` → `shown` → `out` → `gone` (the gap to
-  the next `in` is the pause between phrases), its own desktop and phone position (portrait
-  phones see only the middle of the frame, so phrases sit in its top or bottom band there),
-  text tone (light or dark, for the footage behind it), entrance (`rise`, `mask`,
-  `statement`, `cut`) and exit (`rise`, `fade`). Long sentences are split into phrases
-  that follow each other; the comments say which visual event each one follows.
+  phrases (the approved story, 01–11). Each phrase has four film frames, `in` → `shown` →
+  `out` → `gone` (the gap to the next `in` is the pause between phrases, with film-only
+  stretches between events). Every ordinary phrase sits in one fixed place, centred low on
+  the screen (`storyPlace`: desktop and phone), one block at a time; it comes in with a
+  fade and a small rise and goes with a soft fade. Only the jump's phrase (on the impact)
+  and the closing line with its call to action differ in size. Text tone (light or dark)
+  follows the footage behind it.
+- Cloud over the two hard cuts (`lib/journey/veils.ts`): A, the take-off to the flight
+  over the sea (frames 872–1004), through cloud, with "And the right beginning…" in the
+  dense part; B, the snowy plane's peaks to the snowboard slope (2160–2276), through snow
+  mist, with "That's when you want to do more than watch…". Two layers of the film's own
+  cloud (`public/media/journey/veil-*.webp`, made by `build-journey.sh`): a ring clear in
+  the middle that closes in from the edges and opens outwards again, and a full layer for
+  the dense part; driven by the film frame, so they play backwards exactly. The scroll pace
+  is slower only inside the dense cloud, where the film is hidden.
 - `components/journey/CinematicTextOverlay.tsx` renders a phrase; `lib/journey/storyTimeline.ts`
   puts them on a GSAP timeline in film frames, set from the film scene's scroll progress
   (through the pace mapping) with a short glide (`follow`, 0.65 s): they play backwards when
@@ -201,10 +210,13 @@ to action. Each phrase is tied to a moment in the footage, not to a time.
   step). Once per pass: it re-arms after stepping back a little before the approach;
   scrolling back through it or jumping over it plays nothing. Reduced motion: no beat, the
   phrase fades with the scroll.
-  The phrase sits either side of the rider, his cut-out drawn in front of it
-  (`public/media/journey/rider/`, a transparent WebP per film frame, ~8 MB, fetched as the
-  film nears the jump; `lib/journey/rider.ts`), made with Robust Video Matting by
-  `scripts/journey/matte_rider.py`; rerun it if the jump's frames change.
+  The impact: on the freeze the screen turns flat coral (`--color-coral`) at once but for
+  a crisp window on the frozen frame around the rider (his real image; the window follows
+  the film's "cover" framing, `--impact-*`), and the phrase is there, large and white, on
+  the coral either side of it (below it on phones); coral and phrase go in a quick fade as
+  the film moves on. (A matted cut-out of the rider, `public/media/journey/rider/` from
+  `scripts/journey/matte_rider.py`, is no longer used: its edges were not clean enough on
+  flat colour.)
 - Story Studio, `/studio` (not linked anywhere): the site in an iframe at desktop or phone
   size; pick a phrase and the film goes to it; drag it into place (it snaps to the centre and
   thirds guides; arrow keys nudge it, buttons centre it), set its size, text (EN/TR),

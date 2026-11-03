@@ -5,6 +5,8 @@
   --font-serif: var(--font-serif), ui-serif, Georgia, serif;
   --color-ink: #0f1e2c;
   --color-snow: #f6f7f4;
+  /* The jump's impact (amber red, from the sunset in the film). */
+  --color-coral: #e9553b;
 }
 
 /* Selected text: a near-white highlight (dark letters) across the site; on light ground
@@ -55,6 +57,23 @@ body {
   color: var(--story-ink, var(--color-ink));
   text-shadow: 0 0 30px rgb(255 255 255 / 0.6);
 }
+/* The jump's impact: flat coral over the whole frame but a crisp window on the frozen
+   frame around the rider (jumpBeat.ts); the phrase on it is plain snow, no shade. */
+.impact {
+  position: absolute;
+  left: var(--impact-l, 40%);
+  top: var(--impact-t, 15%);
+  width: var(--impact-w, 20%);
+  height: var(--impact-h, 50%);
+  box-shadow: 0 0 0 200vmax var(--color-coral);
+  visibility: hidden;
+  opacity: 0;
+}
+.impact-on .story[data-story="snowboard-b"] {
+  color: #fffaf4;
+  text-shadow: none;
+}
+
 /* A faint shade behind the words only, for busy footage. */
 .story[data-veil]::before {
   content: "";
@@ -81,7 +100,7 @@ body {
   top: var(--fit-y, 0px);
   margin: 0;
   font-family: var(--font-serif);
-  font-size: calc(clamp(2.1rem, 1.1rem + 3.1vw, 4.4rem) * var(--ts));
+  font-size: calc(clamp(1.8rem, 1.1rem + 3.1vw, 4.4rem) * var(--ts));
   font-weight: 400;
   line-height: 1.02;
   letter-spacing: -0.012em;
@@ -107,8 +126,9 @@ body {
   /* The two halves of the phrase left and right of the rider, centred on him (~48%). */
   .story-text-giant {
     display: grid;
-    grid-template-columns: 1fr 26vw 1fr;
-    margin-left: -5vw;
+    /* The middle column is the impact's window, plus air (jumpBeat.ts sets --impact-*). */
+    grid-template-columns: 1fr calc(var(--impact-w, 26vw) + 5vw) 1fr;
+    margin-left: calc(2 * var(--impact-x, 47.5vw) - 100vw);
   }
   .story-text-giant > :first-child {
     grid-column: 1;
@@ -119,12 +139,16 @@ body {
     text-align: left;
   }
 }
+/* Each line as written: a phrase too wide for the screen is made smaller (fit.ts) rather
+   than broken elsewhere. Only the closing line wraps on phones, balanced. */
 .story-line {
   display: block;
+  white-space: nowrap;
 }
-@media (min-width: 48rem) {
-  .story-line {
-    white-space: nowrap;
+@media (max-width: 47.99rem) {
+  .story-text-final .story-line {
+    white-space: normal;
+    text-wrap: balance;
   }
 }
 @media (max-width: 47.99rem) {
@@ -368,6 +392,25 @@ body {
   to {
     transform: translateX(calc(-1 * var(--cw, 0px)));
   }
+}
+
+/* Cloud and mist over two cuts of the film (lib/journey/veils.ts): a full layer and a
+   ring clear in the middle, both real cloud, moved by the scene. */
+.veil {
+  visibility: hidden;
+}
+.veil > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transform-origin: 50% 50%;
+  will-change: transform, opacity;
+}
+.veil > .veil-ring {
+  mask-image: radial-gradient(ellipse 70% 62% at 50% 50%, transparent 30%, #000 78%);
 }
 
 /* A shooting star over the night (ShootingStars): a faint streak, its bright head in

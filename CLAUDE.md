@@ -83,8 +83,10 @@ Rules:
   lives in `lib/journey/story.ts`, rendered by `CinematicTextOverlay`, on a timeline following
   the film (`storyTimeline.ts`). Scroll pace is set per stretch (`pace` in config, `pace.ts`).
   The snowboard jump has its own beat (`jumpBeat.ts`: from the approach the film plays itself,
-  holds with the board side-on as the phrase cuts in, runs through the landing until the rider leaves the frame, scroll handed back) with the rider's matted cut-out in front of the phrase
-  (`rider.ts`, `scripts/journey/matte_rider.py`). The closing CTA (and the menu's) opens
+  holds with the board side-on as the phrase cuts in on a flat coral impact around a window on the
+  frozen frame, runs through the landing until the rider leaves the frame, scroll handed back).
+  Ordinary phrases share one fixed place (`storyPlace` in `story.ts`). Cloud/mist over the film's
+  two hard cuts: `veils.ts` (textures made by `build-journey.sh`). The closing CTA (and the menu's) opens
   "Create my website" (`components/site/CreateFlow.tsx`, `lib/site/create.ts`): the night plays back
   to morning and the steps open (1. industry, 2. kind of website, its choices per industry in
   `sitesFor`, 3. design style as moving previews, `StylePreview.tsx`, 4. the dream website in a

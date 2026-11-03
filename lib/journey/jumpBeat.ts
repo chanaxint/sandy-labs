@@ -5,10 +5,13 @@
  *  1. the scroll is held (Lenis stopped) and the film plays by itself up to the frame
  *     where the board is side-on in the air (`jumpFrame`), fast, and stops dead on it (a
  *     fling that lands past it is set straight back onto it);
- *  2. "You want to feel it." cuts in at once (no fade), and the film holds `hold` seconds;
+ *  2. the impact: the frame turns flat coral at once but for a crisp window on the frozen
+ *     frame around the rider (his real image, no cut-out), and "You want to feel it."
+ *     cuts in on the coral, large, at either side of it (no fade); the film holds `hold`
+ *     seconds;
  *  3. the film then breaks out of it at full speed, through the landing and on until the
- *     rider has left the frame (`jumpResume`), easing out only at the very end; the phrase
- *     goes as the motion resumes;
+ *     rider has left the frame (`jumpResume`), easing out only at the very end; the coral
+ *     and the phrase go in a quick fade as the motion resumes;
  *  4. the scroll is handed back.
  * The scroll position itself is animated (Lenis scrollTo), so film, ScrollTrigger and
  * scroll stay one. It plays once per pass: it re-arms after a deliberate step back before
@@ -56,9 +59,49 @@ type State = "armed" | "approaching" | "holding" | "running" | "done";
 /** The beat's state, for the debug panel and tests. */
 export const jumpStatus: { state: State; plays: number } = { state: "armed", plays: 0 };
 
+/**
+ * The rider in the freeze frame (shares of the film frame, from its matte with some air):
+ * the impact's window. Phones get less side air, the frame being cropped narrow there.
+ */
+const riderWindow = { x: [0.36, 0.64], y: [0.12, 0.66] } as const;
+const phoneWindow = { x: [0.385, 0.615], y: [0.12, 0.66] } as const;
+/** Seconds the impact's coral takes to go once the motion resumes. */
+const impactFade = 0.32;
+
 export function createJumpBeat(stage: HTMLElement, sceneId: string): SceneMedia {
   const root = stage.querySelector<HTMLElement>('[data-story="snowboard-b"]');
-  if (!root || prefersReducedMotion()) return { render() {} };
+  const impact = stage.querySelector<HTMLElement>("[data-impact]");
+  if (!root || !impact || prefersReducedMotion()) return { render() {} };
+
+  /** Puts the window where the film's "cover" framing shows the rider (CSS vars on the stage). */
+  const layout = () => {
+    const w = stage.clientWidth;
+    const h = stage.clientHeight;
+    // The film is 16:9, shown full-screen and centred ("cover").
+    const fw = Math.max(w, (h * 16) / 9);
+    const fh = (fw * 9) / 16;
+    const ox = (w - fw) / 2;
+    const oy = (h - fh) / 2;
+    const win = w < 768 ? phoneWindow : riderWindow;
+    const l = ox + win.x[0] * fw;
+    const t = oy + win.y[0] * fh;
+    const ww = (win.x[1] - win.x[0]) * fw;
+    const wh = (win.y[1] - win.y[0]) * fh;
+    const set = (k: string, v: number) => stage.style.setProperty(`--impact-${k}`, `${Math.round(v)}px`);
+    set("l", l);
+    set("t", t);
+    set("w", ww);
+    set("h", wh);
+    set("x", l + ww / 2);
+    set("y", t + wh / 2);
+  };
+  layout();
+  window.addEventListener("resize", layout);
+
+  const showImpact = (on: boolean) => {
+    stage.classList.toggle("impact-on", on);
+    gsap.set(impact, { autoAlpha: on ? 1 : 0 });
+  };
 
   let state: State = "armed";
   let last = -1;
@@ -108,7 +151,9 @@ export function createJumpBeat(stage: HTMLElement, sceneId: string): SceneMedia 
     // Exactly onto the freeze frame within this same tick, before the film draws.
     lenis.scrollTo(at, { immediate: true, force: true });
 
-    // The phrase is simply there: no entrance.
+    // The impact and the phrase are simply there: no entrance.
+    layout();
+    showImpact(true);
     gsap.set(root, { autoAlpha: 1 });
     gsap.set(lines(), { opacity: 1, y: 0 });
 
@@ -143,6 +188,8 @@ export function createJumpBeat(stage: HTMLElement, sceneId: string): SceneMedia 
     );
     beat.to(lines(), { opacity: 0, duration: fade, ease: "power1.inOut" }, hold);
     beat.set(root, { autoAlpha: 0 }, hold + fade);
+    beat.to(impact, { autoAlpha: 0, duration: impactFade, ease: "power2.out" }, hold);
+    beat.call(() => stage.classList.remove("impact-on"), undefined, hold + impactFade);
   };
 
   const finish = () => {
@@ -158,6 +205,7 @@ export function createJumpBeat(stage: HTMLElement, sceneId: string): SceneMedia 
     beat?.kill();
     beat = null;
     gsap.set(root, { autoAlpha: 0 });
+    showImpact(false);
     document.documentElement.classList.remove("scroll-held");
   };
 
@@ -183,6 +231,7 @@ export function createJumpBeat(stage: HTMLElement, sceneId: string): SceneMedia 
       if (state === "armed" || state === "done") last = frame;
     },
     dispose() {
+      window.removeEventListener("resize", layout);
       reset();
       if (state === "approaching" || state === "holding" || state === "running") getLenis()?.start();
     },
