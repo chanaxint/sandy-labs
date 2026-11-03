@@ -7,6 +7,23 @@
   --color-snow: #f6f7f4;
 }
 
+/* Selected text: a near-white highlight (dark letters) across the site; on light ground
+   (dark text, light buttons) a dark one instead. */
+::selection {
+  background: rgb(246 247 244 / 0.9);
+  color: var(--color-ink);
+}
+.story[data-tone="dark"]::selection,
+.story[data-tone="dark"] ::selection,
+.story-cta::selection,
+.story-cta ::selection,
+.scroll-hint ::selection,
+.select-dark::selection,
+.select-dark ::selection {
+  background: rgb(15 30 44 / 0.88);
+  color: var(--color-snow);
+}
+
 html,
 body {
   margin: 0;

@@ -20,7 +20,7 @@ const ease = [0.22, 1, 0.36, 1] as const;
  * the morning sky. The film plays its dusk backwards by itself (the scroll position is
  * animated, scroll held), a warm dawn light rises from the horizon on the way, and the
  * story's lines and the shooting stars step aside (`create-mode`, app/globals.css).
- * Closing (Escape, or a click beside the step) plays it forward to where the visitor was.
+ * Scrolling back (or Escape) plays it forward to where the visitor was.
  * GSAP owns the film run and the dawn light; Motion owns the step's enter and exit.
  */
 export function CreateFlow() {
@@ -94,9 +94,45 @@ function CreateStep() {
 
   useEffect(() => {
     card.current?.querySelector<HTMLInputElement>("input")?.focus({ preventScroll: true });
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && closeCreate();
+    // Back to the night only by scrolling back (or Escape): wheel up, a swipe down, Page
+    // Up / Home. Inside the card it first scrolls the card itself back to its top.
+    const atTop = (t: EventTarget | null) => {
+      const c = card.current;
+      return !c || !(t instanceof Node) || !c.contains(t) || c.scrollTop <= 0;
+    };
+    let pull = 0;
+    let last = 0;
+    const onWheel = (e: WheelEvent) => {
+      const now = performance.now();
+      if (now - last > 400) pull = 0;
+      last = now;
+      if (e.deltaY >= 0 || !atTop(e.target)) return void (pull = 0);
+      pull += e.deltaY;
+      if (pull < -60) closeCreate();
+    };
+    let startY: number | null = null;
+    const onTouchStart = (e: TouchEvent) => (startY = atTop(e.target) ? (e.touches[0]?.clientY ?? null) : null);
+    const onTouchMove = (e: TouchEvent) => {
+      const y = e.touches[0]?.clientY;
+      if (startY !== null && y !== undefined && y - startY > 60) {
+        startY = null;
+        closeCreate();
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      const typing = (e.target as HTMLElement).closest?.("input[type=text]");
+      if (e.key === "Escape" || (!typing && (e.key === "PageUp" || e.key === "Home") && atTop(e.target))) closeCreate();
+    };
+    window.addEventListener("wheel", onWheel, { passive: true });
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: true });
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("wheel", onWheel);
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("keydown", onKey);
+    };
   }, []);
 
   // "Other" picked with a click or tap: straight into its field (arrowing through the
@@ -109,11 +145,7 @@ function CreateStep() {
   const t = createCopy;
   const ready = sector !== null && (sector !== "other" || other.trim() !== "");
   return (
-    // A click or tap beside the step goes back to the story (as Escape does).
-    <div
-      className="fixed inset-0 z-40 grid place-items-center px-4 pt-20 pb-6 md:pt-24"
-      onClick={(e) => e.target === e.currentTarget && closeCreate()}
-    >
+    <div className="fixed inset-0 z-40 grid place-items-center px-4 pt-20 pb-6 md:pt-24">
       <m.div
         ref={card}
         role="dialog"
@@ -126,8 +158,16 @@ function CreateStep() {
         exit={{ opacity: 0, y: 18, scale: 0.98 }}
         transition={{ duration: 0.6, ease }}
       >
-        <h2 id="create-title" className="font-serif text-[1.9rem] leading-[1.08] md:text-[2.4rem]">
-          {t.title[lang]}
+        {/* The title opens just after the card: it slides up from behind its own edge. */}
+        <h2 id="create-title" className="overflow-hidden pb-[0.08em] font-serif text-[1.9rem] leading-[1.08] md:text-[2.4rem]">
+          <m.span
+            className="block"
+            initial={{ y: "105%", opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.85, ease, delay: 0.3 }}
+          >
+            {t.title[lang]}
+          </m.span>
         </h2>
 
         <fieldset className="mt-6">
@@ -182,7 +222,7 @@ function CreateStep() {
         <button
           type="button"
           disabled={!ready}
-          className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-snow py-3.5 font-medium text-ink transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
+          className="select-dark mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-snow py-3.5 font-medium text-ink transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
         >
           {t.continue[lang]}
           <ArrowRight aria-hidden className="size-[18px]" strokeWidth={1.8} />

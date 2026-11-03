@@ -31,7 +31,7 @@ export function openCreate() {
   if (createStore.get() === "closed") createStore.set("opening");
 }
 
-/** Back to the story (Escape, or a click beside the step). */
+/** Back to the story (scrolling back, or Escape). */
 export function closeCreate() {
   if (createStore.get() === "open" || createStore.get() === "opening") createStore.set("closing");
 }
