@@ -5,9 +5,6 @@
   --font-serif: var(--font-serif), ui-serif, Georgia, serif;
   --color-ink: #0f1e2c;
   --color-snow: #f6f7f4;
-  /* The start button's amber red, a little deeper on hover. */
-  --color-amber-red: #c9411f;
-  --color-amber-red-deep: #b03518;
 }
 
 html,
@@ -269,25 +266,26 @@ html::-webkit-scrollbar {
 }
 
 .intro-start {
-  border: 1px solid var(--color-amber-red);
+  border: 1px solid rgb(246 247 244 / 0.75);
   border-radius: 999px;
   padding: 0.95rem 2.1rem 1.05rem;
-  background: var(--color-amber-red);
+  background: rgb(8 20 32 / 0.26);
   color: var(--color-snow);
   font-family: var(--font-serif);
   font-size: clamp(1.15rem, 1rem + 0.4vw, 1.4rem);
   letter-spacing: 0.005em;
-  box-shadow: 0 10px 30px -8px rgb(120 32 12 / 0.45);
+  text-shadow: 0 1px 12px rgb(8 20 32 / 0.3);
   cursor: pointer;
   transition:
     background-color 320ms ease,
-    border-color 320ms ease,
-    box-shadow 320ms ease;
+    color 320ms ease,
+    border-color 320ms ease;
 }
 .intro-start:hover {
-  background: var(--color-amber-red-deep);
-  border-color: var(--color-amber-red-deep);
-  box-shadow: 0 12px 34px -8px rgb(150 42 14 / 0.55);
+  background: var(--color-snow);
+  color: var(--color-ink);
+  border-color: var(--color-snow);
+  text-shadow: none;
 }
 .intro-start:focus-visible,
 .menu-toggle:focus-visible,
