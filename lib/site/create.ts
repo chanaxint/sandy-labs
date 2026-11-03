@@ -1,14 +1,15 @@
 /**
  * "Create my website": the start of the website-creation questions. The call to action
  * (the closing phrase's, the menu's) turns the film's night back into morning and opens
- * the first step over the morning sky; closing it goes back to the night.
+ * the first step over the morning sky. There is no way back to the night from it; the
+ * menu still takes the visitor to any chapter of the film.
  *
  * Only the first step exists so far, and nothing is sent anywhere: there is no backend.
  */
 import type { Lang } from "@/lib/journey/story";
 
-/** closed: the story; opening: night turning to morning; open: the step; closing: back to the night. */
-export type CreateState = "closed" | "opening" | "open" | "closing";
+/** closed: the story; opening: night turning to morning; open: the step (no way back but the menu). */
+export type CreateState = "closed" | "opening" | "open";
 
 let state: CreateState = "closed";
 const listeners = new Set<() => void>();
@@ -31,11 +32,6 @@ export function openCreate() {
   if (createStore.get() === "closed") createStore.set("opening");
 }
 
-/** Back to the story (scrolling back, or Escape). */
-export function closeCreate() {
-  if (createStore.get() === "open" || createStore.get() === "opening") createStore.set("closing");
-}
-
 /** The film frame the night turns back to: the clear blue sky of the day, before dusk. */
 export const morningFrame = 4600;
 
@@ -46,7 +42,7 @@ export const createCopy = {
   question: { en: "Which industry are you in?", tr: "Hangi sektörde faaliyet gösteriyorsunuz?" },
   continue: { en: "Continue", tr: "Devam et" },
   otherLabel: { en: "Your industry", tr: "Sektörünüz" },
-  otherPlaceholder: { en: "e.g. Architecture, Education…", tr: "ör. Mimarlık, Eğitim…" },
+  otherPlaceholder: { en: "Write it here…", tr: "Buraya yazın…" },
 } satisfies Record<string, Copy>;
 
 /** The industries of the first step ("other" opens a field to write one in). */

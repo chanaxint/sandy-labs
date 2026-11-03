@@ -135,9 +135,8 @@ scroll position asks for on a full-screen canvas:
   shooting stars step aside, and the first step opens over the morning sky in a see-through,
   softly blurred card (which industry: a radio group, two columns, keyboard and
   screen-reader friendly; its title opens just after the card, sliding up from behind its
-  edge; "Other" opens a field to write one in). Scrolling back (wheel up, a swipe down,
-  Page Up / Home; inside the card, once it is at its top) or Escape plays it forward to
-  where the visitor was. Only this step exists and nothing is
+  edge; "Other" opens a small field in its own box to write one in). There is no way back
+  to the night from it; the menu still takes the visitor to any chapter. Only this step exists and nothing is
   sent anywhere (no backend), so Continue isn't wired yet. Reduced motion: straight there,
   fades only.
 - Logo: traced from the brand artwork (`design/brand/sandy-labs-logo.jpg`) into SVG paths

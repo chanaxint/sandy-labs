@@ -134,12 +134,13 @@ body {
   }
 }
 
-/* No scrollbar: the journey's progress line stands in for it (ScrollProgress). While the
-   scroll is held (Lenis stopped), Lenis' clip stops the wheel, keys and a fling alike. */
-html {
+/* No scrollbars anywhere: the journey's progress line stands in for the page's
+   (ScrollProgress), and the step card, the menu and the like scroll without one. While
+   the scroll is held (Lenis stopped), Lenis' clip stops the wheel, keys and a fling alike. */
+* {
   scrollbar-width: none;
 }
-html::-webkit-scrollbar {
+*::-webkit-scrollbar {
   display: none;
 }
 
@@ -458,32 +459,38 @@ html.create-mode [data-shooting-stars] {
   background: rgb(246 247 244 / 0.14);
   font-weight: 600;
 }
-/* The field "Other" opens, to write the industry in. */
-.create-input {
-  display: block;
-  width: 100%;
-  padding: 0.8rem 1rem;
-  border: 1px solid rgb(246 247 244 / 0.3);
-  border-radius: 1rem;
-  background: rgb(246 247 244 / 0.08);
+/* "Other": the small field that opens in its box's free space. On phones the chosen box
+   takes the whole row, for room to write. */
+.create-inline-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0.2rem 0 0.25rem;
+  border: 0;
+  border-bottom: 1px solid rgb(246 247 244 / 0.45);
+  background: transparent;
   color: var(--color-snow);
   font: inherit;
-  font-size: 1rem;
-  transition: border-color 200ms ease;
+  font-weight: 400;
+  animation: create-field-in 260ms ease both;
 }
-.create-input::placeholder {
+.create-inline-input::placeholder {
   color: rgb(246 247 244 / 0.6);
 }
-.create-input:hover {
-  border-color: rgb(246 247 244 / 0.6);
-}
-.create-input:focus {
-  border-color: var(--color-snow);
+.create-inline-input:focus {
+  border-bottom-color: var(--color-snow);
   outline: none;
 }
-.create-input:focus-visible {
-  outline: 2px solid var(--color-snow);
-  outline-offset: 3px;
+@keyframes create-field-in {
+  from {
+    opacity: 0;
+  }
+}
+@media (max-width: 47.99rem) {
+  /* (The choice before it, left alone on its row, takes the row too.) */
+  .create-option-other:has(:checked),
+  :has(> .create-option-other :checked) > :nth-last-child(2) {
+    grid-column: 1 / -1;
+  }
 }
 .create-option:has(:focus-visible),
 .create-card button:focus-visible {
@@ -562,9 +569,11 @@ html.create-mode [data-shooting-stars] {
 @media (prefers-reduced-motion: reduce) {
   [data-story-layer],
   [data-shooting-stars],
-  .create-option,
-  .create-input {
+  .create-option {
     transition: none;
+  }
+  .create-inline-input {
+    animation: none;
   }
   .intro-clouds {
     display: none;
