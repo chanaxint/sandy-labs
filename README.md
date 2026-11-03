@@ -146,7 +146,7 @@ scroll position asks for on a full-screen canvas:
      (`components/site/StylePreview.tsx`, CSS keyframes `.sp-*`; still with reduced motion)).
   4. the dream website in the visitor's own words: the card gives way to large words in
      the middle (the title, then short lines about the studio in its place, 7 s each,
-     slowly fading into one another: `dreamLines`) and a wide writing field (like a chat
+     each sliding up from behind its edge and leaving upwards: `dreamLines`) and a wide writing field (like a chat
      box) just below them, growing with the text, over a silent looping video (a flight round a
      seaside residence, `public/media/create`, AV1 and H.264 at 1080p and 720p, built by
      `scripts/create/build-dream.sh` from the GitHub release `create-video`: re-timed to

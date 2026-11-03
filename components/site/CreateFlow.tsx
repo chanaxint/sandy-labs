@@ -527,15 +527,14 @@ function DreamStep({ dream, setDream, onBack }: { dream: string; setDream: (v: s
   );
 }
 
-/** Seconds each line (the title first) stays, and the seconds one takes to fade into the next. */
+/** Seconds each line (the title first) stays before the next takes its place. */
 const DREAM_HOLD = 7;
-const DREAM_FADE = 1.6;
 
 /**
  * The fourth step's words, large in the middle: the title first, then the other lines in
- * its place one after another, each slowly fading into the next (they share the spot,
- * so one fades out as the next fades in), round again. Visual only: the step's heading
- * (for screen readers) stays the title.
+ * its place one after another, round again: each slides up from behind its own edge and
+ * leaves going up as it fades. Visual only: the step's heading (for screen readers)
+ * stays the title.
  */
 function DreamLines({ lines }: { lines: string[] }) {
   const [i, setI] = useState(0);
@@ -544,18 +543,20 @@ function DreamLines({ lines }: { lines: string[] }) {
     return () => void next.kill();
   }, [i, lines.length]);
   return (
-    <div aria-hidden className="dream-lines absolute inset-x-0 top-[40%] mx-auto grid w-[min(56rem,calc(100%-2rem))] -translate-y-1/2 text-center">
-      <AnimatePresence initial={false}>
-        <m.p
-          key={i}
-          className="[grid-area:1/1] self-center font-serif text-[clamp(2.3rem,1.4rem+3.6vw,4.6rem)] leading-[1.05] text-balance"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: DREAM_FADE, ease: "easeInOut" }}
-        >
-          {lines[i]}
-        </m.p>
+    <div aria-hidden className="dream-lines absolute inset-x-0 top-[40%] mx-auto w-[min(56rem,calc(100%-2rem))] -translate-y-1/2 text-center">
+      <AnimatePresence mode="wait" initial={false}>
+        {/* The mask reaches well past the words, so it never cuts their soft shadow. */}
+        <div key={i} className="-mx-[1.2em] -my-[0.6em] overflow-hidden px-[1.2em] pt-[0.6em] pb-[0.7em]">
+          <m.p
+            className="font-serif text-[clamp(2.3rem,1.4rem+3.6vw,4.6rem)] leading-[1.05] text-balance"
+            initial={{ y: "105%", opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: "-35%", opacity: 0 }}
+            transition={{ duration: 0.85, ease }}
+          >
+            {lines[i]}
+          </m.p>
+        </div>
       </AnimatePresence>
     </div>
   );
