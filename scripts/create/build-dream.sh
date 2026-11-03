@@ -2,9 +2,9 @@
 # The video behind "Describe your dream website" (step 4 of Create my website):
 # a 4K 60 fps flight round a seaside residence, GitHub release `create-video` (1103.mp4).
 #
-# Silent (the audio is dropped), 30 fps, at one even pace and looping with no cut or fade:
-# scripts/create/dream_loop.py re-times it (slow stretches sped up) and plays it forward,
-# then the same way back. Two sizes (1080p for large screens, 720p for phones) in AV1
+# Silent (the audio is dropped), 30 fps, at one even pace (scripts/create/dream_loop.py
+# re-times it: slow stretches sped up), forward only; the page loops it (the <video>
+# loop), with nothing added at the join. Two sizes (1080p for large screens, 720p for phones) in AV1
 # (small) and H.264 (plays everywhere), plus a poster of the first frame.
 #
 #   scripts/create/build-dream.sh path/to/1103.mp4    (needs OpenCV: pip install opencv-python-headless)

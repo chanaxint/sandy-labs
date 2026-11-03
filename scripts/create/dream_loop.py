@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
-"""The loop master of the dream-website video: one even speed, and no cut.
+"""The master of the dream-website video: one even speed, forward only.
 
 1. How fast the picture moves, frame by frame (median optical flow, small grey frames).
 2. Re-timed to one even speed: slow stretches (after leaving the glass, the long pull
    away at the end) play faster, so the whole flight moves at the pace of its approach
    and its rooms (a stretch is sped up at most `MAX_SPEED`x, slowed at most to `MIN_SPEED`x).
-3. Forward, then the same way back (the camera returns along its own path), so the end
-   flows into the start with no cut and no fade: both ends are where the camera is
-   slowest, so it eases out and comes back.
+3. Forward only, start to end, nothing added at the end: the page loops it (the
+   <video> loop) straight back to the start.
 
   python3 scripts/create/dream_loop.py source.mp4 master.mp4
 Needs ffmpeg and OpenCV (pip install opencv-python-headless numpy).
@@ -68,13 +67,13 @@ for sec in range(int(len(picks) / FPS_OUT) + 1):
     if len(seg) > 1:
         print(f"  {sec:2d}s  source {seg[0] / FPS_IN:5.2f}–{seg[-1] / FPS_IN:5.2f}s  pace {np.mean(s[seg[0]:seg[-1] + 1]) * np.mean(rate[seg[0]:seg[-1] + 1]):.2f}")
 
-# 3. The chosen frames, then the same way back.
+# 3. The chosen frames, in order.
 tmp = tempfile.mkdtemp()
 want = set(picks.tolist())
 for i, fr in enumerate(frames(W, H, "bgr24", 3)):
     if i in want:
         cv2.imwrite(os.path.join(tmp, f"{i:05d}.jpg"), fr, [cv2.IMWRITE_JPEG_QUALITY, 96])
-order = list(picks) + list(picks[-2:0:-1])
+order = list(picks)
 with open(os.path.join(tmp, "list.txt"), "w") as f:
     for i in order:
         f.write(f"file '{tmp}/{i:05d}.jpg'\nduration {1 / FPS_OUT:.6f}\n")
@@ -83,4 +82,4 @@ subprocess.run(
      "-c:v", "libx264", "-crf", "12", "-preset", "medium", OUT],
     check=True,
 )
-print(f"loop {len(order) / FPS_OUT:.1f} s (forward and back) -> {OUT}")
+print(f"{len(order) / FPS_OUT:.1f} s -> {OUT}")

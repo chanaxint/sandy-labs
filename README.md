@@ -145,13 +145,13 @@ scroll position asks for on a full-screen canvas:
      scroll, playful & colourful, each shown as a small moving preview of abstract shapes
      (`components/site/StylePreview.tsx`, CSS keyframes `.sp-*`; still with reduced motion)).
   4. the dream website in the visitor's own words: the card gives way to large words in
-     the middle (the title for 5 s, then short lines about the studio in its place, one
-     after another: `dreamLines`) and a wide writing field (like a chat box) low on the
-     screen, growing with the text, over a silent looping video (a flight round a
+     the middle (the title, then short lines about the studio in its place, 7 s each,
+     slowly fading into one another: `dreamLines`) and a wide writing field (like a chat
+     box) just below them, growing with the text, over a silent looping video (a flight round a
      seaside residence, `public/media/create`, AV1 and H.264 at 1080p and 720p, built by
      `scripts/create/build-dream.sh` from the GitHub release `create-video`: re-timed to
-     one even pace and played forward then back, so it loops with no cut or fade, by
-     `scripts/create/dream_loop.py`; a still poster with reduced motion).
+     one even pace by `scripts/create/dream_loop.py`, forward only, the page looping it;
+     a still poster with reduced motion).
   Back returns to the step before with the answers kept.
   There is no way back to the night from the steps; the menu's Home still leaves them. Nothing is sent anywhere (no backend), so step 4's Send isn't wired
   yet. Reduced motion: straight there, fades only.

@@ -48,7 +48,7 @@ export const createCopy = {
   recommended: { en: "Recommended", tr: "Önerilen" },
   styleTitle: { en: "What design style suits you?", tr: "Tasarım tarzınız nasıl olsun?" },
   dreamTitle: { en: "Describe your dream website.", tr: "Hayalinizdeki siteyi anlatın." },
-  /** After the title, these follow one another in its place (5 s each), then it comes back. */
+  /** After the title, these follow one another in its place (7 s each, fading), then it comes back. */
   dreamLines: [
     { en: "We bring even the simplest site to life with scroll animations.", tr: "En sade siteye bile scroll animasyonlarıyla hayat veriyoruz." },
     { en: "Every detail, designed around your brand.", tr: "Her detayı markanıza göre tasarlıyoruz." },
