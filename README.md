@@ -132,9 +132,10 @@ scroll position asks for on a full-screen canvas:
   `lib/site/create.ts`): the closing phrase's call to action, or the menu's, plays the film's
   dusk backwards by itself (scroll held) so the night turns back into morning (frame 4600),
   with a warm dawn light rising from the horizon on the way; the story's lines and the
-  shooting stars step aside, and step 1 of 4 opens over the morning sky (which industry:
-  a radio group, two columns, keyboard and screen-reader friendly). "Back to the story"
-  or Escape plays it forward to where the visitor was. Only this step exists and nothing is
+  shooting stars step aside, and the first step opens over the morning sky in a see-through,
+  softly blurred card (which industry: a radio group, two columns, keyboard and
+  screen-reader friendly). Escape, or a click beside the card, plays it forward to where
+  the visitor was. Only this step exists and nothing is
   sent anywhere (no backend), so Continue isn't wired yet. Reduced motion: straight there,
   fades only.
 - Logo: traced from the brand artwork (`design/brand/sandy-labs-logo.jpg`) into SVG paths

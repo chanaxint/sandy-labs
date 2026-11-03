@@ -1,12 +1,12 @@
 "use client";
 
-import { ArrowRight, CircleCheck, X } from "lucide-react";
+import { ArrowRight, CircleCheck } from "lucide-react";
 import { AnimatePresence, domMax, LazyMotion, m, MotionConfig } from "motion/react";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useLang } from "@/lib/i18n/lang";
 import { filmStatus } from "@/lib/journey/film";
 import { goToFrame } from "@/lib/journey/navigate";
-import { closeCreate, createCopy, createSteps, createStore, morningFrame, sectors } from "@/lib/site/create";
+import { closeCreate, createCopy, createStore, morningFrame, sectors } from "@/lib/site/create";
 import { holdScroll, releaseScroll } from "@/lib/site/intro";
 import { gsap, prefersReducedMotion } from "@/lib/scroll/engine";
 
@@ -20,7 +20,7 @@ const ease = [0.22, 1, 0.36, 1] as const;
  * the morning sky. The film plays its dusk backwards by itself (the scroll position is
  * animated, scroll held), a warm dawn light rises from the horizon on the way, and the
  * story's lines and the shooting stars step aside (`create-mode`, app/globals.css).
- * Closing ("Back to the story", Escape) plays it forward to where the visitor was.
+ * Closing (Escape, or a click beside the step) plays it forward to where the visitor was.
  * GSAP owns the film run and the dawn light; Motion owns the step's enter and exit.
  */
 export function CreateFlow() {
@@ -94,10 +94,13 @@ function CreateStep() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const n = 1;
   const t = createCopy;
   return (
-    <div className="fixed inset-0 z-40 grid place-items-center px-4 pt-20 pb-6 md:pt-24">
+    // A click or tap beside the step goes back to the story (as Escape does).
+    <div
+      className="fixed inset-0 z-40 grid place-items-center px-4 pt-20 pb-6 md:pt-24"
+      onClick={(e) => e.target === e.currentTarget && closeCreate()}
+    >
       <m.div
         ref={card}
         role="dialog"
@@ -110,30 +113,12 @@ function CreateStep() {
         exit={{ opacity: 0, y: 18, scale: 0.98 }}
         transition={{ duration: 0.6, ease }}
       >
-        <div className="flex items-center gap-3">
-          <p className="text-[0.72rem] font-medium tracking-[0.14em] text-snow/70 uppercase">{t.eyebrow[lang]}</p>
-          <p className="ml-auto rounded-full bg-snow/10 px-3 py-1 text-xs font-medium text-snow/90">
-            {t.step[lang].replace("{n}", String(n)).replace("{total}", String(createSteps))}
-          </p>
-          <button
-            type="button"
-            onClick={closeCreate}
-            aria-label={t.close[lang]}
-            className="create-close -mr-1.5 grid size-9 place-items-center rounded-full text-snow/70 transition-colors hover:bg-snow/10 hover:text-snow"
-          >
-            <X className="size-[18px]" strokeWidth={1.6} />
-          </button>
-        </div>
-        <div aria-hidden className="mt-4 h-px w-full bg-snow/12">
-          <div className="h-px bg-snow" style={{ width: `${(n / createSteps) * 100}%` }} />
-        </div>
-
-        <h2 id="create-title" className="mt-7 font-serif text-[1.9rem] leading-[1.08] md:text-[2.4rem]">
+        <h2 id="create-title" className="font-serif text-[1.9rem] leading-[1.08] md:text-[2.4rem]">
           {t.title[lang]}
         </h2>
 
         <fieldset className="mt-6">
-          <legend className="mb-4 text-[1.02rem] text-snow/80">{t.question[lang]}</legend>
+          <legend className="mb-4 text-[1.02rem] text-snow/90">{t.question[lang]}</legend>
           <div className="grid grid-cols-2 gap-2 md:gap-2.5">
             {sectors.map((s) => (
               <label key={s.id} className="create-option">

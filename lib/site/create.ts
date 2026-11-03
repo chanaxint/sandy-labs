@@ -31,25 +31,20 @@ export function openCreate() {
   if (createStore.get() === "closed") createStore.set("opening");
 }
 
-/** Back to the story (the step's close button, Escape). */
+/** Back to the story (Escape, or a click beside the step). */
 export function closeCreate() {
   if (createStore.get() === "open" || createStore.get() === "opening") createStore.set("closing");
 }
 
 /** The film frame the night turns back to: the clear blue sky of the day, before dusk. */
 export const morningFrame = 4600;
-/** How many steps the creation questions will have. */
-export const createSteps = 4;
 
 type Copy = Record<Lang, string>;
 
 export const createCopy = {
-  eyebrow: { en: "Sandy Labs / Create", tr: "Sandy Labs / Create" },
-  step: { en: "Step {n} / {total}", tr: "Adım {n} / {total}" },
   title: { en: "First, let's get to know you.", tr: "Önce sizi biraz tanıyalım." },
   question: { en: "Which industry are you in?", tr: "Hangi sektörde faaliyet gösteriyorsunuz?" },
   continue: { en: "Continue", tr: "Devam et" },
-  close: { en: "Back to the story", tr: "Hikâyeye dön" },
 } satisfies Record<string, Copy>;
 
 /** The industries of the first step. */

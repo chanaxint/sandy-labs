@@ -401,10 +401,13 @@ html.create-mode [data-shooting-stars] {
     radial-gradient(120% 70% at 50% 108%, rgb(255 178 120 / 0.55), rgb(255 196 150 / 0.18) 45%, transparent 70%),
     linear-gradient(to top, rgb(255 214 170 / 0.22), transparent 55%);
 }
+/* See-through over the morning sky: a light shade and a soft blur of what is behind. */
 .create-card {
-  background: rgb(9 15 23 / 0.94);
-  border: 1px solid rgb(246 247 244 / 0.14);
-  box-shadow: 0 40px 90px -30px rgb(8 20 32 / 0.65);
+  background: rgb(10 22 36 / 0.34);
+  -webkit-backdrop-filter: blur(14px) saturate(1.1);
+  backdrop-filter: blur(14px) saturate(1.1);
+  border: 1px solid rgb(246 247 244 / 0.24);
+  box-shadow: 0 40px 90px -30px rgb(8 20 32 / 0.45);
 }
 .create-option {
   display: flex;
@@ -415,7 +418,7 @@ html.create-mode [data-shooting-stars] {
   padding: 0.75rem 0.85rem;
   font-size: 0.92rem;
   line-height: 1.25;
-  border: 1px solid rgb(246 247 244 / 0.16);
+  border: 1px solid rgb(246 247 244 / 0.3);
   border-radius: 1rem;
   cursor: pointer;
   transition:
@@ -431,15 +434,14 @@ html.create-mode [data-shooting-stars] {
   }
 }
 .create-option:hover {
-  border-color: rgb(246 247 244 / 0.36);
+  border-color: rgb(246 247 244 / 0.6);
 }
 .create-option:has(:checked) {
   border-color: var(--color-snow);
-  background: rgb(246 247 244 / 0.06);
+  background: rgb(246 247 244 / 0.14);
   font-weight: 600;
 }
 .create-option:has(:focus-visible),
-.create-close:focus-visible,
 .create-card button:focus-visible {
   outline: 2px solid var(--color-snow);
   outline-offset: 3px;

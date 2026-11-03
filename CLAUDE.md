@@ -86,7 +86,7 @@ Rules:
   holds with the board side-on as the phrase cuts in, runs through the landing until the rider leaves the frame, scroll handed back) with the rider's matted cut-out in front of the phrase
   (`rider.ts`, `scripts/journey/matte_rider.py`). The closing CTA (and the menu's) opens
   "Create my website" (`components/site/CreateFlow.tsx`, `lib/site/create.ts`): the night plays back
-  to morning and step 1 of 4 (the industry) opens; only that step exists and nothing is sent
+  to morning and the first step (the industry) opens; only that step exists and nothing is sent
   (no backend), so its Continue isn't wired yet. `/studio` is the Story Studio (layout editor, not linked):
   its saved `lib/journey/story-layout.json` is applied over `story.ts` (`storyStore.ts`);
   when the user sends one, commit it as that file.
