@@ -48,6 +48,13 @@ export const createCopy = {
   recommended: { en: "Recommended", tr: "Önerilen" },
   styleTitle: { en: "What design style suits you?", tr: "Tasarım tarzınız nasıl olsun?" },
   dreamTitle: { en: "Describe your dream website.", tr: "Hayalinizdeki siteyi anlatın." },
+  /** After the title, these follow one another in its place (5 s each), then it comes back. */
+  dreamLines: [
+    { en: "We bring even the simplest site to life with scroll animations.", tr: "En sade siteye bile scroll animasyonlarıyla hayat veriyoruz." },
+    { en: "Every detail, designed around your brand.", tr: "Her detayı markanıza göre tasarlıyoruz." },
+    { en: "You describe it, we take care of the rest.", tr: "Siz anlatın, gerisini biz düşünelim." },
+    { en: "Fast, fluid and flawless on every screen.", tr: "Hızlı, akıcı ve her ekranda kusursuz." },
+  ],
   dreamLabel: { en: "Your dream website", tr: "Hayalinizdeki site" },
   dreamPlaceholder: {
     en: "The features you want, websites you like, colours… e.g. “A calm online store in black and white, airy like apple.com, with a booking page.”",
@@ -56,7 +63,7 @@ export const createCopy = {
   send: { en: "Send", tr: "Gönder" },
   otherLabel: { en: "Your industry", tr: "Sektörünüz" },
   otherPlaceholder: { en: "Write it here…", tr: "Buraya yazın…" },
-} satisfies Record<string, Copy>;
+} satisfies Record<string, Copy | Copy[]>;
 
 /** The industries of the first step ("other" opens a field to write one in). */
 export const sectors: { id: string; label: Copy }[] = [

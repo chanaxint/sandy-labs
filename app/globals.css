@@ -437,15 +437,19 @@ html.create-mode [data-shooting-stars] {
 }
 /* Step 4: the wide writing field over the video, a soft shade below for the words. */
 .dream-shade {
-  background: linear-gradient(to bottom, rgb(8 16 26 / 0.15), rgb(8 16 26 / 0.05) 35%, rgb(8 16 26 / 0.5));
+  background:
+    radial-gradient(60% 40% at 50% 40%, rgb(8 16 26 / 0.22), transparent 70%),
+    linear-gradient(to bottom, rgb(8 16 26 / 0.12), rgb(8 16 26 / 0.04) 30%, rgb(8 16 26 / 0.55));
 }
-.dream-title h2 {
-  text-shadow: 0 2px 24px rgb(8 20 32 / 0.45);
+.dream-lines {
+  text-shadow:
+    0 1px 3px rgb(8 20 32 / 0.25),
+    0 2px 22px rgb(8 20 32 / 0.4);
 }
 .dream-box {
   background: rgb(10 22 36 / 0.42);
-  -webkit-backdrop-filter: blur(16px) saturate(1.1);
-  backdrop-filter: blur(16px) saturate(1.1);
+  -webkit-backdrop-filter: blur(9px) saturate(1.1);
+  backdrop-filter: blur(9px) saturate(1.1);
   border: 1px solid rgb(246 247 244 / 0.24);
   box-shadow: 0 30px 80px -30px rgb(8 20 32 / 0.6);
 }
