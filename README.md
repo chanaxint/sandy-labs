@@ -144,8 +144,13 @@ scroll position asks for on a full-screen canvas:
   3. the design style: minimal & luxury, modern & dynamic, 3D experience, cinematic
      scroll, playful & colourful, each shown as a small moving preview of abstract shapes
      (`components/site/StylePreview.tsx`, CSS keyframes `.sp-*`; still with reduced motion)).
+  4. the dream website in the visitor's own words: the card gives way to a wide writing
+     field (like a chat box) a little below the middle, growing with the text, over a
+     silent looping video (a flight round a seaside residence, `public/media/create`,
+     AV1 and H.264 at 1080p and 720p, built by `scripts/create/build-dream.sh` from the
+     GitHub release `create-video`; a still poster with reduced motion).
   Back returns to the step before with the answers kept.
-  There is no way back to the night from the steps; the menu's Home still leaves them. Nothing is sent anywhere (no backend), so step 3's Continue isn't wired
+  There is no way back to the night from the steps; the menu's Home still leaves them. Nothing is sent anywhere (no backend), so step 4's Send isn't wired
   yet. Reduced motion: straight there, fades only.
 - Logo: traced from the brand artwork (`design/brand/sandy-labs-logo.jpg`) into SVG paths
   (`lib/brand/logo.ts`, `components/brand/SandyLogo.tsx`).

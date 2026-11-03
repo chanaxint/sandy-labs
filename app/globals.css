@@ -435,6 +435,31 @@ html.create-mode [data-shooting-stars] {
     transform: translateX(var(--sw, 0px));
   }
 }
+/* Step 4: the wide writing field over the video, a soft shade below for the words. */
+.dream-shade {
+  background: linear-gradient(to bottom, rgb(8 16 26 / 0.15), rgb(8 16 26 / 0.05) 35%, rgb(8 16 26 / 0.5));
+}
+.dream-title h2 {
+  text-shadow: 0 2px 24px rgb(8 20 32 / 0.45);
+}
+.dream-box {
+  background: rgb(10 22 36 / 0.42);
+  -webkit-backdrop-filter: blur(16px) saturate(1.1);
+  backdrop-filter: blur(16px) saturate(1.1);
+  border: 1px solid rgb(246 247 244 / 0.24);
+  box-shadow: 0 30px 80px -30px rgb(8 20 32 / 0.6);
+}
+.dream-box:focus-within {
+  border-color: rgb(246 247 244 / 0.5);
+}
+.dream-field {
+  max-height: min(40vh, 18rem);
+  outline: none;
+}
+.dream-field::placeholder {
+  color: rgb(246 247 244 / 0.62);
+}
+
 /* The morning's warm light from the horizon (its opacity is GSAP's). */
 .create-dawn {
   background:

@@ -2,10 +2,11 @@
  * "Create my website": the start of the website-creation questions. The call to action
  * (the closing phrase's, the menu's) turns the film's night back into morning and opens
  * the steps over the morning sky: 1. the industry, 2. the kind of website (its choices
- * depend on the industry), 3. the design style (shown as small moving previews). There is no way back to the night from them; the menu still
+ * depend on the industry), 3. the design style (shown as small moving previews), 4. the
+ * dream website in their own words (a wide writing field over a video). There is no way back to the night from them; the menu still
  * takes the visitor to any chapter of the film.
  *
- * Only these three steps exist so far, and nothing is sent anywhere: there is no backend.
+ * Only these four steps exist so far, and nothing is sent anywhere: there is no backend.
  */
 import type { Lang } from "@/lib/journey/story";
 
@@ -46,6 +47,13 @@ export const createCopy = {
   siteTitle: { en: "What kind of website do you want?", tr: "Nasıl bir web sitesi istiyorsunuz?" },
   recommended: { en: "Recommended", tr: "Önerilen" },
   styleTitle: { en: "What design style suits you?", tr: "Tasarım tarzınız nasıl olsun?" },
+  dreamTitle: { en: "Describe your dream website.", tr: "Hayalinizdeki siteyi anlatın." },
+  dreamLabel: { en: "Your dream website", tr: "Hayalinizdeki site" },
+  dreamPlaceholder: {
+    en: "The features you want, websites you like, colours… e.g. “A calm online store in black and white, airy like apple.com, with a booking page.”",
+    tr: "İstediğiniz özellikler, beğendiğiniz siteler, renkler… Örn: “Siyah-beyaz, sade bir online mağaza; apple.com gibi ferah, bir de rezervasyon sayfası olsun.”",
+  },
+  send: { en: "Send", tr: "Gönder" },
   otherLabel: { en: "Your industry", tr: "Sektörünüz" },
   otherPlaceholder: { en: "Write it here…", tr: "Buraya yazın…" },
 } satisfies Record<string, Copy>;
@@ -146,3 +154,14 @@ export const designStyles: { id: DesignStyle; label: Copy }[] = [
   { id: "cinematic", label: { en: "Cinematic scroll", tr: "Sinematik scroll" } },
   { id: "playful", label: { en: "Playful & colourful", tr: "Eğlenceli & renkli" } },
 ];
+
+/** The video behind the fourth step (public/media/create, scripts/create/build-dream.sh). */
+export const dreamVideo = {
+  poster: "/media/create/dream-poster.jpg",
+  sources: [
+    { src: "/media/create/dream-720.av1.mp4", type: 'video/mp4; codecs="av01.0.05M.08"', media: "(max-width: 900px)" },
+    { src: "/media/create/dream-720.h264.mp4", type: "video/mp4", media: "(max-width: 900px)" },
+    { src: "/media/create/dream-1080.av1.mp4", type: 'video/mp4; codecs="av01.0.08M.08"' },
+    { src: "/media/create/dream-1080.h264.mp4", type: "video/mp4" },
+  ],
+};

@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, CircleCheck } from "lucide-react";
+import { ArrowLeft, ArrowRight, ArrowUp, CircleCheck } from "lucide-react";
 import { AnimatePresence, domMax, LazyMotion, m, MotionConfig } from "motion/react";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useLang } from "@/lib/i18n/lang";
@@ -12,6 +12,7 @@ import {
   createCopy,
   createStore,
   designStyles,
+  dreamVideo,
   morningFrame,
   sectors,
   sitesFor,
@@ -30,7 +31,9 @@ const ease = [0.22, 1, 0.36, 1] as const;
 
 /**
  * "Create my website": the night turns back into morning and the steps open over the
- * morning sky (1. the industry, 2. the kind of website, 3. the design style). The film plays its dusk backwards by itself (the scroll position is
+ * morning sky (1. the industry, 2. the kind of website, 3. the design style); for the
+ * last (4. the dream website, in the visitor's words) the card gives way to a wide
+ * writing field over a video. The film plays its dusk backwards by itself (the scroll position is
  * animated, scroll held), a warm dawn light rises from the horizon on the way, and the
  * story's lines and the shooting stars step aside (`create-mode`, app/globals.css).
  * There is no way back to the night from it: it stays until the menu takes the visitor
@@ -95,61 +98,70 @@ export function CreateFlow() {
 
 /** The card, and the step in it: the answers are kept while going back and forth. */
 function CreateSteps() {
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [sector, setSector] = useState<string | null>(null);
   /** The industry written in when none of the list fits ("other"). */
   const [other, setOther] = useState("");
   const [site, setSite] = useState<SiteType | null>(null);
   const [style, setStyle] = useState<DesignStyle | null>(null);
+  /** Step 4: the dream website, in the visitor's own words. */
+  const [dream, setDream] = useState("");
 
+  // Steps 1–3 in the card; step 4 leaves it for a wide writing field over a video.
   return (
-    <div className="fixed inset-0 z-40 grid place-items-center px-4 pt-20 pb-6 md:pt-24">
-      <m.div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="create-title"
-        data-lenis-prevent
-        className="create-card max-h-full w-full max-w-[44rem] overflow-y-auto rounded-[1.75rem] p-5 text-snow md:p-9"
-        initial={{ opacity: 0, y: 28, scale: 0.98 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: 18, scale: 0.98 }}
-        transition={{ duration: 0.6, ease }}
-      >
-        {/* One step leaves to the side, the next comes in from the other. */}
-        <AnimatePresence mode="wait" initial={false}>
+    <AnimatePresence mode="wait">
+      {step < 4 ? (
+        <div key="card" className="fixed inset-0 z-40 grid place-items-center px-4 pt-20 pb-6 md:pt-24">
           <m.div
-            key={step}
-            initial={{ opacity: 0, x: 24 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -24 }}
-            transition={{ duration: 0.35, ease }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="create-title"
+            data-lenis-prevent
+            className="create-card max-h-full w-full max-w-[44rem] overflow-y-auto rounded-[1.75rem] p-5 text-snow md:p-9"
+            initial={{ opacity: 0, y: 28, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 18, scale: 0.98 }}
+            transition={{ duration: 0.6, ease }}
           >
-            {step === 1 ? (
-              <SectorStep
-                sector={sector}
-                setSector={(id) => {
-                  if (id !== sector) setSite(null);
-                  setSector(id);
-                }}
-                other={other}
-                setOther={setOther}
-                onNext={() => setStep(2)}
-              />
-            ) : step === 2 ? (
-              <SiteStep
-                sector={sector ?? "other"}
-                site={site}
-                setSite={setSite}
-                onBack={() => setStep(1)}
-                onNext={() => setStep(3)}
-              />
-            ) : (
-              <StyleStep style={style} setStyle={setStyle} onBack={() => setStep(2)} />
-            )}
+            {/* One step leaves to the side, the next comes in from the other. */}
+            <AnimatePresence mode="wait" initial={false}>
+              <m.div
+                key={step}
+                initial={{ opacity: 0, x: 24 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -24 }}
+                transition={{ duration: 0.35, ease }}
+              >
+                {step === 1 ? (
+                  <SectorStep
+                    sector={sector}
+                    setSector={(id) => {
+                      if (id !== sector) setSite(null);
+                      setSector(id);
+                    }}
+                    other={other}
+                    setOther={setOther}
+                    onNext={() => setStep(2)}
+                  />
+                ) : step === 2 ? (
+                  <SiteStep
+                    sector={sector ?? "other"}
+                    site={site}
+                    setSite={setSite}
+                    onBack={() => setStep(1)}
+                    onNext={() => setStep(3)}
+                  />
+                ) : (
+                  <StyleStep style={style} setStyle={setStyle} onBack={() => setStep(2)} onNext={() => setStep(4)} />
+                )}
+              </m.div>
+            </AnimatePresence>
           </m.div>
-        </AnimatePresence>
-      </m.div>
-    </div>
+        </div>
+      ) : (
+        <DreamStep key="dream" dream={dream} setDream={setDream} onBack={() => setStep(3)} />
+      )}
+    </AnimatePresence>
   );
 }
 
@@ -366,7 +378,17 @@ function StepNav({ onBack, onNext, ready }: { onBack: () => void; onNext?: () =>
 }
 
 /** 3. The design style: each shown as a small moving preview, named below it. */
-function StyleStep({ style, setStyle, onBack }: { style: DesignStyle | null; setStyle: (s: DesignStyle) => void; onBack: () => void }) {
+function StyleStep({
+  style,
+  setStyle,
+  onBack,
+  onNext,
+}: {
+  style: DesignStyle | null;
+  setStyle: (s: DesignStyle) => void;
+  onBack: () => void;
+  onNext: () => void;
+}) {
   const { lang } = useLang();
   const box = useStepFocus();
   const t = createCopy;
@@ -401,7 +423,103 @@ function StyleStep({ style, setStyle, onBack }: { style: DesignStyle | null; set
         </div>
       </fieldset>
 
-      <StepNav onBack={onBack} ready={style !== null} />
+      <StepNav onBack={onBack} onNext={onNext} ready={style !== null} />
     </div>
+  );
+}
+
+/**
+ * 4. The dream website, in the visitor's own words: out of the card, a wide writing field
+ * (like a chat box) a little below the middle, over a silent video looping behind it.
+ * It grows with the text; sending isn't wired yet (no backend).
+ */
+function DreamStep({ dream, setDream, onBack }: { dream: string; setDream: (v: string) => void; onBack: () => void }) {
+  const { lang } = useLang();
+  const t = createCopy;
+  const field = useRef<HTMLTextAreaElement>(null);
+  const reduce = prefersReducedMotion();
+
+  useEffect(() => {
+    field.current?.focus({ preventScroll: true });
+  }, []);
+
+  // The field grows with what is written, up to a limit (then it scrolls inside).
+  useEffect(() => {
+    const el = field.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }, [dream]);
+
+  return (
+    <m.div
+      className="fixed inset-0 z-40 text-snow"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="create-title"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.8, ease }}
+    >
+      {/* Silent, looping; a still of its first frame with reduced motion. */}
+      <video
+        aria-hidden
+        className="absolute inset-0 size-full object-cover"
+        poster={dreamVideo.poster}
+        autoPlay={!reduce}
+        muted
+        loop
+        playsInline
+        preload="auto"
+      >
+        {dreamVideo.sources.map((s) => (
+          <source key={s.src} src={s.src} type={s.type} media={s.media} />
+        ))}
+      </video>
+      <div aria-hidden className="dream-shade absolute inset-0" />
+
+      <div className="absolute inset-x-0 top-[56%] mx-auto w-[min(48rem,calc(100%-2rem))] -translate-y-1/2">
+        <div className="dream-title">
+          <StepTitle delay={0.35}>{t.dreamTitle[lang]}</StepTitle>
+        </div>
+        <m.div
+          className="dream-box mt-5 rounded-[1.75rem] p-3 pl-5 md:mt-6 md:p-4 md:pl-6"
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease, delay: 0.5 }}
+        >
+          <label className="sr-only" htmlFor="dream-field">
+            {t.dreamLabel[lang]}
+          </label>
+          <textarea
+            id="dream-field"
+            ref={field}
+            value={dream}
+            onChange={(e) => setDream(e.target.value)}
+            placeholder={t.dreamPlaceholder[lang]}
+            rows={3}
+            maxLength={4000}
+            data-lenis-prevent
+            className="dream-field block w-full resize-none bg-transparent pt-2 pr-1 text-[1.02rem] leading-relaxed text-snow md:text-[1.08rem]"
+          />
+          <div className="mt-2 flex items-center justify-between gap-3">
+            <button type="button" onClick={onBack} className="create-back flex items-center gap-1.5 rounded-full px-2 py-2 text-sm text-snow/85 transition-colors hover:text-snow">
+              <ArrowLeft aria-hidden className="size-[17px]" strokeWidth={1.8} />
+              {t.back[lang]}
+            </button>
+            {/* Not connected yet: there is no backend to send it to. */}
+            <button
+              type="button"
+              disabled={dream.trim() === ""}
+              aria-label={t.send[lang]}
+              className="select-dark grid size-10 place-items-center rounded-full bg-snow text-ink transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <ArrowUp aria-hidden className="size-[19px]" strokeWidth={2} />
+            </button>
+          </div>
+        </m.div>
+      </div>
+    </m.div>
   );
 }
