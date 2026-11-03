@@ -1,10 +1,11 @@
 /**
  * "Create my website": the start of the website-creation questions. The call to action
  * (the closing phrase's, the menu's) turns the film's night back into morning and opens
- * the first step over the morning sky. There is no way back to the night from it; the
- * menu still takes the visitor to any chapter of the film.
+ * the steps over the morning sky: 1. the industry, 2. the kind of website (its choices
+ * depend on the industry). There is no way back to the night from them; the menu still
+ * takes the visitor to any chapter of the film.
  *
- * Only the first step exists so far, and nothing is sent anywhere: there is no backend.
+ * Only these two steps exist so far, and nothing is sent anywhere: there is no backend.
  */
 import type { Lang } from "@/lib/journey/story";
 
@@ -41,6 +42,11 @@ export const createCopy = {
   title: { en: "First, let's get to know you.", tr: "Önce sizi biraz tanıyalım." },
   question: { en: "Which industry are you in?", tr: "Hangi sektörde faaliyet gösteriyorsunuz?" },
   continue: { en: "Continue", tr: "Devam et" },
+  back: { en: "Back", tr: "Geri" },
+  siteTitle: { en: "What kind of website do you want?", tr: "Nasıl bir web sitesi istiyorsunuz?" },
+  siteHint: { en: "Picked for your industry.", tr: "Sektörünüze göre seçtik." },
+  siteHintAny: { en: "Pick the one that fits best.", tr: "Size en uygun olanı seçin." },
+  recommended: { en: "Recommended", tr: "Önerilen" },
   otherLabel: { en: "Your industry", tr: "Sektörünüz" },
   otherPlaceholder: { en: "Write it here…", tr: "Buraya yazın…" },
 } satisfies Record<string, Copy>;
@@ -56,3 +62,77 @@ export const sectors: { id: string; label: Copy }[] = [
   { id: "tech", label: { en: "Technology & SaaS", tr: "Teknoloji & SaaS" } },
   { id: "other", label: { en: "Other", tr: "Diğer" } },
 ];
+
+/** The kinds of website of the second step. */
+export type SiteType = "ecommerce" | "corporate" | "portfolio" | "booking" | "landing";
+
+export const siteTypes: Record<SiteType, { label: Copy; about: Copy }> = {
+  ecommerce: {
+    label: { en: "E-commerce", tr: "E-ticaret" },
+    about: { en: "Sell online: products, cart and checkout.", tr: "Online satış: ürünler, sepet ve ödeme." },
+  },
+  corporate: {
+    label: { en: "Corporate", tr: "Kurumsal" },
+    about: { en: "Who you are: your company, services and team.", tr: "Kim olduğunuz: şirketiniz, hizmetleriniz ve ekibiniz." },
+  },
+  portfolio: {
+    label: { en: "Portfolio", tr: "Portföy" },
+    about: { en: "Show your work: projects, galleries, case studies.", tr: "İşlerinizi gösterin: projeler, galeriler, örnekler." },
+  },
+  booking: {
+    label: { en: "Booking", tr: "Rezervasyon" },
+    about: { en: "Take reservations and appointments online.", tr: "Online rezervasyon ve randevu alın." },
+  },
+  landing: {
+    label: { en: "Landing page", tr: "Landing page" },
+    about: { en: "One focused page for a product, launch or campaign.", tr: "Bir ürün, lansman ya da kampanya için tek, odaklı bir sayfa." },
+  },
+};
+
+/**
+ * The kinds of website that fit each industry, best first (shown as recommended), each
+ * described for that industry. "Other" gets them all, as described above.
+ */
+export const sitesFor: Record<string, { type: SiteType; about?: Copy }[]> = {
+  fashion: [
+    { type: "ecommerce", about: { en: "Your collections online, with cart and checkout.", tr: "Koleksiyonlarınız online; sepet ve ödemeyle." } },
+    { type: "landing", about: { en: "A launch page for a new collection or campaign.", tr: "Yeni bir koleksiyon ya da kampanya için lansman sayfası." } },
+    { type: "portfolio", about: { en: "A lookbook: your collections in pictures.", tr: "Lookbook: koleksiyonlarınız görsellerle." } },
+    { type: "corporate", about: { en: "Your brand's story, stores and contact.", tr: "Markanızın hikâyesi, mağazaları ve iletişim." } },
+  ],
+  beauty: [
+    { type: "booking", about: { en: "Online appointments for your treatments.", tr: "Bakım ve uygulamalar için online randevu." } },
+    { type: "ecommerce", about: { en: "Sell your products online.", tr: "Ürünlerinizi online satın." } },
+    { type: "corporate", about: { en: "Your salon or brand: services, team, prices.", tr: "Salonunuz ya da markanız: hizmetler, ekip, fiyatlar." } },
+    { type: "landing", about: { en: "One page for a product or an opening.", tr: "Bir ürün ya da açılış için tek sayfa." } },
+  ],
+  health: [
+    { type: "booking", about: { en: "Online appointments with your practitioners.", tr: "Uzmanlarınızla online randevu." } },
+    { type: "corporate", about: { en: "Your clinic or studio: services, team, trust.", tr: "Kliniğiniz ya da stüdyonuz: hizmetler, ekip, güven." } },
+    { type: "landing", about: { en: "One page for a programme or a campaign.", tr: "Bir program ya da kampanya için tek sayfa." } },
+  ],
+  food: [
+    { type: "booking", about: { en: "Table reservations online.", tr: "Online masa rezervasyonu." } },
+    { type: "corporate", about: { en: "Your menu, story and location.", tr: "Menünüz, hikâyeniz ve konumunuz." } },
+    { type: "ecommerce", about: { en: "Online orders for delivery or pickup.", tr: "Paket servis ya da gel-al için online sipariş." } },
+    { type: "landing", about: { en: "One page for an opening or a special evening.", tr: "Bir açılış ya da özel bir gece için tek sayfa." } },
+  ],
+  ecommerce: [
+    { type: "ecommerce", about: { en: "A full online store: catalogue, cart, checkout.", tr: "Eksiksiz online mağaza: katalog, sepet, ödeme." } },
+    { type: "landing", about: { en: "A page that sells one product or a campaign.", tr: "Tek bir ürünü ya da kampanyayı satan sayfa." } },
+    { type: "corporate", about: { en: "The company behind your store.", tr: "Mağazanızın arkasındaki şirket." } },
+  ],
+  "real-estate": [
+    { type: "portfolio", about: { en: "Your listings, shown at their best.", tr: "İlanlarınız, en iyi hâlleriyle." } },
+    { type: "corporate", about: { en: "Your agency: team, services, trust.", tr: "Ofisiniz: ekip, hizmetler, güven." } },
+    { type: "booking", about: { en: "Viewing appointments online.", tr: "Online yer gösterme randevusu." } },
+    { type: "landing", about: { en: "One page for a single project or development.", tr: "Tek bir proje için tek sayfa." } },
+  ],
+  tech: [
+    { type: "landing", about: { en: "A product page that turns visitors into users.", tr: "Ziyaretçiyi kullanıcıya dönüştüren ürün sayfası." } },
+    { type: "corporate", about: { en: "Your company: product, team, careers.", tr: "Şirketiniz: ürün, ekip, kariyer." } },
+    { type: "ecommerce", about: { en: "Sell plans or licences online.", tr: "Paketleri ya da lisansları online satın." } },
+    { type: "portfolio", about: { en: "Your work and case studies.", tr: "İşleriniz ve örnek çalışmalarınız." } },
+  ],
+  other: [{ type: "ecommerce" }, { type: "corporate" }, { type: "portfolio" }, { type: "booking" }, { type: "landing" }],
+};

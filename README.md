@@ -128,17 +128,20 @@ scroll position asks for on a full-screen canvas:
   yet: there is no contact page or address), the mark at the top centre (back to the start)
   and a two-line menu button at the top right. The menu (Motion) lists the film's chapters
   (`lib/site/copy.ts`; each jumps there), the language switch and the call to action.
-- "Create my website" (`components/site/CreateFlow.tsx`, copy and sectors in
-  `lib/site/create.ts`): the closing phrase's call to action, or the menu's, plays the film's
-  dusk backwards by itself (scroll held) so the night turns back into morning (frame 4600),
-  with a warm dawn light rising from the horizon on the way; the story's lines and the
-  shooting stars step aside, and the first step opens over the morning sky in a see-through,
-  softly blurred card (which industry: a radio group, two columns, keyboard and
-  screen-reader friendly; its title opens just after the card, sliding up from behind its
-  edge; "Other" opens a small field in its own box to write one in). There is no way back
-  to the night from it; the menu still takes the visitor to any chapter. Only this step exists and nothing is
-  sent anywhere (no backend), so Continue isn't wired yet. Reduced motion: straight there,
-  fades only.
+- "Create my website" (`components/site/CreateFlow.tsx`, copy, industries and website
+  types in `lib/site/create.ts`): the closing phrase's call to action, or the menu's, plays
+  the film's dusk backwards by itself (scroll held) so the night turns back into morning
+  (frame 4600), with a warm dawn light rising from the horizon on the way; the story's
+  lines and the shooting stars step aside, and the steps open over the morning sky in a
+  see-through, softly blurred card (radio groups, keyboard and screen-reader friendly;
+  each title slides up from behind its edge):
+  1. which industry (eight, two columns; "Other" opens a small field in its own box);
+  2. what kind of website: e-commerce, corporate, portfolio, booking or landing page,
+     the ones that fit the industry, best first (marked recommended) and described for it
+     (`sitesFor`); "Other" gets all five. Back returns to step 1 with the answers kept.
+  There is no way back to the night from the steps; the menu still takes the visitor to
+  any chapter. Nothing is sent anywhere (no backend), so step 2's Continue isn't wired
+  yet. Reduced motion: straight there, fades only.
 - Logo: traced from the brand artwork (`design/brand/sandy-labs-logo.jpg`) into SVG paths
   (`lib/brand/logo.ts`, `components/brand/SandyLogo.tsx`).
 

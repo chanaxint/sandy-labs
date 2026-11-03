@@ -492,6 +492,17 @@ html.create-mode [data-shooting-stars] {
     grid-column: 1 / -1;
   }
 }
+/* The second step's choices: a name and a line about it; an odd last one takes the row. */
+.create-type {
+  align-items: flex-start;
+  min-height: 0;
+  padding-block: 0.85rem 0.9rem;
+}
+@media (min-width: 40rem) {
+  .create-types > .create-type:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+}
 .create-option:has(:focus-visible),
 .create-card button:focus-visible {
   outline: 2px solid var(--color-snow);
