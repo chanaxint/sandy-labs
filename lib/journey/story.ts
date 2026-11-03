@@ -30,6 +30,8 @@ export type Phrase = {
   id: string;
   /** The scene the phrase belongs to (filled in from `scenes`). */
   scene?: string;
+  /** The scene's text colours (filled in from `scenes`): the phrase uses the one for its tone. */
+  ink?: Ink;
   /** Lines of the phrase (each language breaks its own lines). */
   text: Record<Lang, string[]>;
   in: number;
@@ -55,7 +57,15 @@ export type Phrase = {
   mobile: Place;
 };
 
-export type Scene = { id: string; phrases: Phrase[] };
+/**
+ * A scene's text colours, one per tone, taken from its own footage: light text in the
+ * colour of the scene's light, dark text in the colour of its shadows. Each is as rich as
+ * legibility allows over the frames its phrases sit on (never much below plain snow or
+ * ink there, and 7:1 or more where those reach it).
+ */
+export type Ink = { light: string; dark: string };
+
+export type Scene = { id: string; ink: Ink; phrases: Phrase[] };
 
 const margin = { x: "clamp(1.5rem, 6vw, 6.5rem)", top: "clamp(5rem, 14vh, 9rem)", bottom: "clamp(3rem, 11vh, 7rem)" };
 const phone = { x: "1.5rem", top: "5.5rem", bottom: "4.5rem" };
@@ -76,6 +86,8 @@ export const jumpResume = 3224;
 export const scenes: Scene[] = [
   {
     id: "island-reveal",
+    // dawn-cloud umber; island sand
+    ink: { light: "#f0dfc1", dark: "#392b1d" },
     phrases: [
       {
         // Diving through the white cloud (330–455): dark text over the cloud.
@@ -112,6 +124,8 @@ export const scenes: Scene[] = [
   },
   {
     id: "takeoff",
+    // pine shade; sand
+    ink: { light: "#f7f1e4", dark: "#252f1e" },
     phrases: [
       {
         // The first plane on the runway, starting to roll (600–800).
@@ -149,6 +163,8 @@ export const scenes: Scene[] = [
   },
   {
     id: "aircraft-transition",
+    // slate in the white-out; cloud white
+    ink: { light: "#e2e8ee", dark: "#21303d" },
     phrases: [
       {
         // The first plane flies into the cloud wall (1520) and fades into it (gone ~1650).
@@ -183,6 +199,8 @@ export const scenes: Scene[] = [
   },
   {
     id: "norwegian-mountains",
+    // glacier navy; ice
+    ink: { light: "#c7e4ec", dark: "#183040" },
     phrases: [
       {
         // The second plane flies up the fjord between the snow mountains (1790–2100); the
@@ -219,6 +237,8 @@ export const scenes: Scene[] = [
   },
   {
     id: "snowboard",
+    // steel navy; ice
+    ink: { light: "#deedf2", dark: "#1c2f44" },
     phrases: [
       {
         // The snowboarder rides in from the top right (~2476) and carves down the slope.
@@ -276,6 +296,8 @@ export const scenes: Scene[] = [
   },
   {
     id: "miami-reveal",
+    // deep marine; Miami sand
+    ink: { light: "#f9f0e2", dark: "#163042" },
     phrases: [
       {
         // The white-out over the city (3790–3860): dark text.
@@ -316,6 +338,8 @@ export const scenes: Scene[] = [
   },
   {
     id: "jet-arrival",
+    // sky marine; sand
+    ink: { light: "#f6ecda", dark: "#11263f" },
     phrases: [
       {
         // The private jet climbs into the frame from under the camera (3975–4030).
@@ -353,6 +377,8 @@ export const scenes: Scene[] = [
   },
   {
     id: "jet-leaves",
+    // marine; warm ivory sand
+    ink: { light: "#f7f1e4", dark: "#10253c" },
     phrases: [
       {
         // The jet banks left and leaves (4200–4330): the water right of it is open.
@@ -408,6 +434,8 @@ export const scenes: Scene[] = [
   },
   {
     id: "day-to-night",
+    // dusk; silver
+    ink: { light: "#eff2f8", dark: "#171f36" },
     phrases: [
       {
         // The sky darkens (4660–4800).
@@ -441,6 +469,8 @@ export const scenes: Scene[] = [
   },
   {
     id: "finale",
+    // night; moonlight silver-blue
+    ink: { light: "#d5dff0", dark: "#171f36" },
     phrases: [
       {
         // The night sky to the end of the film: stays, with the call to action.
@@ -464,6 +494,6 @@ export const scenes: Scene[] = [
  * Every phrase, in film order, as designed here. What the site shows is these with the
  * Studio's saved layout on top (story-layout.json, see storyStore.ts).
  */
-export const designedPhrases: Phrase[] = scenes.flatMap((s) => s.phrases.map((p) => ({ ...p, scene: s.id })));
+export const designedPhrases: Phrase[] = scenes.flatMap((s) => s.phrases.map((p) => ({ ...p, scene: s.id, ink: s.ink })));
 
 export const designedCta: Record<Lang, string> = { en: "Create My Website", tr: "Web Sitemi Oluştur" };

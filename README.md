@@ -151,6 +151,12 @@ to action. Each phrase is tied to a moment in the footage, not to a time.
   scrolling up and stop when the scroll stops. Lines move as whole lines (fade and ~16px,
   or a mask), never word by word, a short offset apart; a line waiting its turn rests
   hidden. No timers. Reduced motion: fades only, no glide.
+- Text colours: each scene has an `ink` (light and dark) in `lib/journey/story.ts`, taken
+  from its own footage (light text in the colour of the scene's light, dark text in the
+  colour of its shadows: dawn-cloud umber, island sand, glacier navy and ice, steel navy on
+  the snow, Miami sand, moonlight silver at night). Each was made as rich as legibility
+  allows over the frames its phrases sit on: never much below plain snow/ink there, and
+  7:1 or more where those reach it. A phrase uses its scene's colour for its tone.
 - Every phrase stays on screen (`lib/journey/fit.ts`): text that would run past an edge
   (a longer Turkish line, a narrow window) gets smaller until it fits, then moves in from
   that edge; phrases that fit stay exactly as laid out.

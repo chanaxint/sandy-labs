@@ -68,6 +68,7 @@ export function CinematicTextOverlay({
         data-story={phrase.id}
         data-tone={phrase.tone}
         data-veil={phrase.veil ? "" : undefined}
+        style={phrase.ink ? ({ "--story-ink": phrase.ink[phrase.tone] } as CSSProperties) : undefined}
         // Hidden until its moment (the opening phrase is visible from the start).
         className={`story ${first ? "" : "invisible opacity-0"}`}
       >

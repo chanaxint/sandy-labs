@@ -27,14 +27,15 @@ body {
   position: relative;
   will-change: opacity;
 }
+/* Text in its scene's colour for its tone (story.ts `ink`), plain snow or ink otherwise. */
 .story[data-tone="light"] {
-  color: var(--color-snow);
+  color: var(--story-ink, var(--color-snow));
   text-shadow:
     0 1px 2px rgb(8 20 32 / 0.22),
     0 0 36px rgb(8 20 32 / 0.32);
 }
 .story[data-tone="dark"] {
-  color: var(--color-ink);
+  color: var(--story-ink, var(--color-ink));
   text-shadow: 0 0 30px rgb(255 255 255 / 0.6);
 }
 /* A faint shade behind the words only, for busy footage. */
