@@ -1,11 +1,9 @@
-import { Morph3DPreview } from "@/components/site/Morph3DPreview";
 import type { DesignStyle } from "@/lib/site/create";
 
 /**
  * A small moving picture of a design style, for the third step: a tiny page of abstract
- * shapes, not a screenshot. CSS keyframes on transform/opacity (app/globals.css, `.sp-*`),
- * except the 3D one's turning models (Morph3DPreview, a canvas); all hold still with
- * reduced motion. Decorative: the style's name labels it.
+ * shapes, not a screenshot. CSS keyframes on transform/opacity (app/globals.css,
+ * `.sp-*`); they hold still with reduced motion. Decorative: the style's name labels it.
  */
 export function StylePreview({ style }: { style: DesignStyle }) {
   return (
@@ -29,7 +27,16 @@ export function StylePreview({ style }: { style: DesignStyle }) {
           <span className="sp-d-card sp-d-card3" />
         </>
       ) : style === "3d" ? (
-        <Morph3DPreview />
+        <>
+          <span className="sp-3-glow" />
+          <span className="sp-3-scene">
+            <span className="sp-3-cube">
+              {["front", "back", "right", "left", "top", "bottom"].map((f) => (
+                <span key={f} className={`sp-3-face sp-3-${f}`} />
+              ))}
+            </span>
+          </span>
+        </>
       ) : style === "cinematic" ? (
         <>
           <span className="sp-c-sun" />
