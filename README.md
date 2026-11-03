@@ -141,7 +141,9 @@ scroll position asks for on a full-screen canvas:
      (`sitesFor`); "Other" gets all five;
   3. the design style: minimal & luxury, modern & dynamic, 3D experience, cinematic
      scroll, playful & colourful, each shown as a small moving preview of abstract shapes
-     (`components/site/StylePreview.tsx`, CSS keyframes `.sp-*`; still with reduced motion).
+     (`components/site/StylePreview.tsx`, CSS keyframes `.sp-*`; still with reduced motion);
+     the 3D one is solid, lit product models (a watch, a high-top sneaker, a perfume bottle)
+     turning and morphing into one another (`Morph3DPreview.tsx`, a canvas).
   Back returns to the step before with the answers kept.
   There is no way back to the night from the steps; the menu's Home still leaves them. Nothing is sent anywhere (no backend), so step 3's Continue isn't wired
   yet. Reduced motion: straight there, fades only.

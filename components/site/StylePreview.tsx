@@ -29,10 +29,7 @@ export function StylePreview({ style }: { style: DesignStyle }) {
           <span className="sp-d-card sp-d-card3" />
         </>
       ) : style === "3d" ? (
-        <>
-          <span className="sp-3-glow" />
-          <Morph3DPreview />
-        </>
+        <Morph3DPreview />
       ) : style === "cinematic" ? (
         <>
           <span className="sp-c-sun" />

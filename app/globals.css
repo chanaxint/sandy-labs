@@ -703,19 +703,10 @@ html.create-mode [data-shooting-stars] {
   animation-delay: 0.4s;
 }
 
-/* 3D experience: see-through wireframe models turning, flowing from one into the next
-   (Morph3DPreview draws them), over a soft glow. */
+/* 3D experience: solid, lit product models turning and flowing from one into the next
+   (Morph3DPreview draws them) in a studio: a soft gradient, a shadow on the ground. */
 .sp-3d {
-  background: radial-gradient(circle at 50% 42%, #24325a, #0a0f1d 72%);
-}
-.sp-3-glow {
-  left: 28%;
-  right: 28%;
-  bottom: 10%;
-  height: 12%;
-  border-radius: 50%;
-  background: radial-gradient(closest-side, rgb(122 162 255 / 0.5), transparent);
-  animation: sp-fade 4.5s ease-in-out infinite;
+  background: linear-gradient(180deg, #232c40, #121826 62%, #0c111b);
 }
 .sp > .sp-3-canvas {
   position: absolute;
