@@ -59,5 +59,5 @@ export function ShootingStars() {
     };
   }, []);
 
-  return <div ref={box} aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden" />;
+  return <div ref={box} aria-hidden data-shooting-stars className="pointer-events-none absolute inset-0 overflow-hidden" />;
 }

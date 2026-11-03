@@ -128,6 +128,15 @@ scroll position asks for on a full-screen canvas:
   yet: there is no contact page or address), the mark at the top centre (back to the start)
   and a two-line menu button at the top right. The menu (Motion) lists the film's chapters
   (`lib/site/copy.ts`; each jumps there), the language switch and the call to action.
+- "Create my website" (`components/site/CreateFlow.tsx`, copy and sectors in
+  `lib/site/create.ts`): the closing phrase's call to action, or the menu's, plays the film's
+  dusk backwards by itself (scroll held) so the night turns back into morning (frame 4600),
+  with a warm dawn light rising from the horizon on the way; the story's lines and the
+  shooting stars step aside, and step 1 of 4 opens over the morning sky (which industry:
+  a radio group, two columns, keyboard and screen-reader friendly). "Back to the story"
+  or Escape plays it forward to where the visitor was. Only this step exists and nothing is
+  sent anywhere (no backend), so Continue isn't wired yet. Reduced motion: straight there,
+  fades only.
 - Logo: traced from the brand artwork (`design/brand/sandy-labs-logo.jpg`) into SVG paths
   (`lib/brand/logo.ts`, `components/brand/SandyLogo.tsx`).
 

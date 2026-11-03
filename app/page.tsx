@@ -1,5 +1,6 @@
 import { JourneyDebug } from "@/components/journey/JourneyDebug";
 import { JourneyFilm } from "@/components/journey/JourneyFilm";
+import { CreateFlow } from "@/components/site/CreateFlow";
 import { IntroGate } from "@/components/site/IntroGate";
 import { LoadingScreen } from "@/components/site/LoadingScreen";
 import { ScrollProgress } from "@/components/site/ScrollProgress";
@@ -11,6 +12,7 @@ export default function HomePage() {
     <main>
       <JourneyFilm />
       <IntroGate />
+      <CreateFlow />
       <SiteHeader />
       <ScrollProgress />
       <LoadingScreen />

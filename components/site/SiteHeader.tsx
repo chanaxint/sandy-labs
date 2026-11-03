@@ -8,6 +8,7 @@ import { goToFrame } from "@/lib/journey/navigate";
 import type { Lang } from "@/lib/journey/story";
 import { storyStore } from "@/lib/journey/storyStore";
 import { chapters, copy } from "@/lib/site/copy";
+import { createStore, openCreate } from "@/lib/site/create";
 import { holdScroll, introStore, releaseScroll } from "@/lib/site/intro";
 
 const ease = [0.22, 1, 0.36, 1] as const;
@@ -31,7 +32,8 @@ export function SiteHeader() {
     window.addEventListener("keydown", onKey);
     return () => {
       window.removeEventListener("keydown", onKey);
-      if (introStore.get() === "done") releaseScroll();
+      // (Not while the creation steps hold it: the menu's call to action opens them.)
+      if (introStore.get() === "done" && createStore.get() === "closed") releaseScroll();
       button?.focus();
     };
   }, [open]);
@@ -39,6 +41,7 @@ export function SiteHeader() {
   /** Close the menu and jump to a place in the film (this starts the journey if needed). */
   const goTo = (frame: number) => {
     setOpen(false);
+    createStore.set("closed");
     introStore.set("done");
     releaseScroll();
     goToFrame(frame);
@@ -78,7 +81,17 @@ export function SiteHeader() {
           <span />
         </button>
       </header>
-      <SiteMenu open={open} lang={lang} onGo={goTo} onClose={() => setOpen(false)} />
+      <SiteMenu
+        open={open}
+        lang={lang}
+        onGo={goTo}
+        onCreate={() => {
+          setOpen(false);
+          introStore.set("done");
+          openCreate();
+        }}
+        onClose={() => setOpen(false)}
+      />
     </>
   );
 }
@@ -87,11 +100,13 @@ function SiteMenu({
   open,
   lang,
   onGo,
+  onCreate,
   onClose,
 }: {
   open: boolean;
   lang: Lang;
   onGo: (frame: number) => void;
+  onCreate: () => void;
   onClose: () => void;
 }) {
   const { setLang } = useLang();
@@ -164,8 +179,7 @@ function SiteMenu({
                     </button>
                   ))}
                 </div>
-                {/* Not connected yet: there is no website-creation flow in this project. */}
-                <button type="button" className="story-cta">
+                <button type="button" onClick={onCreate} className="story-cta">
                   {cta[lang]}
                 </button>
               </div>

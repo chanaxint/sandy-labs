@@ -385,6 +385,66 @@ html::-webkit-scrollbar {
   }
 }
 
+/* "Create my website" (CreateFlow): the story's lines and the shooting stars step aside
+   while the night turns to morning and the first step is open. */
+[data-story-layer],
+[data-shooting-stars] {
+  transition: opacity 600ms ease;
+}
+html.create-mode [data-story-layer],
+html.create-mode [data-shooting-stars] {
+  opacity: 0;
+}
+/* The morning's warm light from the horizon (its opacity is GSAP's). */
+.create-dawn {
+  background:
+    radial-gradient(120% 70% at 50% 108%, rgb(255 178 120 / 0.55), rgb(255 196 150 / 0.18) 45%, transparent 70%),
+    linear-gradient(to top, rgb(255 214 170 / 0.22), transparent 55%);
+}
+.create-card {
+  background: rgb(9 15 23 / 0.94);
+  border: 1px solid rgb(246 247 244 / 0.14);
+  box-shadow: 0 40px 90px -30px rgb(8 20 32 / 0.65);
+}
+.create-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-height: 3.4rem;
+  padding: 0.75rem 0.85rem;
+  font-size: 0.92rem;
+  line-height: 1.25;
+  border: 1px solid rgb(246 247 244 / 0.16);
+  border-radius: 1rem;
+  cursor: pointer;
+  transition:
+    border-color 200ms ease,
+    background-color 200ms ease;
+}
+@media (min-width: 48rem) {
+  .create-option {
+    gap: 0.75rem;
+    min-height: 3.6rem;
+    padding: 0.9rem 1.1rem;
+    font-size: 1rem;
+  }
+}
+.create-option:hover {
+  border-color: rgb(246 247 244 / 0.36);
+}
+.create-option:has(:checked) {
+  border-color: var(--color-snow);
+  background: rgb(246 247 244 / 0.06);
+  font-weight: 600;
+}
+.create-option:has(:focus-visible),
+.create-close:focus-visible,
+.create-card button:focus-visible {
+  outline: 2px solid var(--color-snow);
+  outline-offset: 3px;
+}
+
 /* The scroll hint after the opening run: fades in, a dot runs down its line. */
 .scroll-hint {
   display: flex;
@@ -454,6 +514,11 @@ html::-webkit-scrollbar {
   transform: translateY(-4.25px) rotate(-45deg);
 }
 @media (prefers-reduced-motion: reduce) {
+  [data-story-layer],
+  [data-shooting-stars],
+  .create-option {
+    transition: none;
+  }
   .intro-clouds {
     display: none;
   }

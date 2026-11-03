@@ -5,6 +5,7 @@ import { useLang } from "@/lib/i18n/lang";
 import type { Phrase, Place } from "@/lib/journey/story";
 import { fitPhrases } from "@/lib/journey/fit";
 import { storyStore } from "@/lib/journey/storyStore";
+import { openCreate } from "@/lib/site/create";
 
 /** Position and text size as CSS variables: `--m*` on phones, `--d*` from the md breakpoint. */
 function placeVars(mobile: Place, desktop: Place): CSSProperties {
@@ -94,8 +95,8 @@ export function CinematicTextOverlay({
         </p>
         {ctaLabel ? (
           <div data-line className="mt-9 md:mt-11">
-            {/* Not connected yet: there is no website-creation flow in this project. */}
-            <button type="button" className="story-cta pointer-events-auto">
+            {/* Opens the first step of the website creation (components/site/CreateFlow.tsx). */}
+            <button type="button" onClick={openCreate} className="story-cta pointer-events-auto">
               {ctaLabel}
             </button>
           </div>
@@ -130,7 +131,7 @@ export function StoryOverlays() {
 
   const editing = studio.mode === "edit";
   return (
-    <div ref={root} className="pointer-events-none absolute inset-0 z-10">
+    <div ref={root} data-story-layer className="pointer-events-none absolute inset-0 z-10">
       {phrases.map((p) => (
         <CinematicTextOverlay
           key={p.id}
