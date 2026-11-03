@@ -441,6 +441,33 @@ html.create-mode [data-shooting-stars] {
   background: rgb(246 247 244 / 0.14);
   font-weight: 600;
 }
+/* The field "Other" opens, to write the industry in. */
+.create-input {
+  display: block;
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border: 1px solid rgb(246 247 244 / 0.3);
+  border-radius: 1rem;
+  background: rgb(246 247 244 / 0.08);
+  color: var(--color-snow);
+  font: inherit;
+  font-size: 1rem;
+  transition: border-color 200ms ease;
+}
+.create-input::placeholder {
+  color: rgb(246 247 244 / 0.6);
+}
+.create-input:hover {
+  border-color: rgb(246 247 244 / 0.6);
+}
+.create-input:focus {
+  border-color: var(--color-snow);
+  outline: none;
+}
+.create-input:focus-visible {
+  outline: 2px solid var(--color-snow);
+  outline-offset: 3px;
+}
 .create-option:has(:focus-visible),
 .create-card button:focus-visible {
   outline: 2px solid var(--color-snow);
@@ -518,7 +545,8 @@ html.create-mode [data-shooting-stars] {
 @media (prefers-reduced-motion: reduce) {
   [data-story-layer],
   [data-shooting-stars],
-  .create-option {
+  .create-option,
+  .create-input {
     transition: none;
   }
   .intro-clouds {

@@ -85,7 +85,12 @@ export function CreateFlow() {
 function CreateStep() {
   const { lang } = useLang();
   const [sector, setSector] = useState<string | null>(null);
+  /** The industry written in when none of the list fits ("other"). */
+  const [other, setOther] = useState("");
   const card = useRef<HTMLDivElement>(null);
+  const otherField = useRef<HTMLInputElement>(null);
+  /** "Other" was picked with a click or tap (not arrowed onto with the keyboard). */
+  const pointed = useRef(false);
 
   useEffect(() => {
     card.current?.querySelector<HTMLInputElement>("input")?.focus({ preventScroll: true });
@@ -94,7 +99,15 @@ function CreateStep() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  // "Other" picked with a click or tap: straight into its field (arrowing through the
+  // choices with the keyboard stays on them; Tab goes on to it).
+  useEffect(() => {
+    if (sector === "other" && pointed.current) otherField.current?.focus();
+    pointed.current = false;
+  }, [sector]);
+
   const t = createCopy;
+  const ready = sector !== null && (sector !== "other" || other.trim() !== "");
   return (
     // A click or tap beside the step goes back to the story (as Escape does).
     <div
@@ -121,7 +134,7 @@ function CreateStep() {
           <legend className="mb-4 text-[1.02rem] text-snow/90">{t.question[lang]}</legend>
           <div className="grid grid-cols-2 gap-2 md:gap-2.5">
             {sectors.map((s) => (
-              <label key={s.id} className="create-option">
+              <label key={s.id} className="create-option" onPointerDown={() => (pointed.current = s.id === "other")}>
                 <input
                   type="radio"
                   name="sector"
@@ -137,10 +150,38 @@ function CreateStep() {
           </div>
         </fieldset>
 
+        <AnimatePresence initial={false}>
+          {sector === "other" ? (
+            <m.div
+              key="other"
+              className="overflow-hidden"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.35, ease }}
+            >
+              <label className="block pt-4">
+                <span className="mb-2 block text-sm text-snow/85">{t.otherLabel[lang]}</span>
+                <input
+                  ref={otherField}
+                  type="text"
+                  name="sector-other"
+                  value={other}
+                  onChange={(e) => setOther(e.target.value)}
+                  placeholder={t.otherPlaceholder[lang]}
+                  maxLength={60}
+                  autoComplete="off"
+                  className="create-input"
+                />
+              </label>
+            </m.div>
+          ) : null}
+        </AnimatePresence>
+
         {/* Not connected yet: the next steps (and any backend) don't exist in this project. */}
         <button
           type="button"
-          disabled={!sector}
+          disabled={!ready}
           className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-snow py-3.5 font-medium text-ink transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
         >
           {t.continue[lang]}

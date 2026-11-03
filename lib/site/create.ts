@@ -45,9 +45,11 @@ export const createCopy = {
   title: { en: "First, let's get to know you.", tr: "Önce sizi biraz tanıyalım." },
   question: { en: "Which industry are you in?", tr: "Hangi sektörde faaliyet gösteriyorsunuz?" },
   continue: { en: "Continue", tr: "Devam et" },
+  otherLabel: { en: "Your industry", tr: "Sektörünüz" },
+  otherPlaceholder: { en: "e.g. Architecture, Education…", tr: "ör. Mimarlık, Eğitim…" },
 } satisfies Record<string, Copy>;
 
-/** The industries of the first step. */
+/** The industries of the first step ("other" opens a field to write one in). */
 export const sectors: { id: string; label: Copy }[] = [
   { id: "fashion", label: { en: "Fashion & Apparel", tr: "Moda & Giyim" } },
   { id: "beauty", label: { en: "Beauty & Cosmetics", tr: "Güzellik & Kozmetik" } },
