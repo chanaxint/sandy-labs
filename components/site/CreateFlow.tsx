@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, CircleCheck } from "lucide-react";
 import { AnimatePresence, domMax, LazyMotion, m, MotionConfig } from "motion/react";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useLang } from "@/lib/i18n/lang";
+import { filmStatus } from "@/lib/journey/film";
 import { goToFrame } from "@/lib/journey/navigate";
 import { StylePreview } from "@/components/site/StylePreview";
 import {
@@ -22,6 +23,8 @@ import { gsap, prefersReducedMotion } from "@/lib/scroll/engine";
 
 /** Seconds the night takes to turn back into morning. */
 const toMorning = 3.2;
+/** Opened from before the night (the menu): the film cuts to the night first, here. */
+const nightFrame = 5040;
 const ease = [0.22, 1, 0.36, 1] as const;
 
 /**
@@ -54,6 +57,9 @@ export function CreateFlow() {
           .timeline()
           .to(dawn.current, { opacity: 0.8, duration: toMorning * 0.5, ease: "sine.inOut" })
           .to(dawn.current, { opacity: 0.35, duration: toMorning * 0.5, ease: "sine.inOut" });
+      // From anywhere before the night (the menu), straight to the night first: the film
+      // isn't wound through in a rush.
+      if (filmStatus.target < nightFrame - 300) goToFrame(nightFrame);
       goToFrame(morningFrame, reduce ? undefined : toMorning, () => {
         if (createStore.get() === "opening") createStore.set("open");
       });

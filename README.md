@@ -126,8 +126,8 @@ scroll position asks for on a full-screen canvas:
   night) at the bottom, filling with the scroll; shown once the journey has started.
 - Header (`components/site/SiteHeader.tsx`): "Contact us" at the top left (not connected
   yet: there is no contact page or address), the mark at the top centre (back to the start)
-  and a two-line menu button at the top right. The menu (Motion) lists the film's chapters
-  (`lib/site/copy.ts`; each jumps there), the language switch and the call to action.
+  and a two-line menu button at the top right. The menu (Motion) has two entries for now:
+  Home (back to the start of the film) and Create my website (`lib/site/copy.ts`).
 - "Create my website" (`components/site/CreateFlow.tsx`, copy, industries and website
   types in `lib/site/create.ts`): the closing phrase's call to action, or the menu's, plays
   the film's dusk backwards by itself (scroll held) so the night turns back into morning
@@ -143,8 +143,7 @@ scroll position asks for on a full-screen canvas:
      scroll, playful & colourful, each shown as a small moving preview of abstract shapes
      (`components/site/StylePreview.tsx`, CSS keyframes `.sp-*`; still with reduced motion).
   Back returns to the step before with the answers kept.
-  There is no way back to the night from the steps; the menu still takes the visitor to
-  any chapter. Nothing is sent anywhere (no backend), so step 3's Continue isn't wired
+  There is no way back to the night from the steps; the menu's Home still leaves them. Nothing is sent anywhere (no backend), so step 3's Continue isn't wired
   yet. Reduced motion: straight there, fades only.
 - Logo: traced from the brand artwork (`design/brand/sandy-labs-logo.jpg`) into SVG paths
   (`lib/brand/logo.ts`, `components/brand/SandyLogo.tsx`).
@@ -204,8 +203,8 @@ to action. Each phrase is tied to a moment in the footage, not to a time.
   `story-layout.json` (Chrome can write it straight into `lib/journey/`), or Download / Copy
   JSON. The site applies `lib/journey/story-layout.json` over the phrases designed in
   `story.ts` (`lib/journey/storyStore.ts`); commit that file to publish a layout.
-- Language: English or Turkish (`EN`/`TR` switch, top right; the browser's language on the
-  first visit, then the visitor's choice). `lib/i18n/lang.tsx`.
+- Language: English or Turkish, from the browser's language (there is no switch on the page
+  for now; a choice saved earlier is kept). `lib/i18n/lang.tsx`.
 - Type: Instrument Serif for the phrases, Instrument Sans for the button and the language
   switch (next/font). Readability comes from a soft text shadow, plus a faint local shade
   behind busy footage (`veil`); the film itself is never darkened.

@@ -164,7 +164,8 @@ export function createJumpBeat(stage: HTMLElement, sceneId: string): SceneMedia 
   return {
     render(update: SceneUpdate) {
       const frame = frameAt(update.progress);
-      if (storyStore.get().studio.mode === "edit") {
+      // Not while the studio edits, nor while "Create my website" moves the film itself.
+      if (storyStore.get().studio.mode === "edit" || document.documentElement.classList.contains("create-mode")) {
         last = frame;
         return;
       }

@@ -7,7 +7,7 @@ import { useLang } from "@/lib/i18n/lang";
 import { goToFrame } from "@/lib/journey/navigate";
 import type { Lang } from "@/lib/journey/story";
 import { storyStore } from "@/lib/journey/storyStore";
-import { chapters, copy } from "@/lib/site/copy";
+import { copy } from "@/lib/site/copy";
 import { createStore, openCreate } from "@/lib/site/create";
 import { holdScroll, introStore, releaseScroll } from "@/lib/site/intro";
 
@@ -109,7 +109,6 @@ function SiteMenu({
   onCreate: () => void;
   onClose: () => void;
 }) {
-  const { setLang } = useLang();
   const cta = useSyncExternalStore(storyStore.subscribe, () => storyStore.get().cta, () => storyStore.get().cta);
   const first = useRef<HTMLButtonElement>(null);
   useEffect(() => {
@@ -144,46 +143,28 @@ function SiteMenu({
               exit={{ x: "100%", pointerEvents: "none" }}
               transition={{ duration: 0.6, ease }}
             >
-              <p className="mb-5 text-sm text-snow/55">{copy.chaptersTitle[lang]}</p>
-              <ol className="space-y-1.5">
-                {chapters.map((c, i) => (
+              <ul className="space-y-2">
+                {[
+                  { id: "home", label: copy.homeLink[lang], go: () => onGo(0) },
+                  { id: "create", label: cta[lang], go: onCreate },
+                ].map((item, i) => (
                   <m.li
-                    key={c.id}
+                    key={item.id}
                     initial={{ opacity: 0, x: 18 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.5, ease, delay: 0.12 + i * 0.04 }}
+                    transition={{ duration: 0.5, ease, delay: 0.12 + i * 0.06 }}
                   >
                     <button
                       ref={i === 0 ? first : undefined}
                       type="button"
-                      onClick={() => onGo(c.frame)}
-                      className="font-serif text-[1.85rem] leading-tight text-snow/90 transition-colors duration-200 hover:text-white focus-visible:underline focus-visible:outline-none"
+                      onClick={item.go}
+                      className="font-serif text-[2.1rem] leading-tight text-snow/90 transition-colors duration-200 hover:text-white focus-visible:underline focus-visible:outline-none"
                     >
-                      {c.label[lang]}
+                      {item.label}
                     </button>
                   </m.li>
                 ))}
-              </ol>
-
-              <div className="mt-auto pt-12">
-                <div role="group" aria-label={copy.language[lang]} className="mb-8 flex gap-1 text-sm">
-                  {(["en", "tr"] as const).map((l) => (
-                    <button
-                      key={l}
-                      type="button"
-                      lang={l}
-                      aria-pressed={lang === l}
-                      onClick={() => setLang(l)}
-                      className="rounded-full px-3 py-1.5 text-snow/55 transition-colors hover:text-snow aria-pressed:bg-snow aria-pressed:text-ink"
-                    >
-                      {l === "en" ? "English" : "Türkçe"}
-                    </button>
-                  ))}
-                </div>
-                <button type="button" onClick={onCreate} className="story-cta">
-                  {cta[lang]}
-                </button>
-              </div>
+              </ul>
             </m.nav>
           ) : null}
         </AnimatePresence>

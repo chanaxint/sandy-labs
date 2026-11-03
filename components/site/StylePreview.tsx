@@ -1,20 +1,23 @@
+import { Morph3DPreview } from "@/components/site/Morph3DPreview";
 import type { DesignStyle } from "@/lib/site/create";
 
 /**
- * A small moving picture of a design style, for the third step: abstract shapes on a
- * tiny page, not a screenshot. CSS keyframes on transform/opacity (app/globals.css,
- * `.sp-*`); they hold still with reduced motion. Decorative: the style's name labels it.
+ * A small moving picture of a design style, for the third step: a tiny page of abstract
+ * shapes, not a screenshot. CSS keyframes on transform/opacity (app/globals.css, `.sp-*`),
+ * except the 3D one's turning models (Morph3DPreview, a canvas); all hold still with
+ * reduced motion. Decorative: the style's name labels it.
  */
 export function StylePreview({ style }: { style: DesignStyle }) {
   return (
     <span aria-hidden className={`sp sp-${style}`}>
       {style === "minimal" ? (
         <>
-          <span className="sp-m-nav" />
-          <span className="sp-m-title" />
-          <span className="sp-m-line" />
-          <span className="sp-m-sub" />
-          <span className="sp-m-item" />
+          <span className="sp-l-frame" />
+          <span className="sp-l-brand" lang="fr">MAISON</span>
+          <span className="sp-l-title" lang="fr">Élégance</span>
+          <span className="sp-l-line" />
+          <span className="sp-l-arch" />
+          <span className="sp-l-sheen" />
         </>
       ) : style === "modern" ? (
         <>
@@ -28,13 +31,7 @@ export function StylePreview({ style }: { style: DesignStyle }) {
       ) : style === "3d" ? (
         <>
           <span className="sp-3-glow" />
-          <span className="sp-3-scene">
-            <span className="sp-3-cube">
-              {["front", "back", "right", "left", "top", "bottom"].map((f) => (
-                <span key={f} className={`sp-3-face sp-3-${f}`} />
-              ))}
-            </span>
-          </span>
+          <Morph3DPreview />
         </>
       ) : style === "cinematic" ? (
         <>
@@ -47,12 +44,16 @@ export function StylePreview({ style }: { style: DesignStyle }) {
         </>
       ) : (
         <>
-          <span className="sp-f-blob sp-f-b1" />
-          <span className="sp-f-blob sp-f-b2" />
-          <span className="sp-f-blob sp-f-b3" />
-          <span className="sp-f-blob sp-f-b4" />
-          <span className="sp-f-squiggle" />
-          <span className="sp-f-bar" />
+          <span className="sp-p-hero" />
+          <span className="sp-p-nav" />
+          <span className="sp-p-h sp-p-h1" />
+          <span className="sp-p-h sp-p-h2" />
+          <span className="sp-p-cta" />
+          <span className="sp-p-dot" />
+          <span className="sp-p-star" />
+          <span className="sp-p-card sp-p-card1" />
+          <span className="sp-p-card sp-p-card2" />
+          <span className="sp-p-card sp-p-card3" />
         </>
       )}
     </span>

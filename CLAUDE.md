@@ -95,7 +95,7 @@ Rules:
   The opening (`components/site/IntroGate.tsx`: logo + start button over drifting clouds (`IntroClouds.tsx`, they go down with the camera on start), scroll held until
   start, scroll before it does nothing; the film runs quickly to the first phrase, then a "Scroll"
   hint shows) hands over to the header (`SiteHeader.tsx`: "Contact us" top left (unwired), mark top centre, two-line menu with
-  chapters, language, CTA) and the progress line that replaces the scrollbar (`ScrollProgress.tsx`). Logo paths: `lib/brand/logo.ts` (traced from
+  Home and Create my website) and the progress line that replaces the scrollbar (`ScrollProgress.tsx`). Logo paths: `lib/brand/logo.ts` (traced from
   `design/brand/sandy-labs-logo.jpg`).
   Shooting stars cross the night at the end now and then (`components/journey/ShootingStars.tsx`).
   `JourneyDebug` is a tuning panel, shown only with `?debug` in the URL.
