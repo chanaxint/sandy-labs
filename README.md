@@ -19,7 +19,7 @@ npm run typecheck  # TypeScript
 
 ```
 app/layout.tsx              root layout (metadata, global styles, starts the scroll engine)
-app/page.tsx                homepage: the journey film (+ debug panel)
+app/page.tsx                homepage: the journey film, then "What we do" (+ debug panel)
 app/globals.css             Tailwind import and a white page background
 lib/scroll/engine.ts        Lenis + GSAP ScrollTrigger, one shared ticker, one instance
 lib/scroll/scene.ts         createScene(): scroll-scrubbed scenes with progress, pinning, media
@@ -30,6 +30,8 @@ lib/journey/film.ts         scroll progress → frame → full-screen canvas
 components/journey/         <JourneyFilm /> and the <JourneyDebug /> panel (`?debug`)
 public/media/journey/       encoded film (2160p/1440p/1080p/720p H.264, 720p AV1), frame indexes, poster, thumbnails
 scripts/journey/            build-journey.sh + index.py: encodes the film from the source video
+components/site/WhatWeDo.tsx "What we do": its opening (lib/site/whatWeDo.ts)
+public/media/what-we-do/    its two layers; scripts/what-we-do/build-layers.py builds them from design/what-we-do/
 public/media/{hero,intro}/  media from the previous site, kept but not used
 scripts/intro/              pipeline that built the previous intro videos
 ```
@@ -242,6 +244,25 @@ to action. Each phrase is tied to a moment in the footage, not to a time.
   behind busy footage (`veil`); the film itself is never darkened.
 - The closing button ("Create My Website") isn't connected to anything: the project has no
   website-creation flow or route yet.
+
+## What we do
+
+After the journey comes "What we do" (`components/site/WhatWeDo.tsx`, copy and tuning in
+`lib/site/whatWeDo.ts`). Its opening is the user's painting of the valley at dawn, whole
+and bottom-aligned (as wide as the screen; on phones as wide as keeps the whole village
+in view, its sky going on above). The stage pins for 1.2 screens while only the village
+and its hill rise a little (5% of their picture), as a layer of their own; their hill goes
+on below the picture, so nothing opens under it. Reduced motion: it stays still.
+
+The layers come from `design/what-we-do/` (the painting, and the village alone on white)
+through `scripts/what-we-do/build-layers.py`: the village is cut out of its white (the snow
+on the hill stays), placed exactly over the painting's village (matched by features), its
+hill carried on downwards as its own lowest slope enlarged in steps (nearer ground) into
+shade; the painting has its own village filled in from around it (only ever seen at the
+village's edges as it rises) and more sky above it, so the frame is 16:10. The pictures are
+2000 px wide; larger originals would make them sharper on large screens.
+
+The progress line at the right follows the journey only (`ScrollProgress.tsx`).
 
 ## What is (and isn't) connected
 

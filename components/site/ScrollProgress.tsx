@@ -4,7 +4,7 @@ import { Moon } from "lucide-react";
 import { useEffect, useRef, useSyncExternalStore } from "react";
 import { SandyMark } from "@/components/brand/SandyLogo";
 import { introStore } from "@/lib/site/intro";
-import { getLenis, gsap } from "@/lib/scroll/engine";
+import { getLenis, gsap, ScrollTrigger } from "@/lib/scroll/engine";
 
 /**
  * In place of the scrollbar (hidden, app/globals.css): a thin line at the right edge from
@@ -20,8 +20,9 @@ export function ScrollProgress() {
     if (!el) return;
     let off: (() => void) | undefined;
     const set = () => {
-      const lenis = getLenis();
-      if (lenis) el.style.setProperty("--p", Math.min(1, Math.max(0, lenis.progress || 0)).toFixed(4));
+      // The journey's own progress (the page goes on after it).
+      const st = ScrollTrigger.getById("journey");
+      if (st) el.style.setProperty("--p", st.progress.toFixed(4));
     };
     // The engine may start after this effect: wait for Lenis, then follow its scroll.
     const attach = () => {

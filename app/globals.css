@@ -416,6 +416,22 @@ body {
   --wall-e: calc(var(--wall-edge, 28.125vw) * 1.12);
 }
 
+/* "What we do": the painting's frame (WhatWeDo.tsx), bottom-aligned, as wide as the screen
+   and as tall as it where it can be; on narrow screens only as wide as keeps the whole
+   village in view (its --focus in the middle), the stage's sky above it. */
+.wwd-sky {
+  background: linear-gradient(90deg, #9aa5aa, #7d97ab 45%, #6286a5);
+}
+.wwd-frame {
+  --w: max(100%, min(100dvh * 1.6, 100% / 0.55));
+  width: var(--w);
+  left: clamp(100% - var(--w), 50% - var(--focus, 0.5) * var(--w), 0px);
+}
+/* The painting's sky melts into the stage's at its top. */
+.wwd-frame > img:first-child {
+  mask-image: linear-gradient(transparent, #000 16%);
+}
+
 /* A shooting star over the night (ShootingStars): a faint streak, its bright head in
    front, growing from the head as it slides down the sky, then gone. */
 .shooting-star {

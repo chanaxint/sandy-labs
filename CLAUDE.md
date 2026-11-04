@@ -102,6 +102,10 @@ Rules:
   Home and Create my website) and the progress line that replaces the scrollbar (`ScrollProgress.tsx`). Logo paths: `lib/brand/logo.ts` (traced from
   `design/brand/sandy-labs-logo.jpg`).
   Shooting stars cross the night at the end now and then (`components/journey/ShootingStars.tsx`).
+- After the journey: "What we do" (`components/site/WhatWeDo.tsx`, `lib/site/whatWeDo.ts`). Its
+  opening is the user's valley painting, the village a layer of its own that rises a little as the
+  pinned stage scrolls (layers from `design/what-we-do/` via `scripts/what-we-do/build-layers.py`).
+  The progress line follows the journey only.
   `JourneyDebug` is a tuning panel, shown only with `?debug` in the URL.
 
 ## Code conventions
