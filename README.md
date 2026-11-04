@@ -173,14 +173,16 @@ to action. Each phrase is tied to a moment in the footage, not to a time.
   fade and a small rise and goes with a soft fade. Only the jump's phrase (on the impact)
   and the closing line with its call to action differ in size. Text tone (light or dark)
   follows the footage behind it.
-- Cloud over the two hard cuts (`lib/journey/veils.ts`): A, the take-off to the flight
-  over the sea (frames 872–1004), through cloud, with "And the right beginning…" in the
-  dense part; B, the snowy plane's peaks to the snowboard slope (2160–2276), through snow
-  mist, with "That's when you want to do more than watch…". Two layers of the film's own
-  cloud (`public/media/journey/veil-*.webp`, made by `build-journey.sh`): a ring clear in
-  the middle that closes in from the edges and opens outwards again, and a full layer for
-  the dense part; driven by the film frame, so they play backwards exactly. The scroll pace
-  is slower only inside the dense cloud, where the film is hidden.
+- A wall of cloud over the two hard cuts (`lib/journey/veils.ts`): A, the take-off to the
+  flight over the sea (frames 872–1004), with "And the right beginning…" while it is white;
+  B, the snowy plane's peaks to the snowboard slope (2160–2276), with "That's when you
+  want to do more than watch…". As if the camera sank through a bank of cumulus: the
+  cloud's edge rises from the bottom until the screen is white, drifts, then its underside
+  rises out of the top and the new scene shows from the bottom up. Two layers (back leads in
+  and lingers out) of the film's own cumulus keyed out of the sky
+  (`public/media/journey/veil-wall*.webp`, `scripts/journey/cloud_wall.py`, run by
+  `build-journey.sh`); driven by the film frame, so it plays backwards exactly. The scroll
+  pace is slower only while it is white. Reduced motion: the white just fades.
 - `components/journey/CinematicTextOverlay.tsx` renders a phrase; `lib/journey/storyTimeline.ts`
   puts them on a GSAP timeline in film frames, set from the film scene's scroll progress
   (through the pace mapping) with a short glide (`follow`, 0.65 s): they play backwards when

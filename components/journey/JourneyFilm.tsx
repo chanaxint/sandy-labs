@@ -6,7 +6,7 @@ import { createFilm } from "@/lib/journey/film";
 import { filmLength } from "@/lib/journey/pace";
 import { createJumpBeat } from "@/lib/journey/jumpBeat";
 import { createStory } from "@/lib/journey/storyTimeline";
-import { createVeils, veils } from "@/lib/journey/veils";
+import { createVeils, veils, wallImages } from "@/lib/journey/veils";
 import type { SceneMedia } from "@/lib/scroll/scene";
 import { StoryOverlays } from "./CinematicTextOverlay";
 import { ShootingStars } from "./ShootingStars";
@@ -42,13 +42,18 @@ export function JourneyFilm() {
     >
       <div aria-hidden className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${media.poster})` }} />
       <canvas aria-hidden className="absolute inset-0 block size-full" />
-      {/* Cloud and mist over two hard cuts (lib/journey/veils.ts), under the story's lines. */}
+      {/* A wall of cloud over two hard cuts (lib/journey/veils.ts), under the story's lines. */}
       {veils.map((v) => (
         <div key={v.id} aria-hidden data-veil={v.id} className="veil pointer-events-none absolute inset-0 overflow-hidden">
-          {/* eslint-disable-next-line @next/next/no-img-element -- set when near, by the scene */}
-          <img alt="" className="veil-core" decoding="async" />
-          {/* eslint-disable-next-line @next/next/no-img-element -- set when near, by the scene */}
-          <img alt="" className="veil-ring" decoding="async" />
+          {(["back", "front"] as const).map((layer) => (
+            <div key={layer} data-wall={layer} className="veil-wall">
+              {/* eslint-disable-next-line @next/next/no-img-element -- set when near, by the scene */}
+              <img alt="" data-src={wallImages[layer]} decoding="async" />
+              <span className="veil-white" />
+              {/* eslint-disable-next-line @next/next/no-img-element -- set when near, by the scene */}
+              <img alt="" data-src={wallImages[layer]} decoding="async" className="veil-under" />
+            </div>
+          ))}
         </div>
       ))}
       {/* Now and then over the night at the end, behind the story's lines. */}

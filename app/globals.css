@@ -399,18 +399,39 @@ body {
 .veil {
   visibility: hidden;
 }
-.veil > img {
+/* A column: the cloud's edge, plain white, the edge upside down (veils.ts moves it up). */
+.veil-wall {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0;
-  transform-origin: 50% 50%;
-  will-change: transform, opacity;
+  left: 50%;
+  top: 0;
+  --wall-w: calc(var(--wall-edge, 56.25vw) * 16 / 9);
+  width: var(--wall-w);
+  margin-left: calc(var(--wall-w) / -2);
+  display: flex;
+  flex-direction: column;
+  transform: translate3d(0, 100vh, 0);
+  will-change: transform;
 }
-.veil > .veil-ring {
-  mask-image: radial-gradient(ellipse 70% 62% at 50% 50%, transparent 30%, #000 78%);
+.veil-wall > img {
+  display: block;
+  width: 100%;
+  height: var(--wall-edge, 56.25vw);
+}
+.veil-wall > .veil-white {
+  display: block;
+  height: var(--wall-white, 130vh);
+  margin: -2px 0;
+  background: #fff;
+}
+.veil-wall > .veil-under {
+  scale: -1 -1;
+}
+/* The back layer: a touch larger, as if further off. */
+.veil-wall[data-wall="back"] {
+  --wall-w: calc(var(--wall-edge, 56.25vw) * 16 / 9 * 1.12);
+}
+.veil-wall[data-wall="back"] > img {
+  height: calc(var(--wall-edge, 56.25vw) * 1.12);
 }
 
 /* A shooting star over the night (ShootingStars): a faint streak, its bright head in
