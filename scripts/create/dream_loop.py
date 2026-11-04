@@ -41,7 +41,7 @@ def frames(vf, fmt, width, height, channels):
     # The source, then its own first frame again (the loop's join).
     graph = f"[1:v]trim=end_frame=1,setpts=PTS-STARTPTS[first];[0:v][first]concat=n=2:v=1:a=0,mpdecimate,setpts=N/{FPS_IN}/TB,{vf}"
     p = subprocess.Popen(
-        ["ffmpeg", "-v", "error", "-i", SRC, "-i", SRC, "-filter_complex", graph, "-f", "rawvideo", "-pix_fmt", fmt, "-"],
+        ["ffmpeg", "-v", "error", "-i", SRC, "-i", SRC, "-filter_complex", graph, "-fps_mode", "passthrough", "-f", "rawvideo", "-pix_fmt", fmt, "-"],
         stdout=subprocess.PIPE,
     )
     size = width * height * channels
@@ -96,6 +96,7 @@ for j, fr in enumerate(frames(vf, "bgr24", W, H, 3)):
         picked = [f for idx, f in buf if lo <= idx <= hi] or [buf[-1][1]]
         out = picked[0] if len(picked) == 1 else np.mean(np.stack(picked).astype(np.float32), axis=0).astype(np.uint8)
         enc.stdin.write(out.tobytes())
+        last = out
         written += 1
         w += 1
     keep = windows[w][0] if w < len(windows) else j
@@ -104,7 +105,7 @@ for j, fr in enumerate(frames(vf, "bgr24", W, H, 3)):
     if w >= len(windows):
         break
 while w < len(windows):  # the very end, if the in-betweens ran out
-    enc.stdin.write(buf[-1][1].tobytes())
+    enc.stdin.write(last.tobytes())
     written += 1
     w += 1
 enc.stdin.close()
