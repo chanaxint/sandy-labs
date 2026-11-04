@@ -1,17 +1,17 @@
 /**
  * A wall of cloud over the film's two hard cuts, so they happen inside the cloud:
- *   A — the take-off (cut to the flight over the sea at ~918);
+ *   A — the take-off (cut to the flight over the sea, 908–918);
  *   B — the snowy plane's peaks (cut to the snowboard slope at ~2196).
  *
  * As if the camera sank through a bank of cumulus: the cloud's edge rises from the bottom
  * of the screen until it is all white (the story's line for the moment shows there, dark
  * on the white, story.ts), drifts on a little, then its underside rises out of the top and
  * leaves the new scene, which shows from the bottom up. Two layers of the same real cloud
- * (veil-wall*.webp, from the film's own frame by scripts/journey/cloud_wall.py): one
+ * (veil-wall*.webp, cumulus billows by scripts/journey/cloud_wall.py): one
  * further back that leads on the way in and lingers on the way out, one in front. Each is
  * a column: cloud edge, plain white, the edge upside down. Driven by the film frame
- * (scroll), so it plays backwards exactly; the scroll pace is slower only while it is
- * white (config.ts `pace`). Only transform; reduced motion: a plain fade of the white.
+ * (scroll), so it plays backwards exactly; the scroll pace is slow all through it
+ * (config.ts `pace`), so it passes unhurried. Only transform; reduced motion: a plain fade of the white.
  */
 import type { SceneMedia, SceneUpdate } from "@/lib/scroll/scene";
 import { prefersReducedMotion } from "@/lib/scroll/engine";
@@ -31,8 +31,9 @@ const base = journeyConfig.media.base;
 export const wallImages = { front: `${base}/veil-wall.webp`, back: `${base}/veil-wall-back.webp` };
 
 export const veils: Veil[] = [
-  { id: "a", from: 872, dense: 910, clear: 968, to: 1004 },
-  { id: "b", from: 2160, dense: 2192, clear: 2240, to: 2276 },
+  // Rising as the plane leaves the ground, all white just before the cut (908–918).
+  { id: "a", from: 880, dense: 906, clear: 962, to: 996 },
+  { id: "b", from: 2166, dense: 2192, clear: 2240, to: 2274 },
 ];
 
 /** Images are fetched this many frames before a veil starts. */
@@ -127,7 +128,7 @@ export function createVeils(stage: HTMLElement): SceneMedia {
   };
 }
 
-/** The cloud edge's height (px): the 16:9 image across at least the width, or 1.1 screens on narrow ones. */
+/** The cloud edge's height (px): the 8:3 image across at least the width, or 1.1 screens on narrow ones. */
 function edge(stage: HTMLElement) {
-  return (Math.max(stage.clientWidth, stage.clientHeight * 1.1) * 9) / 16;
+  return (Math.max(stage.clientWidth, stage.clientHeight * 1.1) * 3) / 8;
 }

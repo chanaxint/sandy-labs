@@ -23,13 +23,17 @@ export const journeyConfig = {
     { from: 330, vhPerSecond: 42 }, // the dive into the cloud
     { from: 460, vhPerSecond: 54 }, // the island: its line
     { from: 590, vhPerSecond: 34 }, // runway and take-off
-    { from: 906, vhPerSecond: 110 }, // transition A, inside the cloud (the film is hidden): its line
-    { from: 970, vhPerSecond: 34 }, // out over the sea
+    { from: 878, vhPerSecond: 150 }, // transition A: the cloud rises (slow, so it passes unhurried)
+    { from: 906, vhPerSecond: 110 }, // inside the cloud (the film is hidden): its line
+    { from: 962, vhPerSecond: 150 }, // the cloud leaves
+    { from: 998, vhPerSecond: 34 }, // out over the sea
     { from: 1040, vhPerSecond: 29 }, // over the sea, no line
     { from: 1480, vhPerSecond: 56 }, // into the clouds: the plane swap, its line
     { from: 1740, vhPerSecond: 36 }, // the fjord
-    { from: 2188, vhPerSecond: 100 }, // transition B, inside the snow mist (the film is hidden): its line
-    { from: 2244, vhPerSecond: 27 }, // the slope
+    { from: 2164, vhPerSecond: 150 }, // transition B: the cloud rises
+    { from: 2192, vhPerSecond: 100 }, // inside the cloud (the film is hidden): its line
+    { from: 2240, vhPerSecond: 150 }, // the cloud leaves
+    { from: 2276, vhPerSecond: 27 }, // the slope
     { from: 2440, vhPerSecond: 36 }, // the snowboarder rides in
     { from: 2720, vhPerSecond: 32 }, // the ride and the jump
     { from: 3240, vhPerSecond: 23 }, // the long snowfield and white-out, no line

@@ -172,19 +172,23 @@ to action. Each phrase is tied to a moment in the footage, not to a time.
   `out` → `gone` (the gap to the next `in` is the pause between phrases, with film-only
   stretches between events). Every ordinary phrase sits in one fixed place, centred low on
   the screen (`storyPlace`: desktop and phone), one block at a time; it comes in with a
-  fade and a small rise and goes with a soft fade. Only the jump's phrase (on the impact)
-  and the closing line with its call to action differ in size. Text tone (light or dark)
+  fade and a small rise and goes with a soft fade. The two lines inside the cloud stand in
+  the middle of the white (`cloudPlace`); the jump's phrase is large either side of the
+  rider; the closing line and its call to action stand on the left. Text tone (light or dark)
   follows the footage behind it.
 - A wall of cloud over the two hard cuts (`lib/journey/veils.ts`): A, the take-off to the
-  flight over the sea (frames 872–1004), with "And the right beginning…" while it is white;
-  B, the snowy plane's peaks to the snowboard slope (2160–2276), with "That's when you
+  flight over the sea (frames 880–996: rising as the plane leaves the ground, all white just
+  before the cut at 908–918), with "And the right beginning…" in the middle of the white;
+  B, the snowy plane's peaks to the snowboard slope (2166–2274), with "That's when you
   want to do more than watch…". As if the camera sank through a bank of cumulus: the
   cloud's edge rises from the bottom until the screen is white, drifts, then its underside
-  rises out of the top and the new scene shows from the bottom up. Two layers (back leads in
-  and lingers out) of the film's own cumulus keyed out of the sky
+  rises out of the top and the new scene shows from the bottom up. Two banks (the back one
+  leads in and lingers out) of cumulus billows, big ones along the bank with smaller ones
+  on their tops, lit from above, soft at the edge and textured with the film's own cloud
   (`public/media/journey/veil-wall*.webp`, `scripts/journey/cloud_wall.py`, run by
   `build-journey.sh`); driven by the film frame, so it plays backwards exactly. The scroll
-  pace is slower only while it is white. Reduced motion: the white just fades.
+  pace is slow all through it (`pace` in config), so it passes unhurried. Reduced motion:
+  the white just fades.
 - `components/journey/CinematicTextOverlay.tsx` renders a phrase; `lib/journey/storyTimeline.ts`
   puts them on a GSAP timeline in film frames, set from the film scene's scroll progress
   (through the pace mapping) with a short glide (`follow`, 0.65 s): they play backwards when
@@ -214,13 +218,9 @@ to action. Each phrase is tied to a moment in the footage, not to a time.
   step). Once per pass: it re-arms after stepping back a little before the approach;
   scrolling back through it or jumping over it plays nothing. Reduced motion: no beat, the
   phrase fades with the scroll.
-  The impact: on the freeze the screen turns flat coral (`--color-coral`) at once but for
-  a crisp window on the frozen frame around the rider (his real image; the window follows
-  the film's "cover" framing, `--impact-*`), and the phrase is there, large and white, on
-  the coral either side of it (below it on phones); coral and phrase go in a quick fade as
-  the film moves on. (A matted cut-out of the rider, `public/media/journey/rider/` from
-  `scripts/journey/matte_rider.py`, is no longer used: its edges were not clean enough on
-  flat colour.)
+  The phrase is large in the sky either side of the rider (on the snow below him on
+  phones), and his cut-out (`lib/journey/rider.ts`, frames in `public/media/journey/rider/`
+  from `scripts/journey/matte_rider.py`) is drawn in front of it.
 - Story Studio, `/studio` (not linked anywhere): the site in an iframe at desktop or phone
   size; pick a phrase and the film goes to it; drag it into place (it snaps to the centre and
   thirds guides; arrow keys nudge it, buttons centre it), set its size, text (EN/TR),

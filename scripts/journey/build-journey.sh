@@ -71,11 +71,12 @@ python3 "$(dirname "$0")/frame_still.py" "$OUT/journey-1440.h264" 4600 "$STILL"
 ffmpeg -v error -y -i "$STILL" \
   -filter_complex "[0]scale=1920:-2:flags=lanczos,split[a][b];[b]hflip[c];[a][c]hstack" \
   -c:v libwebp -quality 80 "$OUT/morning-sky.webp"
-# The wall of cloud over the film's two hard cuts (lib/journey/veils.ts): the edge of the
-# opening's cumulus (frame 320) keyed out of the sky, in front, and mirrored, further back.
-python3 "$(dirname "$0")/frame_still.py" "$OUT/journey-1440.h264" 320 "$STILL"
-python3 "$(dirname "$0")/cloud_wall.py" "$STILL" "$OUT/veil-wall.webp"
-python3 "$(dirname "$0")/cloud_wall.py" "$STILL" "$OUT/veil-wall-back.webp" --flip --shade 0.96
+# The wall of cloud over the film's two hard cuts (lib/journey/veils.ts): a bank of cumulus
+# billows, textured with the film's cloud from inside the dive (frame 330); two banks, the
+# one further back a little greyer.
+python3 "$(dirname "$0")/frame_still.py" "$OUT/journey-1440.h264" 330 "$STILL"
+python3 "$(dirname "$0")/cloud_wall.py" "$STILL" "$OUT/veil-wall.webp" --seed 1
+python3 "$(dirname "$0")/cloud_wall.py" "$STILL" "$OUT/veil-wall-back.webp" --seed 7 --shade 0.95
 rm -f "$STILL"
 ffmpeg -v error -y -i "$SRC" -vf "select='not(mod(n\,20))',scale=192:108:flags=area,tile=16x16" -frames:v 1 -q:v 5 \
   "$OUT/journey-thumbs.jpg"

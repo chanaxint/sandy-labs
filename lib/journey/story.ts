@@ -87,8 +87,14 @@ const storyPlace = {
   mobile: { bottom: "11vh", left: phone.x, right: phone.x, align: "center" } as Place,
 };
 
+/** In the cloud (veils.ts): right in the middle of the white. */
+const cloudPlace = {
+  desktop: { top: "50%", left: "0", right: "0", align: "center", centerY: true } as Place,
+  mobile: { top: "50%", left: phone.x, right: phone.x, align: "center", centerY: true } as Place,
+};
+
 /** A normal phrase: one block, fading in rising a little, fading out in place, at the story's spot. */
-const line = (p: Omit<Phrase, "enter" | "exit" | "desktop" | "mobile"> & Partial<Pick<Phrase, "enter" | "exit">>): Phrase => ({
+const line = (p: Omit<Phrase, "enter" | "exit" | "desktop" | "mobile"> & Partial<Pick<Phrase, "enter" | "exit" | "desktop" | "mobile">>): Phrase => ({
   enter: "rise",
   exit: "fade",
   ...storyPlace,
@@ -121,19 +127,20 @@ export const scenes: Scene[] = [
     // pine shade; sand
     ink: { light: "#f7f1e4", dark: "#252f1e" },
     phrases: [
-      // Transition A: the take-off (600–912) closes into cloud (dense 910–968, lib/journey/veils.ts),
-      // the cut to the flight over the sea (918) happens inside it, and it opens on the sea.
+      // Transition A: the take-off (600–912) closes into cloud (dense 906–962, lib/journey/veils.ts),
+      // the cut to the flight over the sea (908–918) happens inside it, the line in its middle, and it opens on the sea.
       line({
         id: "takeoff",
         text: {
           en: ["And the right beginning can take", "that idea somewhere unexpected."],
           tr: ["Ve doğru başlangıç, o fikri", "hiç beklemediğin yerlere taşır."],
         },
-        in: 912,
-        shown: 924,
-        out: 956,
-        gone: 966,
+        in: 906,
+        shown: 918,
+        out: 948,
+        gone: 960,
         tone: "dark",
+        ...cloudPlace,
       }),
     ],
   },
@@ -190,15 +197,16 @@ export const scenes: Scene[] = [
         text: { en: ["That's when you want", "to do more than watch…"], tr: ["İşte o zaman,", "sadece izlemek değil…"] },
         in: 2194,
         shown: 2204,
-        out: 2232,
+        out: 2230,
         gone: 2240,
         tone: "dark",
+        ...cloudPlace,
       }),
       {
         // The jump. From the approach the film plays by itself; at the freeze frame (board
-        // side-on) the screen turns flat coral but for a crisp window on the frozen frame
-        // around the rider (jumpBeat.ts), and this cuts in, large, on the coral either side
-        // of it; coral and line go as the film moves on by itself. Phones: below the window.
+        // side-on) it holds ~0.8 s and this cuts in, large, in the open sky either side of
+        // the rider, his cut-out drawn in front of it (rider.ts); it fades as the film moves
+        // on by itself. Phones: the frame is all rider, so it sits on the snow below.
         // in/out are used only with reduced motion (no freeze): a plain fade around the jump.
         id: "snowboard-b",
         text: { en: ["You want", "to feel it."], tr: ["Hissetmek", "istersin."] },
@@ -208,11 +216,10 @@ export const scenes: Scene[] = [
         gone: jumpResume,
         enter: "cut",
         exit: "fade",
-        tone: "light",
+        tone: "dark",
         size: "giant",
         interaction: "jump-freeze",
-        // Centred on the impact's window around the rider (jumpBeat.ts sets --impact-*).
-        desktop: { top: "var(--impact-y, 39%)", left: "0", right: "0", align: "center", centerY: true },
+        desktop: { top: "27%", left: "0", right: "0", align: "center", centerY: true },
         mobile: { bottom: "8vh", left: "0", right: "0", align: "center" },
       },
     ],
@@ -325,15 +332,20 @@ export const scenes: Scene[] = [
     ink: { light: "#d5dff0", dark: "#171f36" },
     phrases: [
       // The night sky to the end of the film: stays, with the call to action.
-      line({
+      {
         id: "final",
-        text: { en: ["Now it's time to tell yours."], tr: ["Şimdi sıra senin hikâyende."] },
+        text: { en: ["Now it's time", "to tell yours."], tr: ["Şimdi sıra", "senin hikâyende."] },
         in: 4880,
         shown: 4930,
         out: Infinity,
+        enter: "rise",
+        exit: "fade",
         tone: "light",
         size: "final",
-      }),
+        // On the left, as one block with its call to action under it.
+        desktop: { top: "56%", left: "clamp(1.5rem, 6vw, 6.5rem)", align: "left", centerY: true },
+        mobile: { top: "52%", left: phone.x, right: phone.x, align: "left", centerY: true },
+      },
     ],
   },
 ];

@@ -1,12 +1,15 @@
 """
-The cloud wall over the film's two hard cuts (lib/journey/veils.ts): the edge of a bank of
-real cumulus, keyed out of one of the film's own cloud frames.
+The cloud wall over the film's two hard cuts (lib/journey/veils.ts): the top of a bank of
+cumulus, as it rises past the camera.
 
-    python3 scripts/journey/cloud_wall.py <frame.png> <out.webp> [--flip] [--shade 1.0]
+    python3 scripts/journey/cloud_wall.py <cloud-frame.png> <out.webp> [--seed 1] [--shade 1.0]
 
-Bright billow tops survive near the top, all the cloud lower down, so the outline follows
-the cloud's own forms; specks are dropped, the colour is lifted towards white, and the
-bottom fades into plain white (#fff), which the wall continues below it.
+The outline is built the way cumulus grows: large billows along the bank, smaller ones on
+their tops, smaller still on those, a little ragged at the very edge (soft, wispy, never a
+hard cut-out). Each billow is lit from above like a ball of cloud (bright tops, soft blue
+grey under them), and the fine texture is the film's own cloud (a frame inside the cloud,
+high-pass), so it reads as real vapour. It tiles left to right; the bottom fades into plain
+white (#fff), which the wall continues below it.
 """
 import argparse
 
@@ -14,41 +17,105 @@ import cv2
 import numpy as np
 
 p = argparse.ArgumentParser()
-p.add_argument("src")
+p.add_argument("src", help="a film frame inside the cloud (texture)")
 p.add_argument("out")
-p.add_argument("--flip", action="store_true", help="mirror left to right")
+p.add_argument("--seed", type=int, default=1)
 p.add_argument("--shade", type=float, default=1.0, help="below 1: a little greyer (a layer further back)")
 a = p.parse_args()
+rng = np.random.default_rng(a.seed)
 
-im = cv2.imread(a.src).astype(np.float32) / 255
-im = cv2.resize(im, (1920, 1080), interpolation=cv2.INTER_AREA)
-if a.flip:
-    im = im[:, ::-1]
-H, W = im.shape[:2]
-y = np.linspace(0, 1, H)[:, None]
+W, H = 2560, 960
+yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
+acc = np.zeros((H, W), np.float32)  # the billows, blended softly into one surface
+K = 4.0
 
-lum = cv2.GaussianBlur(im.mean(axis=2), (0, 0), 1.2)
-lo, hi = np.percentile(lum, 5), np.percentile(lum, 99.5)
-lum = np.clip((lum - lo) / (hi - lo), 0, 1)
-# The threshold falls from the top (only the brightest tops) to the bottom (all cloud).
-alpha = np.clip((lum - np.clip(1.2 - 1.45 * y, -0.5, 1.2)) / 0.16, 0, 1)
+
+def billow(cx, cy, r):
+    """A ball of cloud, added to the surface (a soft max, so neighbours melt together)."""
+    y0, y1 = max(0, int(cy - r - 2)), min(H, int(cy + r + 3))
+    if y0 >= y1:
+        return
+    for shift in (-W, 0, W):  # tiles left to right
+        lo, hi = max(0, int(cx - r - 2) + shift), min(W, int(cx + r + 3) + shift)
+        if lo >= hi:
+            continue
+        sx, sy = xx[y0:y1, lo:hi] - (cx + shift), yy[y0:y1, lo:hi] - cy
+        q = np.clip(1 - (sx * sx + sy * sy) / (r * r), 0, 1)
+        acc[y0:y1, lo:hi] += (r * np.sqrt(q)) ** K
+
+
+# The bank: big billows along it, then smaller on their upper halves, three generations.
+gen, x = [], 0.0
+while x < W:
+    r = rng.uniform(95, 230)
+    gen.append((x, rng.uniform(0.52, 0.76) * H, r))
+    x += r * rng.uniform(0.7, 1.2)
+everything = list(gen)
+for scale, count in ((0.55, 3), (0.5, 3), (0.45, 3)):
+    nxt = []
+    for cx, cy, r in gen:
+        for _ in range(rng.integers(1, count + 1)):
+            ang = rng.uniform(-2.8, -0.35)  # on the upper side
+            d = r * rng.uniform(0.6, 0.95)
+            nxt.append(((cx + np.cos(ang) * d) % W, cy + np.sin(ang) * d, r * scale * rng.uniform(0.7, 1.3)))
+    everything += nxt
+    gen = nxt
+for b in everything:
+    billow(*b)
+# The body of the bank under the billows rises steadily, so no billow's underside shows.
+floor = np.clip((yy - 0.58 * H) * 1.6, 0, None)
+height = (acc + floor**K) ** (1 / K)
+
+
+def fbm(scales, seed_off=0):
+    out = np.zeros((H, W), np.float32)
+    for i, s in enumerate(scales):
+        n = rng.random((H // s + 2, W // s + 2)).astype(np.float32)
+        n[:, -2:] = n[:, :2]  # roughly tiling
+        out += cv2.resize(n, (W + 2 * s, H + 2 * s), interpolation=cv2.INTER_CUBIC)[s : s + H, s : s + W] * (0.55**i)
+    return (out - out.mean()) / out.std()
+
+
+# Cauliflower detail on the surface, and a ragged, soft edge.
+height = height + (fbm((70, 28)) * 6 + fbm((12,)) * 1.2) * np.clip(height / 50, 0, 1)
+inside = height > 10
+# Solid below the outline: no gaps through to the film.
+top = np.where(inside.any(axis=0), inside.argmax(axis=0), H)
+inside = yy >= top[None, :]
+height = np.where(inside, np.maximum(height, 6), 0)
+dist_in = cv2.distanceTransform(inside.astype(np.uint8), cv2.DIST_L2, 5)
+dist_out = cv2.distanceTransform((~inside).astype(np.uint8), cv2.DIST_L2, 5)
+sd = dist_in - dist_out + fbm((20, 8)) * 4
+alpha = np.clip((sd + 2) / 16, 0, 1)
 alpha = alpha * alpha * (3 - 2 * alpha)
-# No specks: small islands in the upper part go, pinholes close.
-n, lab, st, _ = cv2.connectedComponentsWithStats((alpha > 0.5).astype(np.uint8))
-keep = np.zeros(n, bool)
-keep[1:] = (st[1:, cv2.CC_STAT_AREA] > 20000) | (st[1:, cv2.CC_STAT_TOP] > H * 0.55)
-alpha = alpha * cv2.GaussianBlur(keep[lab].astype(np.float32), (0, 0), 3)
-alpha = cv2.morphologyEx(alpha, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9)))
-alpha = cv2.GaussianBlur(alpha, (0, 0), 1.6)
-ramp = np.clip((y - 0.72) / 0.22, 0, 1)
-alpha = np.maximum(alpha, ramp * ramp * (3 - 2 * ramp))
 
-# Colour: the cloud's own shading, lifted towards white, slightly cool; plain white below.
-# Sunlit: bright, with the shading kept only softly in the hollows.
-c = 0.6 + 0.4 * im**0.5
-c = np.clip(c * np.array([1.0, 0.985, 0.97]) * a.shade, 0, 1)
-w = np.clip((y - 0.5) / 0.35, 0, 1)[..., None]
-c = c * (1 - w) + w
+# Light from above and a little left, from the surface's own slope: bright tops,
+# blue-grey under each billow and in the hollows between them.
+hs = cv2.GaussianBlur(height, (0, 0), 4)
+gx = cv2.Sobel(hs, cv2.CV_32F, 1, 0, ksize=3) / 8
+gy = cv2.Sobel(hs, cv2.CV_32F, 0, 1, ksize=3) / 8
+n = np.dstack([-gx, -gy, np.full_like(gx, 0.9)])
+n /= np.linalg.norm(n, axis=2, keepdims=True)
+L = np.array([-0.35, -0.8, 0.5], np.float32)
+L /= np.linalg.norm(L)
+lam = np.clip(n @ L, 0, 1)
+ao = np.clip((cv2.GaussianBlur(height, (0, 0), 28) - height) / 55, 0, 1)
+light = (0.4 + 0.6 * lam) * (1 - 0.4 * ao)
+# The film's own cloud for the fine texture (high-pass, gentle).
+tex = cv2.imread(a.src, cv2.IMREAD_GRAYSCALE).astype(np.float32) / 255
+tex = cv2.resize(tex, (W, int(W * tex.shape[0] / tex.shape[1])), interpolation=cv2.INTER_AREA)
+tex = np.vstack([tex, tex[::-1]])[:H]
+tex = tex - cv2.GaussianBlur(tex, (0, 0), 24)
+light = np.clip(cv2.GaussianBlur(light, (0, 0), 1.5) + tex * 0.9, 0, 1.05)
+lit = np.array([1.0, 0.995, 0.985])
+shadow = np.array([0.6, 0.67, 0.79])
+c = shadow + (lit - shadow) * light[..., None]
+# Plain white towards the bottom, where the wall goes on.
+w = np.clip((yy / H - 0.74) / 0.2, 0, 1)[..., None]
+w = w * w * (3 - 2 * w)
+c = (c * (1 - w) + w) * a.shade + (1 - a.shade) * w
+alpha = np.maximum(alpha, w[..., 0])
 
-rgba = np.dstack([c * 255, alpha * 255]).round().astype(np.uint8)
-cv2.imwrite(a.out, rgba, [cv2.IMWRITE_WEBP_QUALITY, 82])
+bgr = (np.clip(c, 0, 1)[..., ::-1] * 255).round().astype(np.uint8)
+rgba = np.dstack([bgr, (alpha * 255).round().astype(np.uint8)])
+cv2.imwrite(a.out, rgba, [cv2.IMWRITE_WEBP_QUALITY, 84])
