@@ -66,8 +66,11 @@ k = np.exp(-0.5 * (np.arange(-12, 13) / 4) ** 2)
 # Smoothed round the loop: the end runs on into the start.
 smooth = np.convolve(np.pad(s, 12, mode="wrap"), k / k.sum(), mode="valid")
 
-# 2. One even pace for the whole flight, a little quicker than its typical pace.
-target = SPEED * float(np.median(smooth))
+# 2. One even pace for the whole flight, `SPEED` times its average pace in real time (the
+#    pictures are not evenly spaced in time: mostly 24 a second, some stretches more), so
+#    it lasts the source's length divided by `SPEED`, give or take the capped stretches.
+duration = float(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", SRC], capture_output=True, text=True).stdout)
+target = SPEED * float(smooth.sum()) / (FPS_IN * duration)
 rate = np.clip(target / np.maximum(smooth, 1e-3), MIN_SPEED, MAX_SPEED)
 t_out = np.concatenate([[0], np.cumsum(1 / rate[1:])]) / FPS_IN  # output seconds at each source frame
 times = np.arange(0, t_out[-1], 1 / FPS_OUT)
