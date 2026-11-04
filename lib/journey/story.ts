@@ -87,7 +87,10 @@ const storyPlace = {
   mobile: { bottom: "11vh", left: phone.x, right: phone.x, align: "center" } as Place,
 };
 
-/** In the cloud (veils.ts): right in the middle of the white. */
+/**
+ * Written in the cloud (veils.ts): laid out in the middle of the screen, and carried by the
+ * cloud, in the middle of its inside; shown for the whole of the cloud (`from` to `to`).
+ */
 const cloudPlace = {
   desktop: { top: "50%", left: "0", right: "0", align: "center", centerY: true } as Place,
   mobile: { top: "50%", left: phone.x, right: phone.x, align: "center", centerY: true } as Place,
@@ -127,18 +130,18 @@ export const scenes: Scene[] = [
     // pine shade; sand
     ink: { light: "#f7f1e4", dark: "#252f1e" },
     phrases: [
-      // Transition A: the take-off (600–912) closes into cloud (dense 906–962, lib/journey/veils.ts),
-      // the cut to the flight over the sea (908–918) happens inside it, the line in its middle, and it opens on the sea.
+      // Transition A: the take-off (600–912) closes into cloud (880–996, lib/journey/veils.ts),
+      // the cut to the flight over the sea (908–918) happens inside it; the line is written in the cloud.
       line({
         id: "takeoff",
         text: {
           en: ["And the right beginning can take", "that idea somewhere unexpected."],
           tr: ["Ve doğru başlangıç, o fikri", "hiç beklemediğin yerlere taşır."],
         },
-        in: 906,
-        shown: 918,
-        out: 948,
-        gone: 960,
+        in: 880,
+        shown: 882,
+        out: 994,
+        gone: 996,
         tone: "dark",
         ...cloudPlace,
       }),
@@ -189,16 +192,17 @@ export const scenes: Scene[] = [
     // steel navy; ice
     ink: { light: "#deedf2", dark: "#1c2f44" },
     phrases: [
-      // Transition B: the plane's view of the peaks closes into snow mist (dense 2192–2240,
-      // lib/journey/veils.ts), the cut to the snowboard slope (2196) happens inside it.
+      // Transition B: the plane's view of the peaks closes into cloud (2166–2490,
+      // lib/journey/veils.ts), the cut to the snowboard slope (2196) happens inside it, and it
+      // opens on the slope below the crest (gone at 2458); the line is written in the cloud.
       // It leads into the jump's line; it isn't shown again at the jump.
       line({
         id: "snowboard-a",
         text: { en: ["That's when you want", "to do more than watch…"], tr: ["İşte o zaman,", "sadece izlemek değil…"] },
-        in: 2194,
-        shown: 2204,
-        out: 2230,
-        gone: 2240,
+        in: 2166,
+        shown: 2168,
+        out: 2456,
+        gone: 2458,
         tone: "dark",
         ...cloudPlace,
       }),

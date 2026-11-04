@@ -172,21 +172,25 @@ to action. Each phrase is tied to a moment in the footage, not to a time.
   `out` → `gone` (the gap to the next `in` is the pause between phrases, with film-only
   stretches between events). Every ordinary phrase sits in one fixed place, centred low on
   the screen (`storyPlace`: desktop and phone), one block at a time; it comes in with a
-  fade and a small rise and goes with a soft fade. The two lines inside the cloud stand in
-  the middle of the white (`cloudPlace`); the jump's phrase is large either side of the
+  fade and a small rise and goes with a soft fade. The two lines in the cloud are carried
+  by it (`cloudPlace`); the jump's phrase is large either side of the
   rider; the closing line and its call to action stand on the left. Text tone (light or dark)
   follows the footage behind it.
 - A wall of cloud over the two hard cuts (`lib/journey/veils.ts`): A, the take-off to the
-  flight over the sea (frames 880–996: rising as the plane leaves the ground, all white just
-  before the cut at 908–918), with "And the right beginning…" in the middle of the white;
-  B, the snowy plane's peaks to the snowboard slope (2166–2274), with "That's when you
+  flight over the sea (frames 880–996: rising as the plane leaves the ground, covering the
+  screen just before the cut at 908–918), with "And the right beginning…"; B, the snowy
+  plane's peaks to the snowboard slope (2166–2458: it stays over the start of the slope and
+  has gone at 2458, below the crest, where the film carries on), with "That's when you
   want to do more than watch…". As if the camera sank through a bank of cumulus: the
   cloud's edge rises from the bottom until the screen is white, drifts, then its underside
-  rises out of the top and the new scene shows from the bottom up. Two banks (the back one
-  leads in and lingers out) of cumulus billows, big ones along the bank with smaller ones
-  on their tops, lit from above, soft at the edge and textured with the film's own cloud
-  (`public/media/journey/veil-wall*.webp`, `scripts/journey/cloud_wall.py`, run by
-  `build-journey.sh`); driven by the film frame, so it plays backwards exactly. The scroll
+  rises out of the top and the new scene shows from the bottom up. The phrase is written in
+  the cloud: it rises in with it, in the middle of its inside, and leaves with it (veils.ts
+  moves its place; fit.ts measures it where it is laid out). Two banks (the back one leads
+  in and lingers out) of thin cumulus billows, big ones along the bank with smaller ones on
+  their tops, lit from above, soft at the edge; between the edges the cloud's inside is the
+  film's own view from inside a cloud (frame 340), lightened and repeating downwards
+  (`public/media/journey/veil-wall*.webp`, `veil-inside.webp`, `scripts/journey/cloud_wall.py`,
+  run by `build-journey.sh`); driven by the film frame, so it plays backwards exactly. The scroll
   pace is slow all through it (`pace` in config), so it passes unhurried. Reduced motion:
   the white just fades.
 - `components/journey/CinematicTextOverlay.tsx` renders a phrase; `lib/journey/storyTimeline.ts`

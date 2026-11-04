@@ -374,17 +374,18 @@ body {
   }
 }
 
-/* Cloud and mist over two cuts of the film (lib/journey/veils.ts): a full layer and a
-   ring clear in the middle, both real cloud, moved by the scene. */
+/* The wall of cloud over two cuts of the film (lib/journey/veils.ts). */
 .veil {
   visibility: hidden;
 }
-/* A column: the cloud's edge, plain white, the edge upside down (veils.ts moves it up). */
+/* A column: the cloud's edge, its inside, the edge upside down (veils.ts moves it up).
+   The inside reaches under the edges' faded bottoms, so they melt into it. */
 .veil-wall {
   position: absolute;
   left: 50%;
   top: 0;
-  --wall-w: calc(var(--wall-edge, 37.5vw) * 8 / 3);
+  --wall-e: var(--wall-edge, 28.125vw);
+  --wall-w: calc(var(--wall-e) * 32 / 9);
   width: var(--wall-w);
   margin-left: calc(var(--wall-w) / -2);
   display: flex;
@@ -393,25 +394,26 @@ body {
   will-change: transform;
 }
 .veil-wall > img {
+  position: relative;
+  z-index: 1;
   display: block;
   width: 100%;
-  height: var(--wall-edge, 37.5vw);
+  height: var(--wall-e);
 }
-.veil-wall > .veil-white {
+.veil-wall > .veil-inside {
   display: block;
-  height: var(--wall-white, 130vh);
-  margin: -2px 0;
-  background: #fff;
+  height: calc(var(--wall-white, 130vh) + var(--wall-e) * 0.4);
+  margin: calc(var(--wall-e) * -0.2) 0;
+  background-color: #eef1f5;
+  background-repeat: repeat-y;
+  background-size: 100% auto;
 }
 .veil-wall > .veil-under {
   scale: -1 -1;
 }
 /* The back layer: a touch larger, as if further off. */
 .veil-wall[data-wall="back"] {
-  --wall-w: calc(var(--wall-edge, 37.5vw) * 8 / 3 * 1.12);
-}
-.veil-wall[data-wall="back"] > img {
-  height: calc(var(--wall-edge, 37.5vw) * 1.12);
+  --wall-e: calc(var(--wall-edge, 28.125vw) * 1.12);
 }
 
 /* A shooting star over the night (ShootingStars): a faint streak, its bright head in

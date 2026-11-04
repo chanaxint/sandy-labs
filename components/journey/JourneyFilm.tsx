@@ -50,7 +50,7 @@ export function JourneyFilm() {
             <div key={layer} data-wall={layer} className="veil-wall">
               {/* eslint-disable-next-line @next/next/no-img-element -- set when near, by the scene */}
               <img alt="" data-src={wallImages[layer]} decoding="async" />
-              <span className="veil-white" />
+              <span className="veil-inside" data-bg={wallImages.inside} />
               {/* eslint-disable-next-line @next/next/no-img-element -- set when near, by the scene */}
               <img alt="" data-src={wallImages[layer]} decoding="async" className="veil-under" />
             </div>
