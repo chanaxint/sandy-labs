@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """The master of the dream-website video: one even, fluid pace, forward only, a seamless loop.
 
-1. How fast the picture moves, frame by frame (median optical flow, small grey frames),
+0. Only the source's own pictures: it is 24 fps footage repeated into 60 (3:2), so the
+   repeats are dropped (mpdecimate) and the rest taken one after another; the re-timing
+   below gives each its proper time from its motion, so the uneven cadence goes too.
+1. How fast the picture moves, picture by picture (median optical flow, small grey frames),
    with the source's first frame after its last: the flight ends where it began (the
    same shot, a few frames short of it), so the loop's join is measured like any step.
 2. Re-timed to one even pace for every scene: each stretch plays at `SPEED` times the
@@ -27,7 +30,8 @@ import numpy as np
 
 SRC, OUT = sys.argv[1], sys.argv[2]
 SPEED = float(sys.argv[3]) if len(sys.argv) > 3 else 1.3
-FPS_IN, FPS_FLUID, FPS_OUT = 60, 120, 60
+# Source pictures per second (once the repeats are gone), in-betweens, output.
+FPS_IN, FPS_FLUID, FPS_OUT = 24, 120, 60
 MAX_SPEED, MIN_SPEED = 6.0, 0.5
 SHUTTER = 0.5
 W, H = 1920, 1080
@@ -35,7 +39,7 @@ W, H = 1920, 1080
 
 def frames(vf, fmt, width, height, channels):
     # The source, then its own first frame again (the loop's join).
-    graph = f"[1:v]trim=end_frame=1,setpts=PTS-STARTPTS[first];[0:v][first]concat=n=2:v=1:a=0,{vf}"
+    graph = f"[1:v]trim=end_frame=1,setpts=PTS-STARTPTS[first];[0:v][first]concat=n=2:v=1:a=0,mpdecimate,setpts=N/{FPS_IN}/TB,{vf}"
     p = subprocess.Popen(
         ["ffmpeg", "-v", "error", "-i", SRC, "-i", SRC, "-filter_complex", graph, "-f", "rawvideo", "-pix_fmt", fmt, "-"],
         stdout=subprocess.PIPE,
@@ -58,17 +62,17 @@ for g in frames("scale=320:180:flags=area", "gray", 320, 180, 1):
 s = np.array(speed)
 s[0] = s[1]
 n = len(s)
-k = np.exp(-0.5 * (np.arange(-30, 31) / 10) ** 2)
+k = np.exp(-0.5 * (np.arange(-12, 13) / 4) ** 2)
 # Smoothed round the loop: the end runs on into the start.
-smooth = np.convolve(np.pad(s, 30, mode="wrap"), k / k.sum(), mode="valid")
+smooth = np.convolve(np.pad(s, 12, mode="wrap"), k / k.sum(), mode="valid")
 
 # 2. One even pace for the whole flight, a little quicker than its typical pace.
 target = SPEED * float(np.median(smooth))
 rate = np.clip(target / np.maximum(smooth, 1e-3), MIN_SPEED, MAX_SPEED)
 t_out = np.concatenate([[0], np.cumsum(1 / rate[1:])]) / FPS_IN  # output seconds at each source frame
 times = np.arange(0, t_out[-1], 1 / FPS_OUT)
-src_pos = np.interp(times, t_out, np.arange(n))  # source frame (60 fps units) shown at each output frame
-fluid_pos = src_pos * (FPS_FLUID / FPS_IN)  # in 120 fps units
+src_pos = np.interp(times, t_out, np.arange(n))  # source picture shown at each output frame
+fluid_pos = src_pos * (FPS_FLUID / FPS_IN)  # in in-between units (FPS_FLUID / FPS_IN per picture)
 print(f"{n - 1} source frames (+ the first again), pace {target:.2f}; {len(times) / FPS_OUT:.1f} s at {FPS_OUT} fps (was {(n - 1) / FPS_IN:.1f} s)")
 
 # 3. Each output frame: the in-betweens it covers, blended.
