@@ -6,8 +6,9 @@
  * As if the camera sank through a bank of cumulus: the cloud's edge rises from the bottom
  * of the screen until the screen is all cloud, drifts on a little, then its underside
  * rises out of the top and leaves the new scene, which shows from the bottom up. The
- * story's line for the moment is written in the cloud: it rises in with it, in the middle
- * of the cloud's inside, and leaves with it (its place is moved with the front layer). Two layers of the same real cloud
+ * story's line for the moment stands still in the middle of the screen, as if it had always
+ * been there and the cloud brought it out: it shows only where the cloud is behind it (a
+ * soft mask that follows the front layer's edge up through it, and its underside out). Two layers of the same real cloud
  * (veil-wall*.webp, cumulus billows by scripts/journey/cloud_wall.py): one
  * further back that leads on the way in and lingers on the way out, one in front. Each is
  * a column: cloud edge, the inside of the cloud (the film's own view from inside a cloud,
@@ -18,6 +19,7 @@
 import type { SceneMedia, SceneUpdate } from "@/lib/scroll/scene";
 import { prefersReducedMotion } from "@/lib/scroll/engine";
 import { journeyConfig } from "./config";
+import { storyStore } from "./storyStore";
 import { frameAt } from "./pace";
 
 export type Veil = {
@@ -48,6 +50,14 @@ const preload = 420;
 const lead = 5;
 /** The back layer's size against the front's (app/globals.css). */
 const backScale = 1.12;
+/** Where the front layer's cloud is solid, as shares of its edge's height: below this on the edge, above this on the underside. */
+const solidEdge = 0.62;
+const solidUnder = 0.38;
+/** The soft band over which the line comes out of (and goes back into) the clear (share of the edge's height). */
+const band = 0.22;
+/** Nothing of the line (outside its cloud). */
+const hidden = "linear-gradient(transparent, transparent)";
+
 /** Extra cloud in the wall (share of the screen height), for the drift while it covers the screen. */
 export const wallSlack = 0.3;
 
@@ -76,6 +86,7 @@ export function createVeils(stage: HTMLElement): SceneMedia {
   const layers = veils.map((v) => {
     const el = stage.querySelector<HTMLElement>(`[data-veil="${v.id}"]`);
     const place = stage.querySelector<HTMLElement>(`[data-phrase-place="${v.phrase}"]`);
+    if (place && !reduce) setMask(place, hidden);
     return {
       v,
       el,
@@ -103,7 +114,8 @@ export function createVeils(stage: HTMLElement): SceneMedia {
         if (!active) {
           if (l.shown) {
             el.style.visibility = "hidden";
-            if (l.place) l.place.style.transform = "";
+            // Kept masked: the timeline may still be fading it out (its glide).
+            if (l.place) setMask(l.place, hidden);
             if (l.text) l.text.style.opacity = "";
             l.shown = false;
           }
@@ -135,18 +147,32 @@ export function createVeils(stage: HTMLElement): SceneMedia {
         const top = wallTop(v, f, h, e);
         back.style.transform = `translate3d(0, ${wallTop(v, f <= v.dense ? f + lead : f - lead, h, e * backScale).toFixed(1)}px, 0)`;
         front.style.transform = `translate3d(0, ${top.toFixed(1)}px, 0)`;
-        // The line in the middle of the cloud's inside (laid out centred on the screen).
-        if (l.place) l.place.style.transform = `translate3d(0, ${(top + e + ((1 + wallSlack) * h) / 2 - h / 2).toFixed(1)}px, 0)`;
+        // The line, where it stands, only where the cloud is behind it.
+        if (l.place) {
+          if (storyStore.get().studio.mode === "edit") setMask(l.place, "");
+          else {
+            const y0 = l.place.getBoundingClientRect().top - stage.getBoundingClientRect().top;
+            const from = top + solidEdge * e - y0; // the cloud's solid top, in the line's own box
+            const to = top + e + (1 + wallSlack) * h + solidUnder * e - y0; // its solid bottom
+            const b = band * e;
+            setMask(l.place, `linear-gradient(transparent ${(from - b).toFixed(1)}px, #000 ${from.toFixed(1)}px, #000 ${(to - b).toFixed(1)}px, transparent ${to.toFixed(1)}px)`);
+          }
+        }
       }
     },
     dispose() {
       for (const l of layers) {
         if (l.el) l.el.style.visibility = "hidden";
-        if (l.place) l.place.style.transform = "";
+        if (l.place) setMask(l.place, "");
         if (l.text) l.text.style.opacity = "";
       }
     },
   };
+}
+
+function setMask(el: HTMLElement, mask: string) {
+  el.style.maskImage = mask;
+  el.style.webkitMaskImage = mask;
 }
 
 /** The cloud edge's height (px): the 32:9 image across at least the width, or 1.1 screens on narrow ones. */

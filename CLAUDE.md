@@ -87,7 +87,7 @@ Rules:
   of it (`rider.ts`), runs through the landing until the rider leaves the frame, scroll handed back).
   Ordinary phrases share one fixed place (`storyPlace` in `story.ts`). A wall of cloud rises over the
   film's two hard cuts (`veils.ts`, cumulus banks and their inside from `cloud_wall.py` via
-  `build-journey.sh`), its line written in it, rising and leaving with it; cloud B opens at frame 2458; the closing line and its CTA stand on the left. The closing CTA (and the menu's) opens
+  `build-journey.sh`), its line still in the middle, shown only where the cloud is behind it; cloud B opens at frame 2458; the closing line and its CTA stand on the left. The closing CTA (and the menu's) opens
   "Create my website" (`components/site/CreateFlow.tsx`, `lib/site/create.ts`): the night plays back
   to morning and the steps open (1. industry, 2. kind of website, its choices per industry in
   `sitesFor`, 3. design style as moving previews, `StylePreview.tsx`, 4. the dream website in a

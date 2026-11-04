@@ -172,8 +172,8 @@ to action. Each phrase is tied to a moment in the footage, not to a time.
   `out` → `gone` (the gap to the next `in` is the pause between phrases, with film-only
   stretches between events). Every ordinary phrase sits in one fixed place, centred low on
   the screen (`storyPlace`: desktop and phone), one block at a time; it comes in with a
-  fade and a small rise and goes with a soft fade. The two lines in the cloud are carried
-  by it (`cloudPlace`); the jump's phrase is large either side of the
+  fade and a small rise and goes with a soft fade. The two lines in the cloud stand in the
+  middle and show where the cloud is behind them (`cloudPlace`); the jump's phrase is large either side of the
   rider; the closing line and its call to action stand on the left. Text tone (light or dark)
   follows the footage behind it.
 - A wall of cloud over the two hard cuts (`lib/journey/veils.ts`): A, the take-off to the
@@ -183,9 +183,11 @@ to action. Each phrase is tied to a moment in the footage, not to a time.
   has gone at 2458, below the crest, where the film carries on), with "That's when you
   want to do more than watch…". As if the camera sank through a bank of cumulus: the
   cloud's edge rises from the bottom until the screen is white, drifts, then its underside
-  rises out of the top and the new scene shows from the bottom up. The phrase is written in
-  the cloud: it rises in with it, in the middle of its inside, and leaves with it (veils.ts
-  moves its place; fit.ts measures it where it is laid out). Two banks (the back one leads
+  rises out of the top and the new scene shows from the bottom up. The phrase stands still in
+  the middle of the screen, as if it had always been there and the cloud brought it out: it
+  shows only where the cloud is behind it (veils.ts gives its place a soft mask that follows
+  the cloud's edge up through it, and its underside out), and stays masked once the cloud
+  has gone. Two banks (the back one leads
   in and lingers out) of thin cumulus billows, big ones along the bank with smaller ones on
   their tops, lit from above, soft at the edge; between the edges the cloud's inside is the
   film's own view from inside a cloud (frame 340), lightened and repeating downwards

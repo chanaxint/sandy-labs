@@ -45,30 +45,20 @@ export function fitPhrases(root: HTMLElement) {
   const minY = area.top + m.top;
   const maxY = area.bottom - m.bottom;
   for (const place of root.querySelectorAll<HTMLElement>("[data-phrase-place]")) {
-    // Measured where it is laid out, not where the cloud is carrying it (veils.ts).
-    const carried = place.style.transform;
-    place.style.transform = "";
     place.style.setProperty("--fit", "1");
     place.style.setProperty("--fit-x", "0px");
     place.style.setProperty("--fit-y", "0px");
     let b = textBounds(place);
-    if (!b) {
-      place.style.transform = carried;
-      continue;
-    }
+    if (!b) continue;
     const scale = Math.min(1, (max - min) / b.width, (maxY - minY) / b.height);
     if (scale < 1) {
       place.style.setProperty("--fit", (scale * 0.99).toFixed(4));
       b = textBounds(place);
-      if (!b) {
-        place.style.transform = carried;
-        continue;
-      }
+      if (!b) continue;
     }
     const dx = b.left < min ? min - b.left : b.right > max ? max - b.right : 0;
     const dy = b.top < minY ? minY - b.top : b.bottom > maxY ? maxY - b.bottom : 0;
     if (dx) place.style.setProperty("--fit-x", `${Math.round(dx)}px`);
     if (dy) place.style.setProperty("--fit-y", `${Math.round(dy)}px`);
-    place.style.transform = carried;
   }
 }

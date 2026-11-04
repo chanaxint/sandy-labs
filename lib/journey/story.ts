@@ -88,8 +88,8 @@ const storyPlace = {
 };
 
 /**
- * Written in the cloud (veils.ts): laid out in the middle of the screen, and carried by the
- * cloud, in the middle of its inside; shown for the whole of the cloud (`from` to `to`).
+ * In the cloud (veils.ts): still, in the middle of the screen, there for the whole of the
+ * cloud (`from` to `to`) but seen only where the cloud is behind it.
  */
 const cloudPlace = {
   desktop: { top: "50%", left: "0", right: "0", align: "center", centerY: true } as Place,
