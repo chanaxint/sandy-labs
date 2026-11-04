@@ -1,17 +1,21 @@
 #!/usr/bin/env python3
-"""The master of the dream-website video: one even, fluid pace, forward only.
+"""The master of the dream-website video: one even, fluid pace, forward only, a seamless loop.
 
-1. How fast the picture moves, frame by frame (median optical flow, small grey frames).
-2. Re-timed to one even pace: slow stretches (after leaving the glass, the long pull
-   away at the end) play faster, so the whole flight moves at the pace of its approach
-   and its rooms (sped up at most `MAX_SPEED`x, slowed at most to `MIN_SPEED`x).
+1. How fast the picture moves, frame by frame (median optical flow, small grey frames),
+   with the source's first frame after its last: the flight ends where it began (the
+   same shot, a few frames short of it), so the loop's join is measured like any step.
+2. Re-timed to one even pace for every scene: each stretch plays at `SPEED` times the
+   whole flight's typical pace (sped up at most `MAX_SPEED`x, slowed at most to
+   `MIN_SPEED`x), smoothed round the loop, so the pace carries on across the join.
 3. Fluid: the source is first raised to 120 fps with motion-compensated (optical flow)
    in-betweens, the output is 60 fps, and each output frame blends the in-betweens it
-   covers (a half-open shutter), so sped-up stretches glide instead of stepping.
-4. Forward only, start to end, nothing added at the end: the page loops it (the
-   <video> loop) straight back to the start.
+   covers (a half-open shutter), so sped-up stretches glide instead of stepping. The
+   in-betweens from the last frame to the first are the join itself: the camera simply
+   moves on into the opening, no cut, no dissolve.
+4. Forward only; it stops just before the first frame again, so the page's <video> loop
+   shows it next.
 
-  python3 scripts/create/dream_loop.py source.mp4 master.mp4
+  python3 scripts/create/dream_loop.py source.mp4 master.mp4 [speed, default 1.3]
 Needs ffmpeg and OpenCV (pip install opencv-python-headless numpy).
 """
 import subprocess
@@ -22,14 +26,20 @@ import cv2
 import numpy as np
 
 SRC, OUT = sys.argv[1], sys.argv[2]
+SPEED = float(sys.argv[3]) if len(sys.argv) > 3 else 1.3
 FPS_IN, FPS_FLUID, FPS_OUT = 60, 120, 60
-MAX_SPEED, MIN_SPEED = 4.0, 0.75
+MAX_SPEED, MIN_SPEED = 6.0, 0.5
 SHUTTER = 0.5
 W, H = 1920, 1080
 
 
 def frames(vf, fmt, width, height, channels):
-    p = subprocess.Popen(["ffmpeg", "-v", "error", "-i", SRC, "-an", "-vf", vf, "-f", "rawvideo", "-pix_fmt", fmt, "-"], stdout=subprocess.PIPE)
+    # The source, then its own first frame again (the loop's join).
+    graph = f"[1:v]trim=end_frame=1,setpts=PTS-STARTPTS[first];[0:v][first]concat=n=2:v=1:a=0,{vf}"
+    p = subprocess.Popen(
+        ["ffmpeg", "-v", "error", "-i", SRC, "-i", SRC, "-filter_complex", graph, "-f", "rawvideo", "-pix_fmt", fmt, "-"],
+        stdout=subprocess.PIPE,
+    )
     size = width * height * channels
     while True:
         b = p.stdout.read(size)
@@ -49,16 +59,17 @@ s = np.array(speed)
 s[0] = s[1]
 n = len(s)
 k = np.exp(-0.5 * (np.arange(-30, 31) / 10) ** 2)
-smooth = np.convolve(np.pad(s, 30, mode="edge"), k / k.sum(), mode="valid")
+# Smoothed round the loop: the end runs on into the start.
+smooth = np.convolve(np.pad(s, 30, mode="wrap"), k / k.sum(), mode="valid")
 
-# 2. One even pace: the approach's and the rooms' (glass to glass).
-target = float(np.median(smooth[30 : int(10 * FPS_IN)]))
+# 2. One even pace for the whole flight, a little quicker than its typical pace.
+target = SPEED * float(np.median(smooth))
 rate = np.clip(target / np.maximum(smooth, 1e-3), MIN_SPEED, MAX_SPEED)
 t_out = np.concatenate([[0], np.cumsum(1 / rate[1:])]) / FPS_IN  # output seconds at each source frame
 times = np.arange(0, t_out[-1], 1 / FPS_OUT)
 src_pos = np.interp(times, t_out, np.arange(n))  # source frame (60 fps units) shown at each output frame
 fluid_pos = src_pos * (FPS_FLUID / FPS_IN)  # in 120 fps units
-print(f"{n} source frames, pace {target:.2f}; {len(times) / FPS_OUT:.1f} s at {FPS_OUT} fps (was {n / FPS_IN:.1f} s)")
+print(f"{n - 1} source frames (+ the first again), pace {target:.2f}; {len(times) / FPS_OUT:.1f} s at {FPS_OUT} fps (was {(n - 1) / FPS_IN:.1f} s)")
 
 # 3. Each output frame: the in-betweens it covers, blended.
 windows = []

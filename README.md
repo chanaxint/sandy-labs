@@ -149,9 +149,11 @@ scroll position asks for on a full-screen canvas:
      each sliding up from behind its edge and leaving upwards: `dreamLines`) and a wide writing field (like a chat
      box) just below them, growing with the text, over a silent looping video (a flight round a
      seaside residence, `public/media/create`, AV1 and H.264 at 1080p and 720p, built by
-     `scripts/create/build-dream.sh` from the GitHub release `create-video`: re-timed to
-     one even pace by `scripts/create/dream_loop.py`, forward only, the page looping it;
-     a still poster with reduced motion).
+     `scripts/create/build-dream.sh` from the GitHub release `create-video-2`: every scene
+     re-timed to one even, slightly quick pace with optical-flow in-betweens at 60 fps by
+     `scripts/create/dream_loop.py`, forward only; it ends on the shot it began with, and
+     the in-betweens from its last frame to its first make the loop seamless, no cut or
+     dissolve; a still poster with reduced motion).
   Back returns to the step before with the answers kept.
   There is no way back to the night from the steps; the menu's Home still leaves them. Nothing is sent anywhere (no backend), so step 4's Send isn't wired
   yet. Reduced motion: straight there, fades only.

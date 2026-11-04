@@ -90,7 +90,7 @@ Rules:
   "Create my website" (`components/site/CreateFlow.tsx`, `lib/site/create.ts`): the night plays back
   to morning and the steps open (1. industry, 2. kind of website, its choices per industry in
   `sitesFor`, 3. design style as moving previews, `StylePreview.tsx`, 4. the dream website in a
-  wide writing field over a silent video, `public/media/create`, release `create-video`);
+  wide writing field over a silent video, `public/media/create`, release `create-video-2`);
   nothing is sent (no backend), so step 4's Send isn't wired yet. `/studio` is the Story Studio (layout editor, not linked):
   its saved `lib/journey/story-layout.json` is applied over `story.ts` (`storyStore.ts`);
   when the user sends one, commit it as that file.
