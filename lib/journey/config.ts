@@ -37,7 +37,8 @@ export const journeyConfig = {
     { from: 2720, vhPerSecond: 32 }, // the ride and the jump
     { from: 3240, vhPerSecond: 23 }, // the long snowfield and white-out, no line
     { from: 3760, vhPerSecond: 64 }, // Miami through the clouds: its line
-    { from: 4000, vhPerSecond: 56 }, // the jet and the value lines, phrase after phrase
+    { from: 4000, vhPerSecond: 56 }, // the jet comes in and leaves: its two lines
+    { from: 4344, vhPerSecond: 40 }, // the camera tilts up into the sky: no line, film alone
     { from: 4600, vhPerSecond: 40 }, // day to night
     { from: 4850, vhPerSecond: 35 }, // the night sky and the closing line
   ],

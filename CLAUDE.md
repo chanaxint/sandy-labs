@@ -81,13 +81,16 @@ Rules:
   takes over as it loads; there is no blocking preload.
   The story over the film (scenes of EN/TR phrases, frame timing, desktop/phone placement)
   lives in `lib/journey/story.ts`, rendered by `CinematicTextOverlay`, on a timeline following
-  the film (`storyTimeline.ts`). Scroll pace is set per stretch (`pace` in config, `pace.ts`).
+  the film (`storyTimeline.ts`): the final approved story 01–14 (01 is the start button's line; no
+  line while the camera tilts to the sky); its closing CTAs: Build Your Brand (Create my website) and
+  Explore Our Services (#ecosystem). Scroll pace is set per stretch (`pace` in config, `pace.ts`).
   The snowboard jump has its own beat (`jumpBeat.ts`: from the approach the film plays itself,
   holds with the board side-on as the phrase cuts in either side of the rider, his cut-out in front
   of it (`rider.ts`), runs through the landing until the rider leaves the frame, scroll handed back).
   Ordinary phrases share one fixed place (`storyPlace` in `story.ts`). A wall of cloud rises over the
   film's two hard cuts (`veils.ts`, cumulus banks and their inside from `cloud_wall.py` via
-  `build-journey.sh`), its line still in the middle, shown only where the cloud is behind it; cloud B opens at frame 2458; the closing line and its CTA stand on the left. The closing CTA (and the menu's) opens
+  `build-journey.sh`); cloud A's line (04) stays still in the middle, shown only where the cloud is
+  behind it; cloud B has no line and opens at frame 2458, line 07 comes with the snowboarder; the closing line and its CTA stand on the left. The closing CTA (and the menu's) opens
   "Create my website" (`components/site/CreateFlow.tsx`, `lib/site/create.ts`): the night plays back
   to morning and the steps open (1. industry, 2. kind of website, its choices per industry in
   `sitesFor`, 3. design style as moving previews, `StylePreview.tsx`, 4. the dream website in a
@@ -102,10 +105,15 @@ Rules:
   Home and Create my website) and the progress line that replaces the scrollbar (`ScrollProgress.tsx`). Logo paths: `lib/brand/logo.ts` (traced from
   `design/brand/sandy-labs-logo.jpg`).
   Shooting stars cross the night at the end now and then (`components/journey/ShootingStars.tsx`).
-- After the journey: "What we do" (`components/site/WhatWeDo.tsx`, `lib/site/whatWeDo.ts`). Its
-  opening is the user's valley painting, the village a layer of its own that rises a little as the
-  pinned stage scrolls (layers from `design/what-we-do/` via `scripts/what-we-do/build-layers.py`).
-  The progress line follows the journey only.
+- After the journey (Phase 1, ecosystem foundation; README "After the journey"): the introduction
+  (opening on the user's valley painting, the village rising as its own layer: `WhatWeDo.tsx`,
+  layers via `scripts/what-we-do/build-layers.py`), Our Ecosystem, Sandy Platform (vision, in
+  development), About, Contact, footer (`components/home/`, copy in `lib/site/home.ts`). Four
+  service pages `/sites` `/reach` `/presence` `/flow` from one layout (`app/[service]`,
+  `components/ecosystem/ServicePage.tsx`); every service comes from `lib/ecosystem/services.ts`.
+  Links go through `SmartLink` (`/#section` loads home there, `/#create` opens Create my website).
+  The progress line follows the journey only. Accounts, workspaces, Sandy Dashboard: later phases,
+  not built (`plannedRoutes` in `lib/site/nav.ts`).
   `JourneyDebug` is a tuning panel, shown only with `?debug` in the URL.
 
 ## Code conventions

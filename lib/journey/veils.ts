@@ -29,8 +29,8 @@ export type Veil = {
   dense: number;
   clear: number;
   to: number;
-  /** The story phrase written in it (story.ts, shown from `from` to `to`). */
-  phrase: string;
+  /** The story phrase it brings out, if any (story.ts, shown from `from` to `to`). */
+  phrase?: string;
 };
 
 const base = journeyConfig.media.base;
@@ -41,7 +41,8 @@ export const veils: Veil[] = [
   { id: "a", from: 880, dense: 906, clear: 962, to: 996, phrase: "takeoff" },
   // Over the cut to the slope (2196), and on until it has gone on the slope below the crest
   // (2458), the moment the film carries on from.
-  { id: "b", from: 2166, dense: 2192, clear: 2424, to: 2458, phrase: "snowboard-a" },
+  // No line in it: the next one (07) comes with the snowboarder, after it.
+  { id: "b", from: 2166, dense: 2192, clear: 2424, to: 2458 },
 ];
 
 /** Images are fetched this many frames before a veil starts. */
@@ -85,7 +86,7 @@ export function createVeils(stage: HTMLElement): SceneMedia {
   const reduce = prefersReducedMotion();
   const layers = veils.map((v) => {
     const el = stage.querySelector<HTMLElement>(`[data-veil="${v.id}"]`);
-    const place = stage.querySelector<HTMLElement>(`[data-phrase-place="${v.phrase}"]`);
+    const place = v.phrase ? stage.querySelector<HTMLElement>(`[data-phrase-place="${v.phrase}"]`) : null;
     if (place && !reduce) setMask(place, hidden);
     return {
       v,

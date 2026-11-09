@@ -116,8 +116,8 @@ scroll position asks for on a full-screen canvas:
   into the clouds (frames 230–315) the band rises and grows with it and fades as the screen
   fills with cloud, so nothing jumps back to the first frame.
   Pressing it fades the wordmark and the button and carries the mark up to the top centre
-  while the film runs by itself (2.4 s, scroll still held) to the first phrase ("Because
-  every journey…"), then hands the scroll over with a small "Scroll" hint at the bottom
+  while the film runs by itself (2.4 s, scroll still held) to the first phrase ("Let's
+  see just how far an idea can take us.", as the camera goes into the clouds), then hands the scroll over with a small "Scroll" hint at the bottom
   centre, gone once the visitor scrolls. Back at the very start of the film, a new scroll
   up (wheel, swipe, ↑/PageUp/Home; not the momentum of the scroll that got there) brings
   the opening back, the mark coming down from the header. Skipped when the page opens
@@ -170,7 +170,9 @@ fog, the fjord, the snowboarder's jump, Miami and the jet, to the night sky and 
 to action. Each phrase is tied to a moment in the footage, not to a time.
 
 - Copy (English and Turkish), timing and placement: `lib/journey/story.ts`, as scenes of
-  phrases (the approved story, 01–11). Each phrase has four film frames, `in` → `shown` →
+  phrases (the final approved story, 01–14: 01 is the start button's line, 12, the camera
+  tilting up to the sky, has no line; Sandy Labs is told as a brand ecosystem, not only a
+  website maker). Each phrase has four film frames, `in` → `shown` →
   `out` → `gone` (the gap to the next `in` is the pause between phrases, with film-only
   stretches between events). Every ordinary phrase sits in one fixed place, centred low on
   the screen (`storyPlace`: desktop and phone), one block at a time; it comes in with a
@@ -237,17 +239,58 @@ to action. Each phrase is tied to a moment in the footage, not to a time.
   `story-layout.json` (Chrome can write it straight into `lib/journey/`), or Download / Copy
   JSON. The site applies `lib/journey/story-layout.json` over the phrases designed in
   `story.ts` (`lib/journey/storyStore.ts`); commit that file to publish a layout.
-- Language: English or Turkish, from the browser's language (there is no switch on the page
-  for now; a choice saved earlier is kept). `lib/i18n/lang.tsx`.
+- Language: English or Turkish, from the browser's language until the visitor picks one
+  (the menu's EN / TR, the service pages' header and the footer; remembered).
+  `lib/i18n/lang.tsx`, shared types in `lib/i18n/types.ts`.
 - Type: Instrument Serif for the phrases, Instrument Sans for the button and the language
   switch (next/font). Readability comes from a soft text shadow, plus a faint local shade
   behind busy footage (`veil`); the film itself is never darkened.
-- The closing button ("Create My Website") isn't connected to anything: the project has no
-  website-creation flow or route yet.
+- The closing line has two buttons: "Build Your Brand" opens Create my website (its steps;
+  nothing is sent, there is no backend) and "Explore Our Services" goes to the ecosystem on
+  the home page (`#ecosystem`).
 
-## What we do
+## After the journey: Sandy Labs (Phase 1, ecosystem foundation)
 
-After the journey comes "What we do" (`components/site/WhatWeDo.tsx`, copy and tuning in
+The home page goes on after the film with the company's own content, then each service has
+its page. Everything shares one design system and one set of data.
+
+| Part | Where |
+| --- | --- |
+| 1. The Journey (unchanged) | `components/journey/`, `lib/journey/` |
+| 2. Introduction (opening on the valley) | `components/site/WhatWeDo.tsx`, `HomeIntroduction` |
+| 3. Our Ecosystem (four cards → service pages) | `HomeEcosystem`, `components/ecosystem/ServiceCard.tsx` |
+| 4. Sandy Platform (the vision; in development) | `HomePlatform` |
+| 5. About Sandy Labs | `HomeAbout` |
+| 6. Contact / CTA | `HomeContact`, `components/layout/SiteFooter.tsx` |
+| Service pages `/sites` `/reach` `/presence` `/flow` | `app/[service]/page.tsx` → `components/ecosystem/ServicePage.tsx` |
+
+- Services: `lib/ecosystem/services.ts` is the one source (name, route, accent, copy EN/TR,
+  categories, call to action, the Sandy Platform module each becomes). A new service is a
+  new entry there; its page, card, menu and footer links follow.
+- Copy: `lib/site/home.ts` (home sections), `lib/site/servicePage.ts` (shared service page
+  copy), `lib/site/copy.ts` (chrome). No client names, quotes or figures: none are real yet.
+- Navigation: `lib/site/nav.ts` (home sections; routes reserved for later phases:
+  `/account`, `/workspace`, `/dashboard`, not built or linked). `components/ui/SmartLink.tsx`
+  decides how a link goes: another route through next/link; a home section (`/#id`)
+  scrolls there on the home page or loads the home page there from elsewhere
+  (`components/home/HomeEntry.tsx`, which also skips the opening); `/#create` opens Create
+  my website. The home page itself (`/`) is a full load, so the journey starts at its opening.
+- Chrome: on the home page the header turns to ink over the content (`data-chrome` on
+  <html>) and the menu lists the sections, the services and the language; other pages use
+  `components/layout/PageHeader.tsx`. Every page ends with `SiteFooter`.
+- Design system (`app/globals.css`): ivory, cream and beige grounds, stone for quiet text,
+  ink hairlines (`--color-ivory/cream/beige/stone/line`); `eyebrow`, `display-1/2/3`,
+  `lede`, `btn btn-solid` / `btn-quiet`, `text-link`, `card-link`; one accent per service
+  (`--accent`, from the config). Components: `components/ui/` (Section, SectionHeading,
+  SmartLink, LangSwitch).
+- A route change starts each page clean (`components/scroll/SmoothScroll.tsx`: top, scroll
+  free, ScrollTrigger re-measured).
+- Not built (later phases): accounts, brand workspaces, Sandy Dashboard, any backend. The
+  contact section offers Create my website and the services; there is no form or address yet.
+
+### The introduction's opening
+
+After the journey comes the introduction (`components/site/WhatWeDo.tsx`, copy and tuning in
 `lib/site/whatWeDo.ts`). Its opening is the user's painting of the valley at dawn, whole
 and bottom-aligned (as wide as the screen; on phones as wide as keeps the whole village
 in view, its sky going on above). The stage pins for 1.2 screens while only the village

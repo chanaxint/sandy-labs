@@ -2,10 +2,12 @@
 
 import { useEffect, useLayoutEffect, useRef, useSyncExternalStore, type CSSProperties } from "react";
 import { useLang } from "@/lib/i18n/lang";
-import type { Phrase, Place } from "@/lib/journey/story";
+import { exploreCta, type Phrase, type Place } from "@/lib/journey/story";
 import { fitPhrases } from "@/lib/journey/fit";
 import { storyStore } from "@/lib/journey/storyStore";
 import { openCreate } from "@/lib/site/create";
+import { SmartLink } from "@/components/ui/SmartLink";
+import { homeHref } from "@/lib/site/nav";
 
 /** Position and text size as CSS variables: `--m*` on phones, `--d*` from the md breakpoint. */
 function placeVars(mobile: Place, desktop: Place): CSSProperties {
@@ -46,11 +48,13 @@ export function CinematicTextOverlay({
   phrase,
   lines,
   ctaLabel,
+  exploreLabel,
   studio,
 }: {
   phrase: Phrase;
   lines: string[];
   ctaLabel?: string;
+  exploreLabel?: string;
   studio?: "selected" | "hidden";
 }) {
   const first = phrase.in === 0 && phrase.shown === 0;
@@ -94,11 +98,22 @@ export function CinematicTextOverlay({
           )}
         </p>
         {ctaLabel ? (
-          <div data-line className={`mt-9 md:mt-11 ${alignClass(phrase.mobile, false)} ${alignClass(phrase.desktop, true)}`}>
-            {/* Opens the first step of the website creation (components/site/CreateFlow.tsx). */}
+          <div
+            data-line
+            className={`mt-9 flex flex-wrap gap-3 md:mt-11 ${phrase.mobile.align === "center" ? "justify-center" : ""} ${
+              phrase.desktop.align === "center" ? "md:justify-center" : "md:justify-start"
+            }`}
+          >
+            {/* Opens the first step of Create my website (components/site/CreateFlow.tsx). */}
             <button type="button" onClick={openCreate} className="story-cta pointer-events-auto">
               {ctaLabel}
             </button>
+            {/* The ecosystem's services, on the home page after the journey. */}
+            {exploreLabel ? (
+              <SmartLink href={homeHref("ecosystem")} className="story-cta story-cta-quiet pointer-events-auto">
+                {exploreLabel}
+              </SmartLink>
+            ) : null}
           </div>
         ) : null}
       </div>
@@ -138,6 +153,7 @@ export function StoryOverlays() {
           phrase={p}
           lines={p.text[lang]}
           ctaLabel={p.id === "final" ? cta[lang] : undefined}
+          exploreLabel={p.id === "final" ? exploreCta[lang] : undefined}
           studio={editing ? (p.id === studio.selected ? "selected" : "hidden") : undefined}
         />
       ))}

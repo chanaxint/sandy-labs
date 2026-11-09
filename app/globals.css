@@ -239,6 +239,15 @@ body {
     background-color 200ms ease,
     box-shadow 200ms ease;
 }
+/* The quieter one beside it: a hairline, the night showing through. */
+.story-cta-quiet {
+  background: transparent;
+  color: var(--color-snow);
+  box-shadow: inset 0 0 0 1px rgb(246 247 244 / 0.7);
+}
+.story-cta.story-cta-quiet:hover {
+  background: rgb(246 247 244 / 0.12);
+}
 .story-cta:hover {
   background: #ffffff;
   box-shadow: 0 10px 40px rgb(246 247 244 / 0.18);

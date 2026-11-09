@@ -106,6 +106,30 @@ const line = (p: Omit<Phrase, "enter" | "exit" | "desktop" | "mobile"> & Partial
 
 export const scenes: Scene[] = [
   {
+    id: "clouds",
+    // dawn sky blue; cloud ivory
+    ink: { light: "#f6f1e6", dark: "#24364a" },
+    phrases: [
+      // 02. Above the clouds (0–300), then into them (300–450), before the island. Shown as
+      // the camera goes into the cloud, once the opening's drifting band has gone with it
+      // (IntroClouds, ~315), dark on the white. The opening's run stops here
+      // (components/site/IntroGate.tsx); the opening itself (01) is the start button's line
+      // (lib/site/copy.ts).
+      line({
+        id: "clouds",
+        text: {
+          en: ["Let's see just how far", "an idea can take us."],
+          tr: ["Bir fikrin bizi ne kadar ileri", "götürebileceğini birlikte görelim."],
+        },
+        in: 312,
+        shown: 334,
+        out: 414,
+        gone: 438,
+        tone: "dark",
+      }),
+    ],
+  },
+  {
     id: "island-reveal",
     // dawn-cloud umber; island sand
     ink: { light: "#f0dfc1", dark: "#392b1d" },
@@ -114,7 +138,7 @@ export const scenes: Scene[] = [
       // runway (586). (The opening's run stops here: components/site/IntroGate.tsx.)
       line({
         id: "island-1",
-        text: { en: ["Because every journey", "begins with a simple idea."], tr: ["Çünkü her yolculuk,", "önce küçük bir fikirle başlar."] },
+        text: { en: ["Because every journey", "begins with a small idea."], tr: ["Çünkü her yolculuk,", "önce küçük bir fikirle başlar."] },
         in: 470,
         shown: 500,
         out: 556,
@@ -135,7 +159,7 @@ export const scenes: Scene[] = [
       line({
         id: "takeoff",
         text: {
-          en: ["And the right beginning can take", "that idea somewhere unexpected."],
+          en: ["And the right beginning can take that idea", "to places you never imagined."],
           tr: ["Ve doğru başlangıç, o fikri", "hiç beklemediğin yerlere taşır."],
         },
         in: 880,
@@ -157,8 +181,8 @@ export const scenes: Scene[] = [
       line({
         id: "swap",
         text: {
-          en: ["Sometimes the route changes,", "but the urge to explore never does."],
-          tr: ["Bazen yol değişir;", "ama keşfetme isteği hep devam eder."],
+          en: ["Sometimes the route changes.", "But the desire to explore never fades."],
+          tr: ["Bazen yol değişir.", "Ama keşfetme isteği hiç bitmez."],
         },
         in: 1600,
         shown: 1626,
@@ -176,7 +200,7 @@ export const scenes: Scene[] = [
       // The second plane flies up the fjord between the snow mountains (1790–2190).
       line({
         id: "mountains",
-        text: { en: ["With every new horizon", "come new possibilities."], tr: ["Yeni bir manzarayla birlikte,", "yeni ihtimaller de belirir."] },
+        text: { en: ["Because every new horizon", "brings new possibilities."], tr: ["Çünkü her yeni ufuk, beraberinde", "yeni ihtimaller getirir."] },
         in: 1880,
         shown: 1906,
         out: 1990,
@@ -192,19 +216,18 @@ export const scenes: Scene[] = [
     // steel navy; ice
     ink: { light: "#deedf2", dark: "#1c2f44" },
     phrases: [
-      // Transition B: the plane's view of the peaks closes into cloud (2166–2490,
-      // lib/journey/veils.ts), the cut to the snowboard slope (2196) happens inside it, and it
-      // opens on the slope below the crest (gone at 2458); the line is written in the cloud.
+      // 07. Transition B (the plane's view of the peaks closes into cloud, 2166–2458, the cut
+      // to the slope inside it; lib/journey/veils.ts) opens on the slope below the crest, and
+      // the snowboarder rides into the frame from the right (2470) to its middle (2490 on).
       // It leads into the jump's line; it isn't shown again at the jump.
       line({
         id: "snowboard-a",
-        text: { en: ["That's when you want", "to do more than watch…"], tr: ["İşte o zaman,", "sadece izlemek değil…"] },
-        in: 2166,
-        shown: 2168,
-        out: 2456,
-        gone: 2458,
+        text: { en: ["That's when watching", "isn't enough…"], tr: ["İşte o zaman,", "sadece izlemek değil…"] },
+        in: 2474,
+        shown: 2498,
+        out: 2600,
+        gone: 2624,
         tone: "dark",
-        ...cloudPlace,
       }),
       {
         // The jump. From the approach the film plays by itself; at the freeze frame (board
@@ -237,8 +260,8 @@ export const scenes: Scene[] = [
       line({
         id: "miami",
         text: {
-          en: ["At Sandy Labs, that's exactly", "how we see websites."],
-          tr: ["Biz Sandy Labs'ta, web sitelerine", "tam da böyle bakıyoruz."],
+          en: ["At Sandy Labs, that's exactly", "how we see brands."],
+          tr: ["Biz Sandy Labs'ta, markalara", "tam da böyle bakıyoruz."],
         },
         in: 3876,
         shown: 3900,
@@ -254,17 +277,18 @@ export const scenes: Scene[] = [
     // sky marine; sand
     ink: { light: "#f6ecda", dark: "#11263f" },
     phrases: [
-      // The private jet climbs in (3975–4030) and holds the centre (4040–4190).
+      // 10. The private jet climbs into the frame from below (3975–4030) and holds the
+      // centre (4040–4190).
       line({
         id: "jet",
         text: {
-          en: ["You share your idea; we turn it", "into an experience worth exploring."],
-          tr: ["Sen fikrini anlatırsın; biz onu keşfedilecek", "bir deneyime dönüştürürüz."],
+          en: ["We shape their identities", "and digital worlds."],
+          tr: ["Kimliklerini ve", "dijital dünyalarını tasarlıyoruz."],
         },
-        in: 4036,
-        shown: 4062,
+        in: 4000,
+        shown: 4026,
         out: 4150,
-        gone: 4172,
+        gone: 4174,
         tone: "light",
         veil: true,
       }),
@@ -275,38 +299,17 @@ export const scenes: Scene[] = [
     // marine; warm ivory sand
     ink: { light: "#f7f1e4", dark: "#10253c" },
     phrases: [
-      // The jet banks away and leaves (4200–4330): three lines close together, the last
-      // the strongest and the longest.
+      // 11. The jet banks to the left and leaves (4200–4330); gone well before the camera
+      // tilts up into the sky (4480–4580), which plays without a line.
       line({
-        id: "value-1",
-        text: { en: ["With immersive 3D worlds", "and fluid scroll animations."], tr: ["3D dünyalar ve", "akıcı scroll animasyonlarıyla."] },
-        in: 4210,
-        shown: 4236,
-        out: 4292,
-        gone: 4312,
+        id: "jet-leaves",
+        text: { en: ["We help them grow", "and make their work easier."], tr: ["Büyümelerine yardımcı oluyor,", "işlerini kolaylaştırıyoruz."] },
+        in: 4204,
+        shown: 4228,
+        out: 4318,
+        gone: 4342,
         tone: "light",
         veil: true,
-      }),
-      line({
-        id: "value-2",
-        text: { en: ["What's more…"], tr: ["Üstelik…"] },
-        in: 4322,
-        shown: 4342,
-        out: 4372,
-        gone: 4390,
-        tone: "light",
-        veil: true,
-      }),
-      // The camera tilts up into the sky (4480–4580).
-      line({
-        id: "value-3",
-        text: { en: ["In around 5 minutes."], tr: ["Yaklaşık 5 dakikada."] },
-        in: 4400,
-        shown: 4428,
-        out: 4520,
-        gone: 4550,
-        tone: "light",
-        size: "statement",
       }),
     ],
   },
@@ -360,4 +363,7 @@ export const scenes: Scene[] = [
  */
 export const designedPhrases: Phrase[] = scenes.flatMap((s) => s.phrases.map((p) => ({ ...p, scene: s.id, ink: s.ink })));
 
-export const designedCta: Record<Lang, string> = { en: "Create My Website", tr: "Web Sitemi Oluştur" };
+/** The closing line's call to action: opens Create my website (components/site/CreateFlow.tsx). Editable in the Studio. */
+export const designedCta: Record<Lang, string> = { en: "Build Your Brand", tr: "Markanı Oluştur" };
+/** Beside it, quieter: the ecosystem's four services, on the home page after the journey (#ecosystem). */
+export const exploreCta: Record<Lang, string> = { en: "Explore Our Services", tr: "Hizmetleri Keşfet" };

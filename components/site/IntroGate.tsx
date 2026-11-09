@@ -11,7 +11,7 @@ import { holdScroll, introStore, releaseScroll } from "@/lib/site/intro";
 import { getLenis, gsap, prefersReducedMotion } from "@/lib/scroll/engine";
 
 /** The film plays by itself up to this phrase (the first of the story), then the scroll takes over. */
-const firstPhrase = "island-1";
+const firstPhrase = "clouds";
 /** How long that opening run lasts (s): quick, straight into the story. */
 const runSeconds = 2.4;
 /** Scrolled this far (px) from where the run stopped: the scroll hint goes. */
