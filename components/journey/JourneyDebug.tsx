@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { journeyConfig } from "@/lib/journey/config";
 import { filmStatus } from "@/lib/journey/film";
 import { jumpStatus } from "@/lib/journey/jumpBeat";
+import { scrollForFrame } from "@/lib/journey/navigate";
 import { frameAt, paceAt, progressAt } from "@/lib/journey/pace";
 import { getLenis, gsap } from "@/lib/scroll/engine";
 
@@ -20,7 +21,7 @@ export function JourneyDebug() {
     if (!enabled || !out.current) return;
     out.current.hidden = false;
     // For browser tests.
-    Object.assign(window, { __journey: filmStatus, __jump: jumpStatus, __pace: { frameAt, progressAt } });
+    Object.assign(window, { __journey: filmStatus, __jump: jumpStatus, __pace: { frameAt, progressAt, scrollFor: scrollForFrame } });
     let last = 0;
     const tick = (time: number) => {
       if (time - last < 0.1 || !out.current) return;

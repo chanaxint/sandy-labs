@@ -3,10 +3,12 @@
 import { ScrollScene } from "@/components/scroll/ScrollScene";
 import { useLang } from "@/lib/i18n/lang";
 import { prefersReducedMotion } from "@/lib/scroll/engine";
+import { home } from "@/lib/site/home";
 import { whatWeDo } from "@/lib/site/whatWeDo";
 import type { CSSProperties } from "react";
 
-const { media, length, rise, focusX, title } = whatWeDo;
+const { media, length, rise, focusX } = whatWeDo;
+const { eyebrow, title } = home.introduction;
 
 /** The village rises a little over the valley as the scene goes on (none with reduced motion). */
 function villageRise(tl: gsap.core.Timeline, stage: HTMLElement) {
@@ -16,7 +18,7 @@ function villageRise(tl: gsap.core.Timeline, stage: HTMLElement) {
 }
 
 /**
- * "What we do": the opening. The whole painting of the valley at dawn, bottom-aligned
+ * The introduction's opening (the home page's first section after the journey): The whole painting of the valley at dawn, bottom-aligned
  * and as wide as the screen (on narrow screens as wide as keeps the whole village in view,
  * its sky going on above); while the stage is pinned, only the village and its hill rise a little,
  * as a layer of their own, their hill going on below so nothing opens under it.
@@ -51,9 +53,14 @@ export function WhatWeDo() {
           className="absolute top-0 left-0 block h-auto w-full will-change-transform"
         />
       </div>
-      <h2 className="text-ink absolute top-[clamp(6rem,17vh,11rem)] left-[clamp(1.5rem,6vw,6.5rem)] m-0 font-serif text-[clamp(2.8rem,1.4rem+4.8vw,6.5rem)] leading-[1.02] font-normal tracking-[-0.018em]">
-        {title[lang]}
-      </h2>
+      {/* The valley's floor melts into the page that follows (HomeIntroduction). */}
+      <div aria-hidden className="absolute inset-x-0 bottom-0 h-[16%] bg-gradient-to-b from-transparent to-ivory" />
+      <div className="absolute top-[clamp(6.5rem,17vh,11rem)] right-6 left-6 text-ink md:right-auto md:left-[clamp(1.5rem,6vw,6.5rem)] md:max-w-[44rem]">
+        <p className="eyebrow text-ink/70">{eyebrow[lang]}</p>
+        <h2 id="introduction-title" className="display-1 mt-5">
+          {title[lang]}
+        </h2>
+      </div>
     </ScrollScene>
   );
 }

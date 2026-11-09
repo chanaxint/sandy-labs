@@ -3,6 +3,9 @@
 import { AnimatePresence, domMax, LazyMotion, m, MotionConfig } from "motion/react";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { SandyMark } from "@/components/brand/SandyLogo";
+import { LangSwitch } from "@/components/ui/LangSwitch";
+import { SmartLink } from "@/components/ui/SmartLink";
+import { services } from "@/lib/ecosystem/services";
 import { useLang } from "@/lib/i18n/lang";
 import { goToFrame } from "@/lib/journey/navigate";
 import type { Lang } from "@/lib/journey/story";
@@ -10,12 +13,16 @@ import { storyStore } from "@/lib/journey/storyStore";
 import { copy } from "@/lib/site/copy";
 import { createStore, openCreate } from "@/lib/site/create";
 import { holdScroll, introStore, releaseScroll } from "@/lib/site/intro";
+import { home } from "@/lib/site/home";
+import { homeSections } from "@/lib/site/nav";
+import { goToSection } from "@/lib/site/sections";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
 /**
- * The page's chrome: "Contact us" at the top left, the logo's mark at the top centre (back
- * to the start) once the journey has started, and the menu button at the top right.
+ * The home page's chrome: "Contact us" at the top left (to the contact section), the logo's
+ * mark at the top centre (back to the start) once the journey has started, and the menu
+ * button at the top right. White over the film, ink over the corporate content (HomeEntry).
  */
 export function SiteHeader() {
   const { lang } = useLang();
@@ -49,10 +56,10 @@ export function SiteHeader() {
 
   return (
     <>
-      <header className="pointer-events-none fixed inset-x-0 top-0 z-[60] text-snow">
-        {/* Not connected yet: there is no contact page or address in this project. */}
+      <header className="site-header pointer-events-none fixed inset-x-0 top-0 z-[60] text-snow transition-colors duration-300">
         <button
           type="button"
+          onClick={() => goToSection("contact", { smooth: true })}
           className="header-link brand-shadow pointer-events-auto absolute top-[18px] left-4 flex h-[26px] items-center px-2 text-[0.82rem] tracking-[0.04em] md:top-[22px] md:left-7 md:text-[0.9rem]"
         >
           {copy.contact[lang]}
@@ -85,6 +92,10 @@ export function SiteHeader() {
         open={open}
         lang={lang}
         onGo={goTo}
+        onSection={(id) => {
+          setOpen(false);
+          goToSection(id);
+        }}
         onCreate={() => {
           setOpen(false);
           introStore.set("done");
@@ -100,12 +111,14 @@ function SiteMenu({
   open,
   lang,
   onGo,
+  onSection,
   onCreate,
   onClose,
 }: {
   open: boolean;
   lang: Lang;
   onGo: (frame: number) => void;
+  onSection: (id: string) => void;
   onCreate: () => void;
   onClose: () => void;
 }) {
@@ -143,28 +156,51 @@ function SiteMenu({
               exit={{ x: "100%", pointerEvents: "none" }}
               transition={{ duration: 0.6, ease }}
             >
-              <ul className="space-y-2">
+              <ul className="space-y-1">
                 {[
                   { id: "home", label: copy.homeLink[lang], go: () => onGo(0) },
+                  ...homeSections
+                    .filter((x) => x.id !== "contact")
+                    .map((x) => ({ id: x.id, label: x.label[lang], go: () => onSection(x.id) })),
                   { id: "create", label: cta[lang], go: onCreate },
+                  { id: "contact", label: homeSections.find((x) => x.id === "contact")!.label[lang], go: () => onSection("contact") },
                 ].map((item, i) => (
                   <m.li
                     key={item.id}
                     initial={{ opacity: 0, x: 18 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.5, ease, delay: 0.12 + i * 0.06 }}
+                    transition={{ duration: 0.5, ease, delay: 0.12 + i * 0.05 }}
                   >
                     <button
                       ref={i === 0 ? first : undefined}
                       type="button"
                       onClick={item.go}
-                      className="font-serif text-[2.1rem] leading-tight text-snow/90 transition-colors duration-200 hover:text-white focus-visible:underline focus-visible:outline-none"
+                      className="font-serif text-[1.9rem] leading-tight text-snow/90 transition-colors duration-200 hover:text-white focus-visible:underline focus-visible:outline-none"
                     >
                       {item.label}
                     </button>
                   </m.li>
                 ))}
               </ul>
+              <m.div
+                className="mt-10 border-t border-snow/15 pt-6"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, ease, delay: 0.45 }}
+              >
+                <p className="eyebrow text-snow/55">{home.footer.services[lang]}</p>
+                <ul className="mt-3 space-y-2">
+                  {services.map((s) => (
+                    <li key={s.id}>
+                      <SmartLink href={s.route} onNavigate={onClose} className="flex items-center gap-3 text-[1.05rem] text-snow/85 hover:text-white">
+                        <span aria-hidden className="size-1.5 rounded-full" style={{ background: s.accent.soft }} />
+                        {s.name}
+                      </SmartLink>
+                    </li>
+                  ))}
+                </ul>
+                <LangSwitch label={home.footer.language[lang]} className="mt-8 text-snow" />
+              </m.div>
             </m.nav>
           ) : null}
         </AnimatePresence>

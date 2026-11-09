@@ -5,6 +5,14 @@
   --font-serif: var(--font-serif), ui-serif, Georgia, serif;
   --color-ink: #0f1e2c;
   --color-snow: #f6f7f4;
+  /* The corporate pages' palette (Phase 1 design system): ivory grounds, cream and
+     beige for alternate bands, stone for quiet text, hairlines in ink. Each service adds
+     its own accent (lib/ecosystem/services.ts) as --accent / --accent-soft. */
+  --color-ivory: #f8f4ec;
+  --color-cream: #f1eadd;
+  --color-beige: #e7dcc9;
+  --color-stone: #6f675c;
+  --color-line: rgb(15 30 44 / 0.12);
 }
 
 /* Selected text: a near-white highlight (dark letters) across the site; on light ground
@@ -1145,6 +1153,146 @@ html.create-mode [data-shooting-stars] {
   }
   .menu-toggle span,
   .intro-start {
+    transition: none;
+  }
+}
+
+/* ------------------------------------------------------------------ design system */
+/* Shared by the home page's sections after the journey and the service pages. */
+
+.eyebrow {
+  font-family: var(--font-sans);
+  font-size: 0.76rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-stone);
+}
+.display-1 {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: clamp(2.9rem, 1.5rem + 5vw, 6.6rem);
+  line-height: 0.98;
+  letter-spacing: -0.022em;
+  text-wrap: balance;
+}
+.display-2 {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: clamp(2.3rem, 1.4rem + 3.2vw, 4.6rem);
+  line-height: 1.02;
+  letter-spacing: -0.018em;
+  text-wrap: balance;
+}
+.display-3 {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: clamp(1.7rem, 1.2rem + 1.5vw, 2.6rem);
+  line-height: 1.08;
+  letter-spacing: -0.012em;
+}
+.lede {
+  font-size: clamp(1.05rem, 0.96rem + 0.4vw, 1.3rem);
+  line-height: 1.62;
+  color: rgb(15 30 44 / 0.78);
+  text-wrap: pretty;
+}
+
+/* Buttons: one solid (ink), one quiet (a hairline); both pill-shaped like the journey's. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  border-radius: 999px;
+  padding: 0.95rem 1.7rem;
+  font-size: 1rem;
+  letter-spacing: 0.01em;
+  transition:
+    background-color 220ms ease,
+    color 220ms ease,
+    border-color 220ms ease;
+}
+.btn-solid {
+  background: var(--color-ink);
+  color: var(--color-ivory);
+}
+.btn-solid:hover {
+  background: #1d3346;
+}
+.btn-quiet {
+  border: 1px solid rgb(15 30 44 / 0.28);
+  color: var(--color-ink);
+}
+.btn-quiet:hover {
+  border-color: var(--color-ink);
+}
+.btn:focus-visible,
+.card-link:focus-visible,
+.text-link:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 4px;
+}
+
+/* A link that underlines itself on hover. */
+.text-link {
+  background: linear-gradient(currentColor, currentColor) no-repeat left 100% / 0 1px;
+  transition: background-size 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.text-link:hover,
+.text-link[aria-current="page"] {
+  background-size: 100% 1px;
+}
+
+/* A service card: a quiet panel whose accent line grows on hover. */
+.card-link {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--color-line);
+  transition: background-color 260ms ease;
+}
+.card-link::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 0;
+  height: 2px;
+  width: 2.5rem;
+  background: var(--accent);
+  transition: width 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.card-link:hover::before,
+.card-link:focus-visible::before {
+  width: 100%;
+}
+.card-link .card-arrow {
+  transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.card-link:hover .card-arrow {
+  transform: translateX(4px);
+}
+
+/* The home page's header over the corporate content (ChromeTone): ink, without the
+   film's shadow; the journey's progress line steps aside. */
+html[data-chrome="content"] .site-header {
+  color: var(--color-ink);
+}
+html[data-chrome="content"] .site-header .brand-shadow {
+  filter: none;
+}
+html[data-chrome="content"] .scroll-progress {
+  opacity: 0;
+  pointer-events: none;
+}
+html[data-chrome="content"] .menu-toggle:focus-visible,
+html[data-chrome="content"] .header-link:focus-visible,
+html[data-chrome="content"] .header-mark:focus-visible {
+  outline-color: var(--color-ink);
+}
+@media (prefers-reduced-motion: reduce) {
+  .card-link::before,
+  .card-link .card-arrow,
+  .text-link {
     transition: none;
   }
 }

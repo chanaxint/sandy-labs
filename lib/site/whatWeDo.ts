@@ -1,12 +1,9 @@
-import type { Lang } from "@/lib/journey/story";
-
 /**
- * "What we do", after the journey: its opening is the valley at dawn (the user's
+ * The introduction's opening, right after the journey (its copy: lib/site/home.ts): the valley at dawn (the user's
  * painting), the village on its hill a layer of its own that rises a little with the
  * scroll (components/site/WhatWeDo.tsx). Media from scripts/what-we-do/build-layers.py.
  */
 export const whatWeDo = {
-  title: { en: "What we do", tr: "Neler yapıyoruz" } satisfies Record<Lang, string>,
   media: {
     /** The painting, its own village taken out, with more sky above: the frame (16:10). */
     valley: { src: "/media/what-we-do/valley.webp", width: 2000, height: 1250 },
