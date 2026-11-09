@@ -176,8 +176,8 @@ to action. Each phrase is tied to a moment in the footage, not to a time.
   `out` → `gone` (the gap to the next `in` is the pause between phrases, with film-only
   stretches between events). Every ordinary phrase sits in one fixed place, centred low on
   the screen (`storyPlace`: desktop and phone), one block at a time; it comes in with a
-  fade and a small rise and goes with a soft fade. Cloud A's line stands in the middle and
-  shows where the cloud is behind it (`cloudPlace`); the jet's two lines (10–11) stand in
+  fade and a small rise and goes with a soft fade. The clouds' lines (04, 06) stand in the
+  middle and show where the cloud is behind them (`cloudPlace`); the jet's two lines (10–11) stand in
   the sky above the skyline (`skyPlace`), the jet filling the lower middle there; the jump's
   phrase is large either side of the rider; the closing line and its call to action stand
   on the left. Text tone (light or dark) follows the footage behind it.
@@ -192,11 +192,10 @@ to action. Each phrase is tied to a moment in the footage, not to a time.
   and no runway, coast or island is seen again), with "And the right beginning…"; B, the
   snowy plane's peaks to the snowboard slope (2166–2458: it stays over the start of the slope
   and has gone at 2458, below the crest, where the film carries on), with "Because every new
-  horizon brings new possibilities." (06, moved here from the fjord: an ordinary line at the
-  story's place, in once the cloud covers the screen and gone before it opens; "That's when
-  watching isn't enough…" then comes with the snowboarder). As if the camera sank through a bank of cumulus: the
+  horizon brings new possibilities." (06, moved here from the fjord; "That's when watching
+  isn't enough…" then comes with the snowboarder). As if the camera sank through a bank of cumulus: the
   cloud's edge rises from the bottom until the screen is white, drifts, then its underside
-  rises out of the top and the new scene shows from the bottom up. Cloud A's phrase stands still in
+  rises out of the top and the new scene shows from the bottom up. Each cloud's phrase stands still in
   the middle of the screen, as if it had always been there and the cloud brought it out: it
   shows only where the cloud is behind it (veils.ts gives its place a soft mask that follows
   the cloud's edge up through it, and its underside out), and stays masked once the cloud

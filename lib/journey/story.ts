@@ -208,17 +208,18 @@ export const scenes: Scene[] = [
     ink: { light: "#c7e4ec", dark: "#183040" },
     phrases: [
       // 06. The second plane flies up the fjord between the snow mountains (1790–2190) with
-      // no line; the line comes as cloud B rises over the peaks (2166–2192, lib/journey/veils.ts),
-      // stays while it covers the screen and is gone before it opens on the snowboard slope
-      // (2424). At the story's place, dark on the cloud.
+      // no line; the line is in cloud B over the peaks (2166–2458, lib/journey/veils.ts), as in
+      // cloud A: still in the middle, brought out by the cloud as it rises, taken away as it
+      // leaves.
       line({
         id: "mountains",
         text: { en: ["Because every new horizon", "brings new possibilities."], tr: ["Çünkü her yeni ufuk, beraberinde", "yeni ihtimaller getirir."] },
-        in: 2184,
-        shown: 2203,
-        out: 2383,
-        gone: 2418,
+        in: 2166,
+        shown: 2168,
+        out: 2456,
+        gone: 2458,
         tone: "dark",
+        ...cloudPlace,
       }),
     ],
   },

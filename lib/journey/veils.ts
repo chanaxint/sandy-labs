@@ -44,9 +44,9 @@ export const veils: Veil[] = [
   { id: "a", from: 880, dense: 906, clear: 1038, to: 1072, phrase: "takeoff" },
   // Over the cut to the slope (2196), and on until it has gone on the slope below the crest
   // (2458), the moment the film carries on from.
-  // Its line (06, story.ts) is an ordinary phrase at the story's place, in and gone while it
-  // covers the screen; the next one (07) comes with the snowboarder, after it.
-  { id: "b", from: 2166, dense: 2192, clear: 2424, to: 2458 },
+  // Brings out line 06 like cloud A does its own; the next one (07) comes with the
+  // snowboarder, after it.
+  { id: "b", from: 2166, dense: 2192, clear: 2424, to: 2458, phrase: "mountains" },
 ];
 
 /** Images are fetched this many frames before a veil starts. */
