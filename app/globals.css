@@ -69,7 +69,7 @@ body {
   position: absolute;
   inset: -45% -30%;
   z-index: -1;
-  background: radial-gradient(closest-side, rgb(8 20 32 / 0.3), transparent);
+  background: radial-gradient(closest-side, rgb(8 20 32 / 0.38), transparent);
   pointer-events: none;
 }
 

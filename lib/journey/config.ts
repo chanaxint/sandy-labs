@@ -12,7 +12,9 @@ export const journeyConfig = {
   },
   /**
    * Scroll pace: scroll distance per second of film, in % of the viewport height, from
-   * each `from` frame to the next. 30 means one screen of scrolling plays ~3.3 s of film.
+   * each `from` frame to the next. A stretch with a line is paced for reading at a calm
+   * scroll (about 45 vh a second): in ~0.6 s, read 2.2-3.4 s by its length, out ~0.5 s
+   * (the line's frames in story.ts are set to match). 30 means one screen of scrolling plays ~3.3 s of film.
    * Slower (higher) where the story has lines to read in a short shot (the island, the
    * plane swap, Miami, the jet and the value lines), quicker over empty stretches (the sea,
    * the mountains, the long snowfield); on average ~20% slower than the original even 30. The story lines are timed in film frames, so they
@@ -20,27 +22,35 @@ export const journeyConfig = {
    */
   pace: [
     { from: 0, vhPerSecond: 35 }, // above the clouds, from the opening
-    { from: 330, vhPerSecond: 42 }, // the dive into the cloud
-    { from: 460, vhPerSecond: 54 }, // the island: its line
-    { from: 590, vhPerSecond: 34 }, // runway and take-off
-    { from: 878, vhPerSecond: 150 }, // transition A: the cloud rises (slow, so it passes unhurried)
-    { from: 906, vhPerSecond: 110 }, // inside the cloud (the film is hidden)
-    { from: 962, vhPerSecond: 150 }, // the cloud leaves
-    { from: 998, vhPerSecond: 34 }, // out over the sea
-    { from: 1040, vhPerSecond: 29 }, // over the sea, no line
-    { from: 1480, vhPerSecond: 56 }, // into the clouds: the plane swap, its line
-    { from: 1740, vhPerSecond: 36 }, // the fjord
-    { from: 2164, vhPerSecond: 150 }, // transition B: the cloud rises
-    { from: 2192, vhPerSecond: 26 }, // inside the cloud (the film is hidden, on to the slope below the crest): its line
-    { from: 2424, vhPerSecond: 150 }, // the cloud leaves
-    { from: 2460, vhPerSecond: 36 }, // the slope, the snowboarder rides in
-    { from: 2720, vhPerSecond: 32 }, // the ride and the jump
+    { from: 312, vhPerSecond: 84 }, // into the cloud: its line (02)
+    { from: 440, vhPerSecond: 42 }, // out of the cloud
+    { from: 462, vhPerSecond: 82 }, // the island: its line (03)
+    { from: 584, vhPerSecond: 34 }, // runway and take-off
+    { from: 878, vhPerSecond: 150 }, // cloud A rises (its line, 04, comes out with it)
+    { from: 906, vhPerSecond: 68 }, // cloud A covers the screen: both cuts (908-918, 1020-1036) happen inside it
+    { from: 1038, vhPerSecond: 150 }, // cloud A leaves: the plane is out over the open sea
+    { from: 1072, vhPerSecond: 29 }, // over the sea, no line
+    { from: 1480, vhPerSecond: 56 }, // into the clouds
+    { from: 1560, vhPerSecond: 74 }, // the plane swap: its line (05)
+    { from: 1712, vhPerSecond: 56 }, // the second plane takes shape
+    { from: 1740, vhPerSecond: 36 }, // the fjord, no line
+    { from: 2164, vhPerSecond: 150 }, // cloud B rises: its line (06) comes in
+    { from: 2192, vhPerSecond: 39 }, // cloud B covers the screen (the film is hidden): its line
+    { from: 2418, vhPerSecond: 150 }, // cloud B leaves
+    { from: 2460, vhPerSecond: 36 }, // the slope below the crest
+    { from: 2474, vhPerSecond: 45 }, // the snowboarder rides in: its line (07)
+    { from: 2680, vhPerSecond: 36 }, // the ride
+    { from: 2720, vhPerSecond: 32 }, // the ride and the jump (its own beat)
     { from: 3240, vhPerSecond: 23 }, // the long snowfield and white-out, no line
-    { from: 3760, vhPerSecond: 64 }, // Miami through the clouds: its line
-    { from: 4000, vhPerSecond: 56 }, // the jet comes in and leaves: its two lines
+    { from: 3760, vhPerSecond: 64 }, // Miami through the clouds
+    { from: 3866, vhPerSecond: 87 }, // Miami: its line (09)
+    { from: 3986, vhPerSecond: 56 },
+    { from: 3992, vhPerSecond: 51 }, // the jet comes in from below: its line (10)
+    { from: 4180, vhPerSecond: 56 },
+    { from: 4196, vhPerSecond: 68 }, // the jet banks left and leaves: its line (11)
     { from: 4344, vhPerSecond: 40 }, // the camera tilts up into the sky: no line, film alone
-    { from: 4600, vhPerSecond: 40 }, // day to night
-    { from: 4850, vhPerSecond: 35 }, // the night sky and the closing line
+    { from: 4646, vhPerSecond: 56 }, // day to night: its line (13)
+    { from: 4840, vhPerSecond: 35 }, // the night sky and the closing line
   ],
   /**
    * ScrollTrigger scrub. `true` maps scroll to film time exactly; Lenis already

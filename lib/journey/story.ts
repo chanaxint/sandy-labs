@@ -96,6 +96,16 @@ const cloudPlace = {
   mobile: { top: "50%", left: phone.x, right: phone.x, align: "center", centerY: true } as Place,
 };
 
+/**
+ * Where the lines with the private jet stand (10–11): the same spot higher up, in the sky
+ * above the skyline, because the jet fills the lower middle of those shots; dark on the
+ * pale sky. (Miami's own line, 09, keeps the story's place: its shot has little sky.)
+ */
+const skyPlace = {
+  desktop: { top: "clamp(6.5rem, 15vh, 9.5rem)", left: "0", right: "0", align: "center" } as Place,
+  mobile: { top: "16vh", left: phone.x, right: phone.x, align: "center" } as Place,
+};
+
 /** A normal phrase: one block, fading in rising a little, fading out in place, at the story's spot. */
 const line = (p: Omit<Phrase, "enter" | "exit" | "desktop" | "mobile"> & Partial<Pick<Phrase, "enter" | "exit" | "desktop" | "mobile">>): Phrase => ({
   enter: "rise",
@@ -122,9 +132,9 @@ export const scenes: Scene[] = [
           tr: ["Bir fikrin bizi ne kadar ileri", "götürebileceğini birlikte görelim."],
         },
         in: 312,
-        shown: 334,
-        out: 414,
-        gone: 438,
+        shown: 331,
+        out: 424,
+        gone: 440,
         tone: "dark",
       }),
     ],
@@ -139,10 +149,10 @@ export const scenes: Scene[] = [
       line({
         id: "island-1",
         text: { en: ["Because every journey", "begins with a small idea."], tr: ["Çünkü her yolculuk,", "önce küçük bir fikirle başlar."] },
-        in: 470,
-        shown: 500,
-        out: 556,
-        gone: 578,
+        in: 462,
+        shown: 482,
+        out: 568,
+        gone: 584,
         tone: "light",
         // Over white rock / snow: a faint shade behind the words.
         veil: true,
@@ -164,8 +174,8 @@ export const scenes: Scene[] = [
         },
         in: 880,
         shown: 882,
-        out: 994,
-        gone: 996,
+        out: 1070,
+        gone: 1072,
         tone: "dark",
         ...cloudPlace,
       }),
@@ -184,10 +194,10 @@ export const scenes: Scene[] = [
           en: ["Sometimes the route changes.", "But the desire to explore never fades."],
           tr: ["Bazen yol değişir.", "Ama keşfetme isteği hiç bitmez."],
         },
-        in: 1600,
-        shown: 1626,
-        out: 1688,
-        gone: 1708,
+        in: 1560,
+        shown: 1582,
+        out: 1694,
+        gone: 1712,
         tone: "dark",
       }),
     ],
@@ -197,17 +207,18 @@ export const scenes: Scene[] = [
     // glacier navy; ice
     ink: { light: "#c7e4ec", dark: "#183040" },
     phrases: [
-      // The second plane flies up the fjord between the snow mountains (1790–2190).
+      // 06. The second plane flies up the fjord between the snow mountains (1790–2190) with
+      // no line; the line comes as cloud B rises over the peaks (2166–2192, lib/journey/veils.ts),
+      // stays while it covers the screen and is gone before it opens on the snowboard slope
+      // (2424). At the story's place, dark on the cloud.
       line({
         id: "mountains",
         text: { en: ["Because every new horizon", "brings new possibilities."], tr: ["Çünkü her yeni ufuk, beraberinde", "yeni ihtimaller getirir."] },
-        in: 1880,
-        shown: 1906,
-        out: 1990,
-        gone: 2012,
-        tone: "light",
-        // Over white rock / snow: a faint shade behind the words.
-        veil: true,
+        in: 2184,
+        shown: 2203,
+        out: 2383,
+        gone: 2418,
+        tone: "dark",
       }),
     ],
   },
@@ -216,17 +227,16 @@ export const scenes: Scene[] = [
     // steel navy; ice
     ink: { light: "#deedf2", dark: "#1c2f44" },
     phrases: [
-      // 07. Transition B (the plane's view of the peaks closes into cloud, 2166–2458, the cut
-      // to the slope inside it; lib/journey/veils.ts) opens on the slope below the crest, and
-      // the snowboarder rides into the frame from the right (2470) to its middle (2490 on).
+      // 07. Cloud B (06 in it) opens on the slope below the crest (2458), and the snowboarder
+      // rides into the frame from the right (2470) to its middle (2490 on).
       // It leads into the jump's line; it isn't shown again at the jump.
       line({
         id: "snowboard-a",
         text: { en: ["That's when watching", "isn't enough…"], tr: ["İşte o zaman,", "sadece izlemek değil…"] },
         in: 2474,
-        shown: 2498,
-        out: 2600,
-        gone: 2624,
+        shown: 2510,
+        out: 2650,
+        gone: 2680,
         tone: "dark",
       }),
       {
@@ -263,10 +273,10 @@ export const scenes: Scene[] = [
           en: ["At Sandy Labs, that's exactly", "how we see brands."],
           tr: ["Biz Sandy Labs'ta, markalara", "tam da böyle bakıyoruz."],
         },
-        in: 3876,
-        shown: 3900,
-        out: 3950,
-        gone: 3970,
+        in: 3866,
+        shown: 3885,
+        out: 3970,
+        gone: 3986,
         tone: "light",
         veil: true,
       }),
@@ -285,12 +295,12 @@ export const scenes: Scene[] = [
           en: ["We shape their identities", "and digital worlds."],
           tr: ["Kimliklerini ve", "dijital dünyalarını tasarlıyoruz."],
         },
-        in: 4000,
-        shown: 4026,
-        out: 4150,
-        gone: 4174,
-        tone: "light",
-        veil: true,
+        in: 3992,
+        shown: 4024,
+        out: 4154,
+        gone: 4180,
+        tone: "dark",
+        ...skyPlace,
       }),
     ],
   },
@@ -304,12 +314,12 @@ export const scenes: Scene[] = [
       line({
         id: "jet-leaves",
         text: { en: ["We help them grow", "and make their work easier."], tr: ["Büyümelerine yardımcı oluyor,", "işlerini kolaylaştırıyoruz."] },
-        in: 4204,
-        shown: 4228,
-        out: 4318,
-        gone: 4342,
-        tone: "light",
-        veil: true,
+        in: 4196,
+        shown: 4220,
+        out: 4324,
+        gone: 4344,
+        tone: "dark",
+        ...skyPlace,
       }),
     ],
   },
@@ -325,10 +335,10 @@ export const scenes: Scene[] = [
           en: ["Because every brand has", "a story waiting to be told."],
           tr: ["Çünkü her markanın, anlatılmayı", "bekleyen bir hikâyesi vardır."],
         },
-        in: 4650,
-        shown: 4676,
-        out: 4780,
-        gone: 4806,
+        in: 4646,
+        shown: 4675,
+        out: 4816,
+        gone: 4840,
         tone: "light",
       }),
     ],

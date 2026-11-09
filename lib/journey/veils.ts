@@ -1,6 +1,6 @@
 /**
  * A wall of cloud over the film's two hard cuts, so they happen inside the cloud:
- *   A — the take-off (cut to the flight over the sea, 908–918);
+ *   A — the take-off (cut to the flight, 908–918, and on past the coast to the open sea, 1036);
  *   B — the snowy plane's peaks (cut to the snowboard slope at ~2196).
  *
  * As if the camera sank through a bank of cumulus: the cloud's edge rises from the bottom
@@ -38,10 +38,14 @@ export const wallImages = { front: `${base}/veil-wall.webp`, back: `${base}/veil
 
 export const veils: Veil[] = [
   // Rising as the plane leaves the ground, all white just before the cut (908–918).
-  { id: "a", from: 880, dense: 906, clear: 962, to: 996, phrase: "takeoff" },
+  // Covers both the cut to the flight (908-918) and the smoothed cut from the coast to the
+  // open sea (1020-1036): it opens with the plane already out over the sea, followed from
+  // behind; no runway, coast or island is seen again.
+  { id: "a", from: 880, dense: 906, clear: 1038, to: 1072, phrase: "takeoff" },
   // Over the cut to the slope (2196), and on until it has gone on the slope below the crest
   // (2458), the moment the film carries on from.
-  // No line in it: the next one (07) comes with the snowboarder, after it.
+  // Its line (06, story.ts) is an ordinary phrase at the story's place, in and gone while it
+  // covers the screen; the next one (07) comes with the snowboarder, after it.
   { id: "b", from: 2166, dense: 2192, clear: 2424, to: 2458 },
 ];
 
